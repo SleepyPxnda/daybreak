@@ -141,7 +141,7 @@ const abschluss = ref(false)
 </script>
 
 <template>
-  <div class="grid gap-6 xl:grid-cols-[1fr_20rem]">
+  <div class="grid gap-8">
     <div class="grid min-w-0 content-start gap-5">
       <!-- Kopf -->
       <div class="flex flex-wrap items-center justify-between gap-3">
@@ -219,10 +219,11 @@ const abschluss = ref(false)
       </div>
     </div>
 
-    <aside class="grid content-start gap-4">
+    <!-- Karten unter der Timeline: Aufgaben in Arbeit, Merker, Nachfassen, Daily-Themen -->
+    <section class="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-4">
       <AufgabenInArbeit :datum="datum" />
       <TodoSpalte />
-    </aside>
+    </section>
 
     <BlockDialog v-model:open="blockDialog" :block="bearbeiteterBlock" :entwurf="entwurf" />
     <VorlageDialog v-model:open="vorlageDialog" :vorlage="vorlageEntwurf" />
