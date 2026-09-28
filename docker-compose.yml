@@ -1,0 +1,10 @@
+services:
+  daybreak:
+    image: ghcr.io/sleepypxnda/daybreak:latest
+    build: .
+    ports: ["3000:3000"]
+    volumes: ["./data:/data"]
+    environment:
+      - TZ=Europe/Berlin
+      # - DAYBREAK_PASSWORD=bitte-aendern   # optionaler Zugangsschutz (Basic Auth)
+    restart: unless-stopped

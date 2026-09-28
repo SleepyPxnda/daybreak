@@ -1,0 +1,123 @@
+@import "@fontsource-variable/inter";
+
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn-vue/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-heading: var(--font-sans);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+
+    /* Kontofarben + Status als Tailwind-Farben (bg-konto-mint, text-positiv …) */
+    --color-konto-lavendel: var(--konto-lavendel);
+    --color-konto-pfirsich: var(--konto-pfirsich);
+    --color-konto-mint: var(--konto-mint);
+    --color-konto-himmel: var(--konto-himmel);
+    --color-konto-rose: var(--konto-rose);
+    --color-konto-butter: var(--konto-butter);
+    --color-konto-salbei: var(--konto-salbei);
+    --color-konto-flieder: var(--konto-flieder);
+    --color-positiv: var(--positiv);
+    --color-negativ: var(--negativ);
+
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* Dark-only (v1): <html class="dark"> ist fest gesetzt, siehe nuxt.config.ts */
+.dark {
+    --background:           oklch(0.18 0.015 280);
+    --foreground:           oklch(0.93 0.010 280);
+    --card:                 oklch(0.215 0.018 280);
+    --card-foreground:      oklch(0.93 0.010 280);
+    --popover:              oklch(0.23 0.020 280);
+    --popover-foreground:   oklch(0.93 0.010 280);
+    --primary:              oklch(0.80 0.090 290);  /* Lavendel */
+    --primary-foreground:   oklch(0.20 0.030 290);
+    --secondary:            oklch(0.27 0.020 280);
+    --secondary-foreground: oklch(0.90 0.010 280);
+    --muted:                oklch(0.26 0.018 280);
+    --muted-foreground:     oklch(0.70 0.020 280);
+    --accent:               oklch(0.29 0.025 285);
+    --accent-foreground:    oklch(0.93 0.010 280);
+    --destructive:          oklch(0.72 0.120 20);   /* gedämpftes Rosé-Rot */
+    --border:               oklch(0.31 0.020 280);
+    --input:                oklch(0.31 0.020 280);
+    --ring:                 oklch(0.80 0.090 290);
+    --radius: 0.75rem;
+
+    /* Kontofarben (Pastell) */
+    --konto-lavendel: oklch(0.80 0.09 295);
+    --konto-pfirsich: oklch(0.83 0.08 55);
+    --konto-mint:     oklch(0.84 0.08 165);
+    --konto-himmel:   oklch(0.82 0.08 235);
+    --konto-rose:     oklch(0.80 0.09 5);
+    --konto-butter:   oklch(0.88 0.08 95);
+    --konto-salbei:   oklch(0.82 0.06 140);
+    --konto-flieder:  oklch(0.78 0.08 320);
+
+    /* Status */
+    --positiv: oklch(0.84 0.08 165);  /* Plus-Stunden */
+    --negativ: oklch(0.80 0.09 5);    /* Minus-Stunden */
+
+    /* Charts nutzen die Kontofarben */
+    --chart-1: var(--konto-lavendel);
+    --chart-2: var(--konto-mint);
+    --chart-3: var(--konto-pfirsich);
+    --chart-4: var(--konto-himmel);
+    --chart-5: var(--konto-rose);
+
+    /* Sidebar: etwas dunkler als Karten, gleiche Akzente */
+    --sidebar:                    oklch(0.195 0.016 280);
+    --sidebar-foreground:         oklch(0.93 0.010 280);
+    --sidebar-primary:            oklch(0.80 0.090 290);
+    --sidebar-primary-foreground: oklch(0.20 0.030 290);
+    --sidebar-accent:             oklch(0.29 0.025 285);
+    --sidebar-accent-foreground:  oklch(0.93 0.010 280);
+    --sidebar-border:             oklch(0.31 0.020 280);
+    --sidebar-ring:               oklch(0.80 0.090 290);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
