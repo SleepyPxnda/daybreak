@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { Minus, Plus, RotateCcw } from '@lucide/vue'
 import type { Zeitraum } from '#shared/utils/bloecke'
 import { findeUeberlappung } from '#shared/utils/bloecke'
-import type { TimelineBlock } from '~/utils/timeline'
+import type { Sicht, TimelineBlock } from '~/utils/timeline'
+import { skalenSchritt, verschiebeSicht, zoomeSicht } from '~/utils/timeline'
 
 const props = defineProps<{
   bloecke: TimelineBlock[]
-  /** Sichtbarer Bereich in Minuten */
+  /** Standard-Sichtbereich in Minuten (Einstellungen) – Zoom/Verschieben startet hier */
   von: number
   bis: number
   /** Aktuelle Minute, falls der Tag heute ist (Jetzt-Linie) */
@@ -23,28 +25,66 @@ const emit = defineEmits<{
 const spur = useTemplateRef<HTMLDivElement>('spur')
 
 const RAND_PX = 8
-const spanne = computed(() => props.bis - props.von)
+
+// --- Sicht (Zoom & Verschieben) -----------------------------------------
+const sicht = ref<Sicht>({ von: props.von, bis: props.bis })
+const istStandardSicht = computed(() => sicht.value.von === props.von && sicht.value.bis === props.bis)
+
+function sichtZuruecksetzen() {
+  sicht.value = { von: props.von, bis: props.bis }
+}
+watch(() => [props.von, props.bis], sichtZuruecksetzen)
+
+const spanne = computed(() => sicht.value.bis - sicht.value.von)
 
 function prozent(minute: number): number {
-  return ((Math.min(Math.max(minute, props.von), props.bis) - props.von) / spanne.value) * 100
+  return ((Math.min(Math.max(minute, sicht.value.von), sicht.value.bis) - sicht.value.von) / spanne.value) * 100
+}
+
+/** Minute unter dem Mauszeiger, ungerundet */
+function rohMinute(clientX: number): number {
+  const rect = spur.value!.getBoundingClientRect()
+  return sicht.value.von + ((clientX - rect.left) / rect.width) * spanne.value
 }
 
 function minuteBei(clientX: number): number {
-  const rect = spur.value!.getBoundingClientRect()
-  const anteil = (clientX - rect.left) / rect.width
-  return Math.min(Math.max(aufRaster(props.von + anteil * spanne.value), 0), TAG_MIN)
+  return Math.min(Math.max(aufRaster(rohMinute(clientX)), 0), TAG_MIN)
 }
 
-const stunden = computed(() => {
-  const liste: number[] = []
-  for (let m = Math.ceil(props.von / 60) * 60; m <= props.bis; m += 60) liste.push(m)
+function zoomen(faktor: number, anker = (sicht.value.von + sicht.value.bis) / 2) {
+  sicht.value = zoomeSicht(sicht.value, faktor, anker)
+}
+
+/** Strg/⌘ + Rad bzw. Pinch = Zoom um den Mauszeiger; horizontales Scrollen/Shift + Rad = verschieben */
+function rad(e: WheelEvent) {
+  if (e.ctrlKey || e.metaKey) {
+    e.preventDefault()
+    zoomen(Math.exp(e.deltaY * 0.002), rohMinute(e.clientX))
+    return
+  }
+  const dx = e.shiftKey ? e.deltaY || e.deltaX : e.deltaX
+  if (!dx) return // normales Scrollen bleibt der Seite
+  e.preventDefault()
+  sicht.value = verschiebeSicht(sicht.value, (dx / spur.value!.clientWidth) * spanne.value)
+}
+
+const skala = computed(() => {
+  const schritt = skalenSchritt(spanne.value)
+  const beschriftung = schritt === 15 ? 30 : schritt
+  const liste: { minute: number, label?: string }[] = []
+  for (let m = Math.ceil(sicht.value.von / schritt) * schritt; m <= sicht.value.bis; m += schritt) {
+    liste.push({ minute: m, label: m % beschriftung === 0 ? (beschriftung === 60 ? formatUhrzeit(m).slice(0, 2) : formatUhrzeit(m)) : undefined })
+  }
   return liste
 })
+
+const sichtbareBloecke = computed(() => props.bloecke.filter(b => b.ende > sicht.value.von && b.start < sicht.value.bis))
 
 // --- Ziehen -------------------------------------------------------------
 type Zug
   = | { art: 'neu', anker: number, aktuell: number }
     | { art: 'verschieben' | 'links' | 'rechts', block: TimelineBlock, startMinute: number, aktuell: number, bewegt: boolean }
+    | { art: 'schwenken', startX: number, startSicht: Sicht }
 
 const zug = ref<Zug | null>(null)
 
@@ -52,6 +92,7 @@ const zug = ref<Zug | null>(null)
 const vorschau = computed<(Zeitraum & { id?: number }) | null>(() => {
   const z = zug.value
   if (!z) return null
+  if (z.art === 'schwenken') return null
   if (z.art === 'neu') {
     if (z.aktuell === z.anker) return null
     return { start: Math.min(z.anker, z.aktuell), ende: Math.max(z.anker, z.aktuell) }
@@ -73,6 +114,13 @@ const vorschauKollidiert = computed(() => {
 })
 
 function spurPointerDown(e: PointerEvent) {
+  // Mittlere Maustaste: Sicht verschieben (auch über Blöcken)
+  if (e.button === 1) {
+    e.preventDefault() // kein Autoscroll
+    zug.value = { art: 'schwenken', startX: e.clientX, startSicht: { ...sicht.value } }
+    spur.value!.setPointerCapture(e.pointerId)
+    return
+  }
   if (e.button !== 0 || e.target !== spur.value) return
   const m = minuteBei(e.clientX)
   zug.value = { art: 'neu', anker: m, aktuell: m }
@@ -80,7 +128,7 @@ function spurPointerDown(e: PointerEvent) {
 }
 
 function blockPointerDown(e: PointerEvent, block: TimelineBlock) {
-  if (e.button !== 0) return
+  if (e.button !== 0) return // mittlere Taste bubbelt zur Spur (schwenken)
   e.stopPropagation()
   const el = e.currentTarget as HTMLElement
   const rect = el.getBoundingClientRect()
@@ -94,6 +142,11 @@ function blockPointerDown(e: PointerEvent, block: TimelineBlock) {
 function pointerMove(e: PointerEvent) {
   const z = zug.value
   if (!z) return
+  if (z.art === 'schwenken') {
+    const delta = ((z.startX - e.clientX) / spur.value!.clientWidth) * (z.startSicht.bis - z.startSicht.von)
+    sicht.value = verschiebeSicht(z.startSicht, delta)
+    return
+  }
   const m = minuteBei(e.clientX)
   if (m === z.aktuell) return
   z.aktuell = m
@@ -105,7 +158,7 @@ function pointerUp() {
   const v = vorschau.value
   const kollidiert = vorschauKollidiert.value
   zug.value = null
-  if (!z) return
+  if (!z || z.art === 'schwenken') return
 
   if (z.art !== 'neu' && !z.bewegt) {
     emit('oeffnen', z.block)
@@ -138,7 +191,7 @@ function blockKlassen(b: TimelineBlock) {
   return [
     b.kind === 'pause' ? 'bg-muted text-muted-foreground' : kontoFarbKlassen(b.kontoFarbe).flaeche,
     b.status === 'geplant' && 'schraffiert',
-    zug.value && 'art' in zug.value && zug.value.art !== 'neu' && zug.value.block.id === b.id && 'opacity-30',
+    zug.value && 'block' in zug.value && zug.value.block.id === b.id && 'opacity-30',
   ]
 }
 
@@ -150,36 +203,53 @@ function position(z: Zeitraum) {
 
 <template>
   <div class="select-none">
-    <!-- Stundenskala -->
-    <div class="relative mb-1 h-4 text-xs text-muted-foreground tabular-nums">
+    <!-- Zoom-Leiste -->
+    <div class="mb-1 flex items-center justify-end gap-1 text-xs text-muted-foreground">
+      <span class="mr-1 tabular-nums">{{ formatUhrzeit(Math.round(sicht.von)) }}–{{ formatUhrzeit(Math.round(sicht.bis)) }}</span>
+      <Button size="icon" variant="ghost" class="size-7" aria-label="Herauszoomen" @click="zoomen(1.5)">
+        <Minus />
+      </Button>
+      <Button size="icon" variant="ghost" class="size-7" aria-label="Hineinzoomen" @click="zoomen(1 / 1.5)">
+        <Plus />
+      </Button>
+      <Button size="icon" variant="ghost" class="size-7" aria-label="Zoom zurücksetzen" :disabled="istStandardSicht" @click="sichtZuruecksetzen">
+        <RotateCcw />
+      </Button>
+    </div>
+
+    <!-- Skala -->
+    <div class="relative mb-1 h-4 overflow-hidden text-xs text-muted-foreground tabular-nums">
       <span
-        v-for="m in stunden"
-        :key="m"
+        v-for="s in skala.filter(s => s.label)"
+        :key="s.minute"
         class="absolute -translate-x-1/2"
-        :style="{ left: `${prozent(m)}%` }"
-      >{{ formatUhrzeit(m).slice(0, 2) }}</span>
+        :style="{ left: `${prozent(s.minute)}%` }"
+      >{{ s.label }}</span>
     </div>
 
     <div
       ref="spur"
       class="relative h-20 cursor-crosshair touch-none overflow-hidden rounded-lg border bg-card"
+      title="Strg + Mausrad: zoomen · Shift + Mausrad / mittlere Maustaste: verschieben"
       @pointerdown="spurPointerDown"
       @pointermove="pointerMove"
       @pointerup="pointerUp"
       @pointercancel="zug = null"
+      @wheel="rad"
       @dragover="istAufgabeDrag($event) && $event.preventDefault()"
       @drop.prevent="drop"
     >
-      <!-- Stundenlinien -->
+      <!-- Skalenlinien -->
       <div
-        v-for="m in stunden"
-        :key="m"
-        class="pointer-events-none absolute inset-y-0 w-px bg-border/60"
-        :style="{ left: `${prozent(m)}%` }"
+        v-for="s in skala"
+        :key="s.minute"
+        class="pointer-events-none absolute inset-y-0 w-px"
+        :class="s.label ? 'bg-border/60' : 'bg-border/25'"
+        :style="{ left: `${prozent(s.minute)}%` }"
       />
 
       <!-- Blöcke -->
-      <ContextMenu v-for="b in bloecke" :key="b.id">
+      <ContextMenu v-for="b in sichtbareBloecke" :key="b.id">
         <ContextMenuTrigger as-child>
           <div
             class="absolute inset-y-2 flex cursor-grab flex-col justify-center overflow-hidden rounded-md px-2 text-xs leading-tight shadow-sm active:cursor-grabbing"
@@ -229,7 +299,7 @@ function position(z: Zeitraum) {
 
       <!-- Jetzt-Linie -->
       <div
-        v-if="jetzt !== undefined && jetzt >= von && jetzt <= bis"
+        v-if="jetzt !== undefined && jetzt >= sicht.von && jetzt <= sicht.bis"
         class="pointer-events-none absolute inset-y-0 w-0.5 bg-primary"
         :style="{ left: `${prozent(jetzt)}%` }"
       />
