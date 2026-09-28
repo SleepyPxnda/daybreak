@@ -39,7 +39,7 @@ Single-User, lokal oder als Docker-Container selbst gehostet. Kein Kanban, kein 
 | Feiertage | `feiertagejs` | Bundesland `BW` |
 | Markdown | `markdown-it` + `DOMPurify` | Notizen-Vorschau |
 | Validierung | `zod` | Server-Routen + Parser |
-| Tests | `vitest` | Pflicht für Parser + Saldo-Logik |
+| Tests | `vitest` | Pflicht für Parser + Saldo-Logik + Vorlagen-Materialisierung |
 | Paketmanager | `pnpm` | |
 
 ### Dev-Tooling (offiziell)
@@ -92,6 +92,14 @@ Ein **Block** liegt auf der Timeline eines Tages:
 
 **Pausen** sind eigene Blöcke (`kind = pause`), werden angezeigt, aber nie zur Ist-Zeit gezählt. Keine Regelprüfung.
 
+**Wiederkehrende Blöcke (Vorlagen)**
+Feste Termine (Daily 09:30–09:45, Jour fixe dienstags …) werden einmal als **Vorlage** angelegt und automatisch als *geplante* Blöcke eingetragen; abends reicht „übernehmen“.
+- Vorlage: Ziel (Aufgabe oder Konto), Start/Ende, Wochentage (z. B. Mo–Fr oder nur Di), optional Rhythmus „jede 2. Woche“, gültig ab/bis, aktiv.
+- **Materialisierung**: Beim Laden eines Tages bzw. einer Woche erzeugt der Server fehlende geplante Blöcke für alle aktiven Vorlagen (bis max. 14 Tage in die Zukunft). Jeder erzeugte Block trägt `vorlageId`; eindeutiger Index `(vorlageId, datum)` verhindert Duplikate – auch ein gelöschter Einzeltermin wird als „ausgelassen“ gemerkt und nicht neu erzeugt.
+- Nicht erzeugt an Tagen ohne Soll (Wochenende, Feiertag BW, Urlaub, Krank, Gleittag) und nicht, wenn der Zeitraum schon belegt ist (Hinweis-Badge am Tag).
+- Vorlage ändern wirkt nur auf zukünftige, noch *geplante* Blöcke; gebuchte bleiben unangetastet.
+- Anlegen: im Block-Menü „Als wiederkehrend speichern …“ oder unter Einstellungen → Wiederkehrende Blöcke.
+
 ### 3.3 Tage & Soll
 Standard: Mo–Fr Arbeitstag mit **480 min** Soll, Sa/So 0.
 
@@ -130,6 +138,8 @@ Ein Eintragstyp **Todo** mit `art`:
 - `merker` – Dinge, die man nebenbei im Kopf haben sollte. Optional Fälligkeit, optional Bezug zu Aufgabe oder Konto.
 - `daily` – Thema fürs nächste Daily. Aktion „besprochen“ → wandert ins Archiv (mit Datum).
 
+- `warten` – **Warten auf**: Dinge, bei denen man auf jemand anderen wartet („PR-Review von Tim“). Felder: Text, *wer* (Freitext), optional *nachfassen am*. Anzeige mit Alter („seit 5 Tagen“); ab dem Nachfass-Datum hervorgehoben und oben in der Liste. Aktion „erledigt“ oder „nachgefasst“ (setzt neues Nachfass-Datum, Default +3 Arbeitstage).
+
 Kein Status-Workflow außer offen/erledigt. Sortierung per Drag & Drop.
 
 ### 3.7 Notizen
@@ -150,6 +160,7 @@ Eine Zeile, erreichbar im Heute-Screen und global über **`Strg+K`** (shadcn `Co
 | `plan 5h PROJ-123 morgen` | geplanter Block für morgen (auch `mo`, `di`, … oder `2026-10-01`) |
 | `t Zertifikat verlängern` | Merker |
 | `d Deployment-Freeze ansprechen` | Daily-Thema |
+| `w Tim: PR-Review Login` | Warten auf – *wer* = Tim (Text vor dem ersten `:`), optional `bis fr` / `bis 2026-10-02` als Nachfass-Datum |
 | `n Architektur-Idee` | neue Notiz mit Titel, öffnet Editor |
 | ohne Präfix / kein Treffer | Suche über Aufgaben, Konten, Notizen, Todos |
 
@@ -157,6 +168,7 @@ Dauer-Formate: `2h`, `1.5h`, `1,5h`, `1h30`, `45m`, `90m`. Ziel-Erkennung in die
 „Nächster freier Slot“: nach dem letzten Block des Tages, sonst ab Arbeitsbeginn (Einstellung, Default 08:00).
 
 Parser als reine Funktion in `shared/utils/quickInput.ts`, vollständig mit Vitest getestet.
+
 
 ---
 
@@ -168,10 +180,15 @@ Datum als `TEXT 'YYYY-MM-DD'`, Uhrzeiten als `INTEGER` Minuten seit Mitternacht,
 konto:     id, name, farbe, aliase(json string[]), status('aktiv'|'archiviert'), erstelltAm
 aufgabe:   id, kontoId(FK), key?(unique), titel, status('offen'|'abgeschlossen'), schaetzungMin?, erstelltAm, abgeschlossenAm?
 block:     id, datum, start, ende, kind('arbeit'|'pause'), status('geplant'|'gebucht'),
-           aufgabeId?(FK), kontoId?(FK), notiz?, erstelltAm
+           aufgabeId?(FK), kontoId?(FK), notiz?, vorlageId?(FK), erstelltAm
+           // unique(vorlageId, datum) wo vorlageId gesetzt
+vorlage:   id, aufgabeId?, kontoId?, start, ende, wochentage(json number[]), intervallWochen(default 1),
+           gueltigAb, gueltigBis?, aktiv
+vorlage_ausnahme: vorlageId, datum   // gelöschte Einzeltermine, werden nicht neu erzeugt
 tag:       datum(PK), typ('arbeit'|'urlaub'|'halb_urlaub'|'krank'|'gleittag'), sollOverride?, notiz?
            // nur Abweichungen speichern; Feiertage werden berechnet, nicht gespeichert
-todo:      id, art('merker'|'daily'), text, aufgabeId?, kontoId?, faelligAm?, sortierung, erledigtAm?, erstelltAm
+todo:      id, art('merker'|'daily'|'warten'), text, wer?, nachfassenAm?, aufgabeId?, kontoId?, faelligAm?,
+           sortierung, erledigtAm?, erstelltAm
 notiz:     id, titel, inhalt, tags(json string[]), aufgabeId?, kontoId?, angepinnt, erstelltAm, geaendertAm
 urlaubsanspruch: id, jahr, art('grund'|'zusatz'|'rest'), bezeichnung, tage(real, 0.5-Schritte)
 settings:  key(PK), value(json)
@@ -194,7 +211,7 @@ Layout: shadcn **Sidebar** links (einklappbar), Inhalt rechts, deutsches UI, Des
    - Fortschrittsbalken gebucht / Soll, daneben „geplant“.
    - Schnelleingabe-Zeile direkt unter der Timeline.
    - Buttons: „Wie gestern“ (kopiert gestrige gebuchte Blöcke als *geplant*), „Tagesabschluss“.
-   - Rechte Spalte: **Aufgaben in Arbeit** (offene Aufgaben mit Buchungen der letzten 14 Tage oder Planung heute; mit Gesamtstunden; per Drag auf die Timeline → neuer Block), offene Merker, Daily-Themen (mit „besprochen“), angepinnte Notizen.
+   - Rechte Spalte: **Aufgaben in Arbeit** (offene Aufgaben mit Buchungen der letzten 14 Tage oder Planung heute; mit Gesamtstunden; per Drag auf die Timeline → neuer Block), offene Merker, Warten auf (nur fällige/überfällige), Daily-Themen (mit „besprochen“), angepinnte Notizen.
 2. **Tagesabschluss** (Sheet/Dialog aus „Heute“)
    - Lücke zum Soll, Liste geplanter Blöcke mit „übernehmen“, Vorschläge: zuletzt bebuchte Aufgaben und Konten als 1-Klick-Chips mit Dauer-Eingabe.
 3. **Woche** (`/woche`)
@@ -205,10 +222,10 @@ Layout: shadcn **Sidebar** links (einklappbar), Inhalt rechts, deutsches UI, Des
 5. **Kalender** (`/kalender`)
    - Jahresansicht (12 Mini-Monate), Feiertage BW markiert, Abwesenheiten farbig; Klick/Range-Auswahl → Tagestyp setzen.
    - Urlaubskonto-Karte (§3.5).
-6. **Merker & Daily** (`/todos`) – zwei Listen, Archiv „besprochen/erledigt“ einklappbar.
+6. **Merker & Daily** (`/todos`) – drei Listen (Merker · Warten auf · Daily-Themen), Archiv „besprochen/erledigt“ einklappbar.
 7. **Notizen** (`/notizen`) – Liste mit Suche/Tag-Filter links, Editor (Textarea + Live-Vorschau) rechts, Autosave.
 8. **Konten & Aufgaben** (`/konten`) – Konten links (Farbe, Aliase, archivieren), Aufgaben des gewählten Kontos rechts (Key, Titel, Status, Schätzung, gebucht gesamt). Klick auf eine Aufgabe → Detail (`/aufgaben/[id]`): alle Blöcke nach Tag, Summe vs. Schätzung, verknüpfte Merker und Notizen, Aufgabe in anderes Konto verschieben.
-9. **Einstellungen** (`/einstellungen`) – alle `settings`-Werte, Urlaubsanspruch pro Jahr (Posten hinzufügen/bearbeiten).
+9. **Einstellungen** (`/einstellungen`) – alle `settings`-Werte, Urlaubsanspruch pro Jahr (Posten hinzufügen/bearbeiten), Wiederkehrende Blöcke (Vorlagen verwalten).
 
 ---
 
@@ -302,11 +319,12 @@ API (Nitro, JSON): `GET/POST/PATCH/DELETE /api/konten|aufgaben|blocks|tage|todos
 - ✅ `docker compose up --build` startet die App, Migrationen laufen automatisch, Daten überleben einen Container-Neustart; CI ist auf einem Push grün.
 
 ### Phase 1 – Zeit (Kern)
-- Konten- und Aufgaben-CRUD (inkl. Aufgaben-Detailseite), Settings, Block-CRUD, Timeline (anlegen/verschieben/resize/teilen, planen↔buchen, Pausen), Schnelleingabe für Zeit + Pause + plan, Saldo-Logik inkl. Feiertage BW, Saldo-Widget, „Wie gestern“, Tagesabschluss.
+- Konten- und Aufgaben-CRUD (inkl. Aufgaben-Detailseite), Settings, Block-CRUD, Timeline (anlegen/verschieben/resize/teilen, planen↔buchen, Pausen), Schnelleingabe für Zeit + Pause + plan, Saldo-Logik inkl. Feiertage BW, Saldo-Widget, „Wie gestern“, Tagesabschluss, wiederkehrende Blöcke (Vorlagen + Materialisierung).
+- ✅ Eine Vorlage „Daily Mo–Fr 09:30–09:45“ erzeugt genau einen geplanten Block pro Arbeitstag, keinen an Feiertagen/Urlaub, und einen gelöschten Einzeltermin nicht erneut.
 - ✅ Ein Tag lässt sich allein per Schnelleingabe in < 1 min vollständig buchen; Saldo stimmt mit Unit-Tests (Feiertag, Gleittag, ½ Urlaub, Soll-Override, Wochenende) überein.
 
-### Phase 2 – Merker, Daily, Command-Palette
-- Todo-CRUD, Heute-Seitenspalte, `/todos`, `t`/`d`-Präfixe, globale `Strg+K`-Palette mit Suche.
+### Phase 2 – Merker, Warten auf, Daily, Command-Palette
+- Todo-CRUD (alle drei Arten), Heute-Seitenspalte, `/todos`, `t`/`d`/`w`-Präfixe, globale `Strg+K`-Palette mit Suche.
 - ✅ Ein Merker ist von jeder Seite aus in 2 Tastendrücken + Text erfasst.
 
 ### Phase 3 – Notizen
@@ -317,7 +335,8 @@ API (Nitro, JSON): `GET/POST/PATCH/DELETE /api/konten|aufgaben|blocks|tage|todos
 - Optional: wiederkehrende Zusatzposten (Semester-Tage) als Vorlage.
 
 ### Phase 5 – Übersicht
-- Gruppierte Übersicht nach Konto-Titel, Stundenkonto-Verlauf.
+- Gruppierte Übersicht Konto → Aufgabe → Tage, Stundenkonto-Verlauf.
+
 
 ---
 
@@ -344,7 +363,7 @@ services:
     volumes: ["./data:/data"]
     environment:
       - TZ=Europe/Berlin
-      # - DAYBREAK_PASSWORD=...   # optionaler Zugangsschutz
+      # - DAYBREAK_PASSWORD=...   # optionaler Zugangsschutz (Basic Auth)
     restart: unless-stopped
 ```
 `TZ=Europe/Berlin` ist wichtig, damit „heute“ und Tagesgrenzen stimmen.
@@ -352,7 +371,7 @@ services:
 ### Zugangsschutz
 Die App hat keine Benutzerverwaltung. Sobald sie nicht nur lokal läuft, muss sie geschützt sein:
 - Wenn `DAYBREAK_PASSWORD` gesetzt ist, verlangt eine Nitro-Server-Middleware HTTP Basic Auth (User beliebig, Passwort aus der Variable, Vergleich timing-safe). `/api/health` ist ausgenommen.
-- Ist die Variable nicht gesetzt, läuft die App ohne Schutz und loggt beim Start eine Warnung.
+- Ist `DAYBREAK_PASSWORD` nicht gesetzt, läuft die App ohne Schutz und loggt beim Start eine Warnung.
 - Alternativ Schutz über den Reverse Proxy (z. B. Forward-Auth/SSO) und Variable leer lassen.
 
 ### Backup

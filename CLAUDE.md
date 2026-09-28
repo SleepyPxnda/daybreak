@@ -14,7 +14,7 @@ Nuxt 4 · shadcn-vue (Reka UI) · Tailwind v4 · Drizzle ORM + SQLite (`@libsql/
 - shadcn-vue Skill nach `shadcn-vue init` installieren: `pnpm dlx skills add unovue/shadcn-vue`.
 
 ## Konventionen
-- UI-Texte und Fachbegriffe auf Deutsch (Konto, Aufgabe, Block, Merker, Daily-Thema, Notiz, Soll, Ist, Saldo). Code-Bezeichner dürfen die deutschen Fachbegriffe verwenden.
+- UI-Texte und Fachbegriffe auf Deutsch (Konto, Aufgabe, Block, Vorlage, Merker, Warten auf, Daily-Thema, Notiz, Soll, Ist, Saldo). Code-Bezeichner dürfen die deutschen Fachbegriffe verwenden.
 - Hierarchie: Konto (Sammlung) → Aufgabe (gehört zu genau einem Konto) → Blöcke an beliebigen Tagen. Blöcke können auch ohne Aufgabe direkt auf ein Konto gehen (abstrakte Konten wie Firmenmeeting). Siehe Plan §3.1.
 - Datum als `YYYY-MM-DD`-String, Uhrzeiten als Minuten seit Mitternacht, 15-min-Raster.
 - Fachlogik (Schnelleingabe-Parser, Soll/Saldo, Urlaub) als reine Funktionen in `shared/utils/` mit Vitest-Tests.
