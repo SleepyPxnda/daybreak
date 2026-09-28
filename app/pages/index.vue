@@ -148,18 +148,20 @@ const abschluss = ref(false)
           <Button size="icon" variant="ghost" aria-label="Vorheriger Tag" @click="tagWechseln(-1)">
             <ChevronLeft />
           </Button>
-          <div>
-            <h1 class="text-2xl font-semibold">
+          <!-- Feste Breite, damit die Pfeile beim Blättern nicht springen (längstes Datum passt rein) -->
+          <div class="w-60 shrink-0 text-center">
+            <h1 class="truncate text-2xl font-semibold">
               {{ istHeute ? 'Heute' : format(zuDate(datum), 'EEEE', { locale: de }) }}
             </h1>
-            <p class="text-sm text-muted-foreground">
+            <p class="truncate text-sm text-muted-foreground">
               {{ format(zuDate(datum), 'EEEE, d. MMMM yyyy', { locale: de }) }}
             </p>
           </div>
           <Button size="icon" variant="ghost" aria-label="Nächster Tag" @click="tagWechseln(1)">
             <ChevronRight />
           </Button>
-          <Button v-if="!istHeute" size="sm" variant="ghost" @click="navigateTo({ query: {} })">
+          <!-- Immer im Layout, nur unsichtbar – sonst verschiebt sich der Rest -->
+          <Button size="sm" variant="ghost" :class="{ invisible: istHeute }" :tabindex="istHeute ? -1 : 0" @click="navigateTo({ query: {} })">
             Heute
           </Button>
         </div>
