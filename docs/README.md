@@ -10,7 +10,7 @@ Hier ist dokumentiert, was pro Phase **tatsächlich** gebaut wurde – inklusive
 | [1](phase-1-zeit.md) | Zeit: Timeline, Schnelleingabe, Stundenkonto, Vorlagen | fertig |
 | [2](phase-2-merker.md) | Merker, Warten auf, Daily-Themen, Befehlspalette | fertig |
 | [3](phase-3-notizen.md) | Notizen: Markdown-Editor, Tags, Suche, Anpinnen | fertig |
-| 4 | Kalender & Urlaub | offen |
+| [4](phase-4-kalender.md) | Kalender, Urlaubskonto, Woche | fertig |
 | 5 | Übersicht | offen |
 
 ## Schnellstart
@@ -33,5 +33,6 @@ Weitere Befehle: `pnpm test`, `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm
 | Neue Notiz | `n Titel` |
 | Block anlegen | auf der Timeline ziehen |
 | Timeline zoomen / verschieben | `Strg`+Mausrad / `Shift`+Mausrad oder mittlere Maustaste |
+| Urlaub eintragen | Kalender: Tage ziehen → „Urlaub“ |
 
 Details in den Phasen-Dokumenten.

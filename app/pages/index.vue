@@ -3,18 +3,14 @@ import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, ClipboardCheck, Copy, TriangleAlert } from '@lucide/vue'
 import { toast } from 'vue-sonner'
-import type { Zeitraum } from '#shared/utils/bloecke'
 import DayTimeline from '~/components/timeline/DayTimeline.vue'
 import BlockDialog from '~/components/timeline/BlockDialog.vue'
-import type { BlockEntwurf } from '~/components/timeline/BlockDialog.vue'
 import QuickInput from '~/components/quick-input/QuickInput.vue'
 import SaldoWidget from '~/components/widgets/SaldoWidget.vue'
 import TagEinstellung from '~/components/widgets/TagEinstellung.vue'
 import AufgabenInArbeit from '~/components/widgets/AufgabenInArbeit.vue'
 import TodoSpalte from '~/components/widgets/TodoSpalte.vue'
 import AngepinnteNotizen from '~/components/widgets/AngepinnteNotizen.vue'
-import type { VorlageFormular } from '~/components/VorlageDialog.vue'
-import type { TimelineBlock } from '~/utils/timeline'
 
 const route = useRoute()
 const datum = computed(() => {
@@ -31,17 +27,20 @@ const { bloecke, konflikte, info, saldo } = useTag(datum)
 const von = computed(() => einstellungen.value?.timelineVon ?? 420)
 const bis = computed(() => einstellungen.value?.timelineBis ?? 1140)
 
-// Jetzt-Linie, minütlich aktualisiert (nur Client)
-const jetzt = ref<number>()
-function jetztAktualisieren() {
-  const d = new Date()
-  jetzt.value = d.getHours() * 60 + d.getMinutes()
-}
-onMounted(() => {
-  jetztAktualisieren()
-  const timer = setInterval(jetztAktualisieren, 60_000)
-  onBeforeUnmount(() => clearInterval(timer))
-})
+const {
+  jetzt,
+  blockDialog,
+  bearbeiteterBlock,
+  entwurf,
+  vorlageDialog,
+  vorlageEntwurf,
+  anlegen,
+  oeffnen,
+  aendern,
+  menue,
+  ablegen,
+  ablegenMerker,
+} = useBlockBearbeitung()
 
 const ist = computed(() => istMinuten(bloecke.value))
 const geplant = computed(() => geplantMinuten(bloecke.value))
@@ -51,109 +50,6 @@ const fortschritt = computed(() => (soll.value ? Math.min(100, Math.round((ist.v
 function tagWechseln(tage: number) {
   const ziel = plusTage(datum.value, tage)
   navigateTo({ query: ziel === heute() ? {} : { datum: ziel } })
-}
-
-/** Neuer Block: vergangene Zeit ist gebucht, Zukunft geplant */
-function standardStatus(ende: number) {
-  if (datum.value < heute()) return 'gebucht' as const
-  if (datum.value > heute()) return 'geplant' as const
-  return ende <= (jetzt.value ?? 0) ? 'gebucht' as const : 'geplant' as const
-}
-
-// --- Block-Dialog ------------------------------------------------------
-const blockDialog = ref(false)
-const bearbeiteterBlock = ref<TimelineBlock | null>(null)
-const entwurf = ref<BlockEntwurf | null>(null)
-
-function anlegen(z: Zeitraum) {
-  bearbeiteterBlock.value = null
-  entwurf.value = { datum: datum.value, ...z, status: standardStatus(z.ende) }
-  blockDialog.value = true
-}
-
-function oeffnen(b: TimelineBlock) {
-  entwurf.value = null
-  bearbeiteterBlock.value = b
-  blockDialog.value = true
-}
-
-async function aendern(id: number, z: Zeitraum) {
-  await aktion(() => api(`/api/blocks/${id}`, { method: 'PATCH', body: { ...z } }), TAG_KEYS)
-}
-
-// --- Vorlage aus Block --------------------------------------------------
-const vorlageDialog = ref(false)
-const vorlageEntwurf = ref<VorlageFormular | null>(null)
-
-async function menue(aktionName: 'umschalten' | 'teilen' | 'loeschen' | 'bearbeiten' | 'wiederkehrend', b: TimelineBlock, minute: number) {
-  switch (aktionName) {
-    case 'umschalten':
-      await aktion(() => api(`/api/blocks/${b.id}`, { method: 'PATCH', body: { status: b.status === 'geplant' ? 'gebucht' : 'geplant' } }), TAG_KEYS)
-      break
-    case 'teilen': {
-      const bei = minute > b.start && minute < b.ende ? minute : aufRaster((b.start + b.ende) / 2)
-      await aktion(() => api(`/api/blocks/${b.id}/teilen`, { method: 'POST', body: { bei } }), TAG_KEYS)
-      break
-    }
-    case 'loeschen':
-      await aktion(() => api(`/api/blocks/${b.id}`, { method: 'DELETE' }), TAG_KEYS)
-      break
-    case 'bearbeiten':
-      oeffnen(b)
-      break
-    case 'wiederkehrend':
-      vorlageEntwurf.value = {
-        name: null,
-        aufgabeId: b.aufgabeId,
-        kontoId: b.kontoId,
-        start: b.start,
-        ende: b.ende,
-        wochentage: [wochentag(b.datum)],
-        intervallWochen: 1,
-        gueltigAb: b.datum,
-        gueltigBis: null,
-        ausBlockId: b.id,
-      }
-      vorlageDialog.value = true
-      break
-  }
-}
-
-// --- Drop aus „Aufgaben in Arbeit“: 1h-Block ab der Drop-Position --------
-async function ablegen(aufgabeId: number, start: number) {
-  const ende = Math.min(start + 60, TAG_MIN)
-  await aktion(() => api('/api/blocks', {
-    method: 'POST',
-    body: { datum: datum.value, kind: 'arbeit', status: standardStatus(ende), start, ende, aufgabeId },
-  }), TAG_KEYS)
-}
-
-// --- Drop eines Merkers: 30 min geplant, Text als Notiz ----------------
-const { data: offeneTodos } = useOffeneTodos()
-
-async function ablegenMerker(todoId: number, start: number) {
-  const merker = offeneTodos.value.find(t => t.id === todoId)
-  if (!merker) return
-  const ende = Math.min(start + 30, TAG_MIN)
-  // Arbeitsblock braucht ein Konto – ohne Bezug im Dialog wählen lassen
-  if (!merker.aufgabeId && !merker.kontoId) {
-    bearbeiteterBlock.value = null
-    entwurf.value = { datum: datum.value, start, ende, status: 'geplant', notiz: merker.text }
-    blockDialog.value = true
-    return
-  }
-  await aktion(() => api('/api/blocks', {
-    method: 'POST',
-    body: {
-      datum: datum.value,
-      kind: 'arbeit',
-      status: 'geplant',
-      start,
-      ende,
-      ...(merker.aufgabeId ? { aufgabeId: merker.aufgabeId } : { kontoId: merker.kontoId }),
-      notiz: merker.text,
-    },
-  }), TAG_KEYS)
 }
 
 // --- Wie gestern / Tagesabschluss --------------------------------------
@@ -220,12 +116,12 @@ const abschluss = ref(false)
         :von="von"
         :bis="bis"
         :jetzt="istHeute ? jetzt : undefined"
-        @anlegen="anlegen"
+        @anlegen="anlegen(datum, $event)"
         @aendern="aendern"
         @oeffnen="oeffnen"
         @menue="menue"
-        @ablegen="ablegen"
-        @ablegen-merker="ablegenMerker"
+        @ablegen="(id, start) => ablegen(datum, id, start)"
+        @ablegen-merker="(id, start) => ablegenMerker(datum, id, start)"
       />
 
       <!-- Fortschritt -->

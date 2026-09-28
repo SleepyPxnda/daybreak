@@ -207,6 +207,8 @@ const archivOffen = ref(false)
       </CardContent>
     </Card>
 
+    <UrlaubsAnspruch />
+
     <VorlageDialog v-model:open="vorlageDialog" :vorlage="vorlageBearbeiten" />
   </div>
 </template>

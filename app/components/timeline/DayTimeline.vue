@@ -12,6 +12,8 @@ const props = defineProps<{
   bis: number
   /** Aktuelle Minute, falls der Tag heute ist (Jetzt-Linie) */
   jetzt?: number
+  /** Kompakt (Woche): flacher, ohne Zoom-Leiste – Zoomen per Strg+Mausrad geht weiterhin */
+  kompakt?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -209,7 +211,7 @@ function position(z: Zeitraum) {
 <template>
   <div class="select-none">
     <!-- Zoom-Leiste -->
-    <div class="mb-1 flex items-center justify-end gap-1 text-xs text-muted-foreground">
+    <div v-if="!kompakt" class="mb-1 flex items-center justify-end gap-1 text-xs text-muted-foreground">
       <span class="mr-1 tabular-nums">{{ formatUhrzeit(Math.round(sicht.von)) }}–{{ formatUhrzeit(Math.round(sicht.bis)) }}</span>
       <Button size="icon" variant="ghost" class="size-7" aria-label="Herauszoomen" @click="zoomen(1.5)">
         <Minus />
@@ -234,7 +236,8 @@ function position(z: Zeitraum) {
 
     <div
       ref="spur"
-      class="relative h-20 cursor-crosshair touch-none overflow-hidden rounded-lg border bg-card"
+      class="relative cursor-crosshair touch-none overflow-hidden rounded-lg border bg-card"
+      :class="kompakt ? 'h-14' : 'h-20'"
       title="Strg + Mausrad: zoomen · Shift + Mausrad / mittlere Maustaste: verschieben"
       @pointerdown="spurPointerDown"
       @pointermove="pointerMove"
