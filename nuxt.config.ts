@@ -28,7 +28,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   modules: ['shadcn-nuxt', '@nuxt/eslint'],
-  css: ['~/assets/css/main.css'],
+  css: ['vue-sonner/style.css', '~/assets/css/main.css'],
 
   app: {
     head: {

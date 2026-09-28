@@ -50,6 +50,15 @@
     --color-konto-butter: var(--konto-butter);
     --color-konto-salbei: var(--konto-salbei);
     --color-konto-flieder: var(--konto-flieder);
+    /* Dunkler Text auf Pastellflächen (Plan §6: oklch(0.22 0.03 <hue>)) */
+    --color-konto-lavendel-fg: oklch(0.22 0.03 295);
+    --color-konto-pfirsich-fg: oklch(0.22 0.03 55);
+    --color-konto-mint-fg: oklch(0.22 0.03 165);
+    --color-konto-himmel-fg: oklch(0.22 0.03 235);
+    --color-konto-rose-fg: oklch(0.22 0.03 5);
+    --color-konto-butter-fg: oklch(0.22 0.03 95);
+    --color-konto-salbei-fg: oklch(0.22 0.03 140);
+    --color-konto-flieder-fg: oklch(0.22 0.03 320);
     --color-positiv: var(--positiv);
     --color-negativ: var(--negativ);
 
@@ -120,4 +129,14 @@
   body {
     @apply bg-background text-foreground font-sans;
   }
+}
+
+/* Geplante Blöcke: halbtransparent + schraffiert (Plan §3.2) */
+@utility schraffiert {
+  opacity: 0.6;
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 6px,
+    color-mix(in oklch, var(--background) 35%, transparent) 6px 12px
+  );
 }
