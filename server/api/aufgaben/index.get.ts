@@ -1,5 +1,5 @@
 import type { SQL } from 'drizzle-orm'
-import { and, asc, eq, gte, inArray, lte, or } from 'drizzle-orm'
+import { and, asc, eq, gte, inArray, lte, or, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { aufgabe, block } from '../../db/schema'
 import { db } from '../../db/client'
@@ -9,7 +9,10 @@ import { plusTage } from '#shared/utils/zeit'
 const querySchema = z.object({
   kontoId: z.coerce.number().int().positive().optional(),
   status: z.enum(['offen', 'abgeschlossen']).optional(),
-  /** Plan §5 „Aufgaben in Arbeit“: offen + gebucht in den letzten 14 Tagen oder geplant an diesem Tag */
+  /**
+   * Plan §5 „Aufgaben in Arbeit“: offen + gebucht in den letzten 14 Tagen oder geplant an diesem Tag.
+   * Erweitert (Wunsch): auch in den letzten 14 Tagen neu angelegte, damit man sie auf die Timeline ziehen kann.
+   */
   inArbeit: datumSchema.optional(),
 })
 
@@ -21,11 +24,14 @@ export default defineEventHandler(async (event) => {
 
   if (query.inArbeit) {
     const tag = query.inArbeit
+    const ab = plusTage(tag, -14)
     const aktive = db.selectDistinct({ id: block.aufgabeId }).from(block).where(or(
-      and(eq(block.status, 'gebucht'), gte(block.datum, plusTage(tag, -14)), lte(block.datum, tag)),
+      and(eq(block.status, 'gebucht'), gte(block.datum, ab), lte(block.datum, tag)),
       and(eq(block.status, 'geplant'), eq(block.datum, tag)),
     ))
-    filter.push(eq(aufgabe.status, 'offen'), inArray(aufgabe.id, aktive))
+    // erstelltAm ist ein ISO-Timestamp – die ersten 10 Zeichen sind das Datum
+    const neuAngelegt = and(gte(sql`substr(${aufgabe.erstelltAm}, 1, 10)`, ab), lte(sql`substr(${aufgabe.erstelltAm}, 1, 10)`, tag))
+    filter.push(eq(aufgabe.status, 'offen'), or(inArray(aufgabe.id, aktive), neuAngelegt)!)
   }
 
   return db.select(aufgabeMitSummen)

@@ -12,4 +12,4 @@ export function useEinstellungen() {
 }
 
 /** Nach Änderungen an Konten/Aufgaben/Blöcken neu laden. */
-export const STAMMDATEN_KEYS = ['konten', 'aufgaben']
+export const STAMMDATEN_KEYS = ['konten', 'aufgaben', 'aufgaben-in-arbeit']
