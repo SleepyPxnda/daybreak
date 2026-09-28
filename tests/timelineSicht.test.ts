@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { skalenSchritt, verschiebeSicht, zoomeSicht } from '../app/utils/timeline'
+import { blockTitel, skalenSchritt, verschiebeSicht, zoomeSicht } from '../app/utils/timeline'
+
+describe('blockTitel', () => {
+  const basis = { kind: 'arbeit' as const, aufgabeKey: null, aufgabeTitel: null, kontoName: 'Firmenmeeting', vorlageName: null }
+
+  it('Vorlagen-Name vor Aufgabe/Konto, Pause bleibt Pause', () => {
+    expect(blockTitel({ ...basis, vorlageName: 'Daily' })).toBe('Daily')
+    expect(blockTitel({ ...basis, aufgabeKey: 'P-1', aufgabeTitel: 'Login' })).toBe('P-1 Login')
+    expect(blockTitel(basis)).toBe('Firmenmeeting')
+    expect(blockTitel({ ...basis, kind: 'pause', vorlageName: 'Mittag' })).toBe('Pause')
+  })
+})
 
 describe('Timeline-Sicht', () => {
   it('verschiebt innerhalb des Tages', () => {

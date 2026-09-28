@@ -1,0 +1,1 @@
+ALTER TABLE `vorlage` ADD `name` text;

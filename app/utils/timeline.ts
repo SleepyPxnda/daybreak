@@ -16,11 +16,16 @@ export interface TimelineBlock {
   aufgabeTitel: string | null
   kontoName: string | null
   kontoFarbe: string | null
+  vorlageName: string | null
 }
 
-/** Plan §3.2: Aufgaben-Titel (bzw. Key + Titel), sonst Konto-Name; Pausen heißen „Pause“. */
-export function blockTitel(b: Pick<TimelineBlock, 'kind' | 'aufgabeKey' | 'aufgabeTitel' | 'kontoName'>): string {
+/**
+ * Plan §3.2: Aufgaben-Titel (bzw. Key + Titel), sonst Konto-Name; Pausen heißen „Pause“.
+ * Termine benannter wiederkehrender Blöcke zeigen den Vorlagen-Namen (z. B. „Daily“).
+ */
+export function blockTitel(b: Pick<TimelineBlock, 'kind' | 'aufgabeKey' | 'aufgabeTitel' | 'kontoName' | 'vorlageName'>): string {
   if (b.kind === 'pause') return 'Pause'
+  if (b.vorlageName) return b.vorlageName
   if (b.aufgabeTitel) return b.aufgabeKey ? `${b.aufgabeKey} ${b.aufgabeTitel}` : b.aufgabeTitel
   return b.kontoName ?? '–'
 }

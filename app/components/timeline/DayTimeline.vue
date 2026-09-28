@@ -255,7 +255,7 @@ function position(z: Zeitraum) {
             class="absolute inset-y-2 flex cursor-grab flex-col justify-center overflow-hidden rounded-md px-2 text-xs leading-tight shadow-sm active:cursor-grabbing"
             :class="blockKlassen(b)"
             :style="position(b)"
-            :title="`${blockTitel(b)} · ${formatUhrzeit(b.start)}–${formatUhrzeit(b.ende)}${b.notiz ? ` · ${b.notiz}` : ''}`"
+            :title="`${blockTitel(b)}${b.vorlageName ? ` (${b.aufgabeTitel ?? b.kontoName})` : ''} · ${formatUhrzeit(b.start)}–${formatUhrzeit(b.ende)}${b.notiz ? ` · ${b.notiz}` : ''}`"
             @pointerdown="blockPointerDown($event, b)"
             @contextmenu="menueOeffnen"
           >

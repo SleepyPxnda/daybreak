@@ -1,5 +1,5 @@
 import { and, asc, eq, gte, lte } from 'drizzle-orm'
-import { aufgabe, block, konto } from '../../db/schema'
+import { aufgabe, block, konto, vorlage } from '../../db/schema'
 import { db } from '../../db/client'
 
 export default defineEventHandler(async (event) => {
@@ -12,6 +12,7 @@ export default defineEventHandler(async (event) => {
     .from(block)
     .leftJoin(aufgabe, eq(aufgabe.id, block.aufgabeId))
     .leftJoin(konto, eq(konto.id, block.kontoId))
+    .leftJoin(vorlage, eq(vorlage.id, block.vorlageId))
     .where(and(gte(block.datum, von), lte(block.datum, bis)))
     .orderBy(asc(block.datum), asc(block.start))
 

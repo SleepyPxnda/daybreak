@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Pencil, Plus, Trash2 } from '@lucide/vue'
+import { Archive, ArchiveRestore, ChevronRight, Pencil, Plus, Trash2 } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import type { Einstellungen } from '#shared/utils/einstellungen'
 import { BUNDESLAENDER } from '#shared/utils/einstellungen'
@@ -68,9 +68,15 @@ async function vorlageLoeschen(id: number) {
   await aktion(() => api(`/api/vorlagen/${id}`, { method: 'DELETE' }), ['vorlagen'])
 }
 
-async function vorlageAktiv(id: number, aktiv: boolean) {
-  await aktion(() => api(`/api/vorlagen/${id}`, { method: 'PATCH', body: { aktiv } }), ['vorlagen'])
+/** Archivieren = keine neuen Termine mehr; künftige geplante verschwinden, vergangene/gebuchte bleiben */
+async function vorlageArchivieren(id: number, archivieren: boolean) {
+  const ok = await aktion(() => api(`/api/vorlagen/${id}`, { method: 'PATCH', body: { aktiv: !archivieren } }), ['vorlagen', 'tag-bloecke'])
+  if (ok) toast.success(archivieren ? 'Archiviert' : 'Wiederhergestellt')
 }
+
+const aktiveVorlagen = computed(() => vorlagen.value.filter(v => v.aktiv))
+const archivierteVorlagen = computed(() => vorlagen.value.filter(v => !v.aktiv))
+const archivOffen = ref(false)
 </script>
 
 <template>
@@ -149,13 +155,16 @@ async function vorlageAktiv(id: number, aktiv: boolean) {
         </Button>
       </CardHeader>
       <CardContent class="grid gap-2">
-        <p v-if="!vorlagen.length" class="text-sm text-muted-foreground">
+        <p v-if="!aktiveVorlagen.length" class="text-sm text-muted-foreground">
           Noch keine – z. B. „Daily Mo–Fr 09:30–09:45“.
         </p>
-        <div v-for="v in vorlagen" :key="v.id" class="flex items-center gap-3 rounded-md border px-3 py-2 text-sm" :class="{ 'opacity-60': !v.aktiv }">
+        <div v-for="v in aktiveVorlagen" :key="v.id" class="flex items-center gap-3 rounded-md border px-3 py-2 text-sm">
           <span class="size-2.5 shrink-0 rounded-full" :class="kontoFarbKlassen(v.kontoFarbe).punkt" />
           <div class="flex-1">
-            <div>{{ v.aufgabeTitel ?? v.kontoName }}</div>
+            <div>
+              <span v-if="v.name" class="font-medium">{{ v.name }} · </span>
+              <span :class="{ 'text-muted-foreground': v.name }">{{ v.aufgabeTitel ?? v.kontoName }}</span>
+            </div>
             <div class="text-muted-foreground tabular-nums">
               {{ wochentageText(v.wochentage) }} · {{ formatUhrzeit(v.start) }}–{{ formatUhrzeit(v.ende) }}
               <template v-if="v.intervallWochen > 1">
@@ -166,14 +175,35 @@ async function vorlageAktiv(id: number, aktiv: boolean) {
               </template>
             </div>
           </div>
-          <Switch :model-value="v.aktiv" aria-label="Aktiv" @update:model-value="vorlageAktiv(v.id, $event)" />
           <Button size="icon" variant="ghost" aria-label="Bearbeiten" @click="vorlageAendern(v)">
             <Pencil />
           </Button>
-          <Button size="icon" variant="ghost" aria-label="Löschen" @click="vorlageLoeschen(v.id)">
-            <Trash2 />
+          <Button size="icon" variant="ghost" aria-label="Archivieren" title="Archivieren" @click="vorlageArchivieren(v.id, true)">
+            <Archive />
           </Button>
         </div>
+
+        <template v-if="archivierteVorlagen.length">
+          <Button variant="ghost" size="sm" class="mt-2 w-fit text-muted-foreground" @click="archivOffen = !archivOffen">
+            <ChevronRight class="transition-transform" :class="{ 'rotate-90': archivOffen }" />
+            Archiviert ({{ archivierteVorlagen.length }})
+          </Button>
+          <template v-if="archivOffen">
+            <div v-for="v in archivierteVorlagen" :key="v.id" class="flex items-center gap-3 rounded-md border px-3 py-2 text-sm text-muted-foreground">
+              <span class="size-2.5 shrink-0 rounded-full opacity-60" :class="kontoFarbKlassen(v.kontoFarbe).punkt" />
+              <div class="flex-1">
+                {{ v.name ? `${v.name} · ` : '' }}{{ v.aufgabeTitel ?? v.kontoName }}
+                <span class="tabular-nums">· {{ wochentageText(v.wochentage) }} {{ formatUhrzeit(v.start) }}–{{ formatUhrzeit(v.ende) }}</span>
+              </div>
+              <Button size="sm" variant="ghost" @click="vorlageArchivieren(v.id, false)">
+                <ArchiveRestore /> Wiederherstellen
+              </Button>
+              <Button size="icon" variant="ghost" aria-label="Endgültig löschen" title="Endgültig löschen" @click="vorlageLoeschen(v.id)">
+                <Trash2 />
+              </Button>
+            </div>
+          </template>
+        </template>
       </CardContent>
     </Card>
 

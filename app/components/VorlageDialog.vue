@@ -1,6 +1,7 @@
 <script setup lang="ts">
 export interface VorlageFormular {
   id?: number
+  name: string | null
   aufgabeId: number | null
   kontoId: number | null
   start: number
@@ -9,7 +10,6 @@ export interface VorlageFormular {
   intervallWochen: number
   gueltigAb: string
   gueltigBis: string | null
-  aktiv: boolean
   /** „Als wiederkehrend speichern …“: Ausgangsblock verknüpfen */
   ausBlockId?: number
 }
@@ -17,6 +17,7 @@ export interface VorlageFormular {
 const props = defineProps<{ vorlage?: VorlageFormular | null }>()
 const offen = defineModel<boolean>('open', { default: false })
 
+const name = ref('')
 const ziel = ref('')
 const start = ref(570)
 const ende = ref(585)
@@ -24,11 +25,11 @@ const wochentage = ref<number[]>([1, 2, 3, 4, 5])
 const intervall = ref('1')
 const gueltigAb = ref(heute())
 const gueltigBis = ref('')
-const aktiv = ref(true)
 
 watch(offen, (jetztOffen) => {
   if (!jetztOffen) return
   const v = props.vorlage
+  name.value = v?.name ?? ''
   ziel.value = v ? zielWert(v) : ''
   start.value = v?.start ?? 570
   ende.value = v?.ende ?? 585
@@ -36,11 +37,11 @@ watch(offen, (jetztOffen) => {
   intervall.value = String(v?.intervallWochen ?? 1)
   gueltigAb.value = v?.gueltigAb ?? heute()
   gueltigBis.value = v?.gueltigBis ?? ''
-  aktiv.value = v?.aktiv ?? true
 })
 
 async function speichern() {
   const body = {
+    name: name.value,
     ...zielAusWert(ziel.value),
     start: start.value,
     ende: ende.value,
@@ -48,7 +49,6 @@ async function speichern() {
     intervallWochen: Number(intervall.value),
     gueltigAb: gueltigAb.value,
     gueltigBis: gueltigBis.value || null,
-    aktiv: aktiv.value,
   }
   const id = props.vorlage?.id
   const ok = await aktion(
@@ -71,6 +71,10 @@ async function speichern() {
         </DialogDescription>
       </DialogHeader>
       <form class="grid gap-4" @submit.prevent="speichern">
+        <div class="grid gap-2">
+          <Label for="vorlage-name">Name (optional)</Label>
+          <Input id="vorlage-name" v-model="name" placeholder="z. B. Daily, Jour fixe" />
+        </div>
         <div class="grid gap-2">
           <Label>Ziel</Label>
           <ZielAuswahl v-model="ziel" />
@@ -120,10 +124,6 @@ async function speichern() {
             <Label for="vorlage-bis">Gültig bis (optional)</Label>
             <Input id="vorlage-bis" v-model="gueltigBis" type="date" />
           </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <Switch id="vorlage-aktiv" v-model="aktiv" />
-          <Label for="vorlage-aktiv">Aktiv</Label>
         </div>
         <DialogFooter>
           <Button type="submit" :disabled="!ziel || !wochentage.length || start >= ende">

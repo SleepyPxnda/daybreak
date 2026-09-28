@@ -3,6 +3,7 @@ import { datumSchema, uhrzeitSchema } from '#shared/utils/einstellungen'
 
 /** Felder ohne Defaults – Basis für PATCH. */
 export const vorlageFelder = z.object({
+  name: z.string().trim().max(100).transform(n => n || null).nullable(),
   aufgabeId: z.number().int().positive().nullable(),
   kontoId: z.number().int().positive().nullable(),
   start: uhrzeitSchema,
@@ -15,6 +16,7 @@ export const vorlageFelder = z.object({
 })
 
 export const vorlageAnlegenSchema = vorlageFelder.extend({
+  name: vorlageFelder.shape.name.default(null),
   aufgabeId: vorlageFelder.shape.aufgabeId.default(null),
   kontoId: vorlageFelder.shape.kontoId.default(null),
   intervallWochen: vorlageFelder.shape.intervallWochen.default(1),

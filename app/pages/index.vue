@@ -101,6 +101,7 @@ async function menue(aktionName: 'umschalten' | 'teilen' | 'loeschen' | 'bearbei
       break
     case 'wiederkehrend':
       vorlageEntwurf.value = {
+        name: null,
         aufgabeId: b.aufgabeId,
         kontoId: b.kontoId,
         start: b.start,
@@ -109,7 +110,6 @@ async function menue(aktionName: 'umschalten' | 'teilen' | 'loeschen' | 'bearbei
         intervallWochen: 1,
         gueltigAb: b.datum,
         gueltigBis: null,
-        aktiv: true,
         ausBlockId: b.id,
       }
       vorlageDialog.value = true

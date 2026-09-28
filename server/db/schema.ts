@@ -29,6 +29,8 @@ export const aufgabe = sqliteTable('aufgabe', {
 
 export const vorlage = sqliteTable('vorlage', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  /** Optionaler Anzeigename, z. B. „Daily“ – steht auf den erzeugten Blöcken */
+  name: text('name'),
   aufgabeId: integer('aufgabe_id').references(() => aufgabe.id),
   kontoId: integer('konto_id').references(() => konto.id),
   start: integer('start').notNull(),
