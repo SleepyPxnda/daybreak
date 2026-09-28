@@ -21,7 +21,7 @@ const aktiveKonten = computed(() => konten.value.filter(k => k.status === 'aktiv
 const gewaehltesKonto = ref<string>('')
 const key = ref('')
 const titel = ref('')
-const schaetzungStunden = ref<number | undefined>()
+const schaetzungStunden = ref<number | null | undefined>()
 
 watch(offen, (jetztOffen) => {
   if (!jetztOffen) return
@@ -85,7 +85,7 @@ async function speichern() {
         </div>
         <div class="grid gap-2">
           <Label for="aufgabe-schaetzung">Schätzung (Stunden, optional)</Label>
-          <Input id="aufgabe-schaetzung" v-model.number="schaetzungStunden" type="number" min="0" step="0.25" class="w-32" />
+          <ZahlInput id="aufgabe-schaetzung" v-model="schaetzungStunden" :min="0" :step="0.25" placeholder="–" class="w-36" />
         </div>
         <DialogFooter>
           <Button type="submit" :disabled="!gewaehltesKonto">

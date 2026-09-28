@@ -17,13 +17,14 @@ async function loeschen(id: number) {
   await aktion(() => api(`/api/urlaub/posten/${id}`, { method: 'DELETE' }), ['urlaub'])
 }
 
-const neu = reactive({ bezeichnung: '', tage: 1 })
+const neu = reactive<{ bezeichnung: string, tage: number | null | undefined }>({ bezeichnung: '', tage: 1 })
 async function hinzufuegen() {
-  if (!neu.bezeichnung.trim()) return
+  const tage = neu.tage
+  if (!neu.bezeichnung.trim() || tage == null) return
   const art = urlaub.value?.posten.length ? 'zusatz' : 'grund'
   const ok = await aktion(() => api('/api/urlaub/posten', {
     method: 'POST',
-    body: { jahr: jahr.value, art, bezeichnung: neu.bezeichnung, tage: halb(neu.tage) },
+    body: { jahr: jahr.value, art, bezeichnung: neu.bezeichnung, tage: halb(tage) },
   }), ['urlaub'])
   if (ok) {
     neu.bezeichnung = ''
@@ -71,13 +72,12 @@ const hatRestPosten = computed(() => urlaub.value?.posten.some(p => p.art === 'r
           </SelectContent>
         </Select>
         <Input :model-value="p.bezeichnung" class="flex-1" aria-label="Bezeichnung" @change="aendern(p.id, 'bezeichnung', ($event.target as HTMLInputElement).value)" />
-        <Input
+        <ZahlInput
           :model-value="p.tage"
-          type="number"
-          step="0.5"
-          class="w-24 text-right tabular-nums"
+          :step="0.5"
+          class="w-32"
           aria-label="Tage"
-          @change="aendern(p.id, 'tage', ($event.target as HTMLInputElement).value)"
+          @update:model-value="$event != null && $event !== p.tage && aendern(p.id, 'tage', $event)"
         />
         <Button size="icon" variant="ghost" aria-label="Posten löschen" @click="loeschen(p.id)">
           <Trash2 />
@@ -87,8 +87,8 @@ const hatRestPosten = computed(() => urlaub.value?.posten.some(p => p.art === 'r
       <form class="flex items-center gap-2" @submit.prevent="hinzufuegen">
         <Plus class="mx-2 size-4 shrink-0 text-muted-foreground" />
         <Input v-model="neu.bezeichnung" :placeholder="urlaub.posten.length ? 'z. B. Sonderurlaub SS 27' : 'Grundanspruch'" class="flex-1" />
-        <Input v-model.number="neu.tage" type="number" step="0.5" class="w-24 text-right tabular-nums" aria-label="Tage" />
-        <Button type="submit" variant="secondary" :disabled="!neu.bezeichnung.trim()">
+        <ZahlInput v-model="neu.tage" :step="0.5" class="w-32" aria-label="Tage" />
+        <Button type="submit" variant="secondary" :disabled="!neu.bezeichnung.trim() || neu.tage == null">
           Hinzufügen
         </Button>
       </form>

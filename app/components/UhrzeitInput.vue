@@ -12,5 +12,6 @@ const text = computed({
 </script>
 
 <template>
-  <Input v-model="text" type="time" step="900" class="w-28 tabular-nums" />
+  <!-- breit genug für „HH:MM“ + Uhr-Symbol des Browsers (w-28 hat abgeschnitten) -->
+  <Input v-model="text" type="time" step="900" class="w-36 tabular-nums" />
 </template>

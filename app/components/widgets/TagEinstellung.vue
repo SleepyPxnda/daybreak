@@ -27,7 +27,7 @@ const label = computed(() => {
 
 const offen = ref(false)
 const gewaehlterTyp = ref<TagTyp>('arbeit')
-const overrideStunden = ref<number | undefined>()
+const overrideStunden = ref<number | null | undefined>()
 const tagNotiz = ref('')
 
 watch(offen, (jetztOffen) => {
@@ -42,7 +42,7 @@ async function speichern() {
     method: 'PUT',
     body: {
       typ: gewaehlterTyp.value,
-      sollOverride: overrideStunden.value === undefined || Number.isNaN(overrideStunden.value) ? null : aufRaster(overrideStunden.value * 60),
+      sollOverride: overrideStunden.value == null ? null : aufRaster(overrideStunden.value * 60),
       notiz: tagNotiz.value || null,
     },
   }), TAG_KEYS)
@@ -78,7 +78,7 @@ async function speichern() {
         </div>
         <div class="grid gap-2">
           <Label for="soll-override">Soll abweichend (Stunden, optional)</Label>
-          <Input id="soll-override" v-model.number="overrideStunden" type="number" min="0" max="24" step="0.25" placeholder="z. B. 4" />
+          <ZahlInput id="soll-override" v-model="overrideStunden" :min="0" :max="24" :step="0.25" placeholder="z. B. 4" class="w-36" />
         </div>
         <div class="grid gap-2">
           <Label for="tag-notiz">Notiz</Label>

@@ -100,7 +100,7 @@ const archivOffen = ref(false)
           <div class="flex flex-wrap gap-6">
             <div class="grid gap-2">
               <Label for="soll">Soll pro Tag (Stunden)</Label>
-              <Input id="soll" v-model.number="form.sollProTagStunden" type="number" min="0" max="24" step="0.25" class="w-28" />
+              <ZahlInput id="soll" v-model="form.sollProTagStunden" :min="0" :max="24" :step="0.25" class="w-32" />
             </div>
             <div class="grid gap-2">
               <Label>Bundesland (Feiertage)</Label>
@@ -141,13 +141,13 @@ const archivOffen = ref(false)
             </div>
             <div class="grid gap-2">
               <Label for="start-saldo">Startsaldo (Stunden, ±)</Label>
-              <Input id="start-saldo" v-model.number="form.startSaldoStunden" type="number" step="0.25" class="w-28" />
+              <ZahlInput id="start-saldo" v-model="form.startSaldoStunden" :step="0.25" class="w-32" />
             </div>
           </div>
           <div class="flex flex-wrap gap-6">
             <div class="grid gap-2">
               <Label for="urlaub-vorlauf">Urlaubserinnerung (Tage vorher)</Label>
-              <Input id="urlaub-vorlauf" v-model.number="form.urlaubErinnerungTage" type="number" min="0" max="90" class="w-28" />
+              <ZahlInput id="urlaub-vorlauf" v-model="form.urlaubErinnerungTage" :min="0" :max="90" class="w-32" />
             </div>
             <div class="grid flex-1 gap-2">
               <Label for="urlaub-text">Erinnerungstext</Label>
