@@ -26,7 +26,7 @@ Konten & Aufgaben, Timeline, Schnelleingabe für Zeit, Stundenkonto, Tagesabschl
 
   Alles rastet im 15-min-Raster ein. Überschneidungen werden beim Ziehen rot markiert und nicht gespeichert. Geplante Blöcke sind schraffiert, Pausen grau; die Jetzt-Linie zeigt die aktuelle Uhrzeit.
 - Darunter Fortschritt „Gebucht x / Soll“ mit „geplant“, die **Schnelleingabe** und die Buttons **Wie gestern** und **Tagesabschluss**.
-- **Karten unter der Timeline:** Aufgaben in Arbeit (sowie Merker/Nachfassen/Daily-Themen aus Phase 2).
+- **Karten unter der Timeline:** Aufgaben in Arbeit (sowie Merker, Warten auf, Daily-Themen aus Phase 2 und angepinnte Notizen aus Phase 3).
 
 ### Schnelleingabe (Zeit)
 

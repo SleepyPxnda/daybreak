@@ -31,7 +31,7 @@ Auch über „Schnelleingabe“ oben in der Sidebar.
 - Unten einklappbar **„Besprochen / erledigt“** mit Datum, Wieder öffnen, Löschen.
 
 ### Auf „Heute“
-- Karten unter der Timeline: **Merker** (alle offenen), **Nachfassen** (nur fällige/überfällige Warten-auf; Karte erscheint nur dann), **Daily-Themen**.
+- Karten unter der Timeline: **Merker** (alle offenen), **Warten auf** (alle offenen; fällige hervorgehoben, oben und im Kartenkopf gezählt: „2 nachfassen“), **Daily-Themen**. Alle Karten sind immer sichtbar.
 - **Merker auf die Timeline ziehen** → geplanter 30-min-Block an der Drop-Position, Merker-Text als Block-Notiz. Hat der Merker keinen Bezug zu Aufgabe/Konto, öffnet sich der vorausgefüllte Block-Dialog zur Auswahl. Der Merker bleibt offen.
 - Aufgaben-Detailseite zeigt die verknüpften Einträge.
 
@@ -40,6 +40,7 @@ Auch über „Schnelleingabe“ oben in der Sidebar.
 Reine Funktionen in `shared/utils/todos.ts` und `quickInput.ts` (Tests: `tests/todos.test.ts`, `tests/quickInput.test.ts`).
 
 - **Fälligkeit:** Warten auf ab `nachfassenAm`, Merker ab `faelligAm`, Daily-Themen nie.
+- **Abweichung von Plan §5:** Auf „Heute“ zeigt die Karte *Warten auf* alle offenen Einträge statt nur der fälligen (Wunsch nach Phase 3).
 - **Sortierung:** fällige/überfällige oben (ältester Stichtag zuerst), darunter manuelle Reihenfolge. Neue Einträge ans Ende ihrer Liste.
 - **Nachgefasst:** +3 **Arbeitstage** (Wochenenden und Feiertage laut Einstellungen übersprungen).
 - **Alter:** Kalendertage seit `erstelltAm` (lokale Zeitzone).

@@ -2,12 +2,13 @@
 import { istFaellig } from '#shared/utils/todos'
 import TodoListe from '~/components/todos/TodoListe.vue'
 
-// Heute-Seitenspalte (Plan §5): offene Merker, Warten auf (nur fällige/überfällige), Daily-Themen
+// Heute-Karten: offene Merker, Warten auf, Daily-Themen.
+// Abweichung von Plan §5 (dort nur fällige Warten auf): alle offenen, fällige hervorgehoben und oben.
 const { nachArt } = useOffeneTodos()
 const merker = nachArt('merker')
 const warten = nachArt('warten')
 const daily = nachArt('daily')
-const faelligeWarten = computed(() => warten.value.filter(t => istFaellig(t, heute())))
+const anzahlFaellig = computed(() => warten.value.filter(t => istFaellig(t, heute())).length)
 </script>
 
 <template>
@@ -23,15 +24,15 @@ const faelligeWarten = computed(() => warten.value.filter(t => istFaellig(t, heu
     </CardContent>
   </Card>
 
-  <Card v-if="faelligeWarten.length">
+  <Card>
     <CardHeader>
       <CardTitle class="flex items-baseline justify-between text-base">
-        Nachfassen
-        <span class="text-xs font-normal text-muted-foreground">{{ warten.length }} offen</span>
+        Warten auf
+        <span v-if="anzahlFaellig" class="text-xs font-medium text-konto-butter">{{ anzahlFaellig }} nachfassen</span>
       </CardTitle>
     </CardHeader>
     <CardContent>
-      <TodoListe art="warten" :todos="faelligeWarten" kompakt />
+      <TodoListe art="warten" :todos="warten" kompakt leer-text="Keine – „w Wer: …“ in der Schnelleingabe." />
     </CardContent>
   </Card>
 
