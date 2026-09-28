@@ -144,6 +144,47 @@ describe('parseQuickInput – Beispiele aus Plan §3.8', () => {
   })
 })
 
+describe('parseQuickInput – Merker, Daily, Warten auf (Plan §3.8)', () => {
+  it('t Zertifikat verlängern → Merker', () => {
+    expect(parse('t Zertifikat verlängern')).toEqual({ art: 'todo', todoArt: 'merker', text: 'Zertifikat verlängern' })
+  })
+
+  it('t … bis fr → Merker mit Fälligkeit', () => {
+    expect(parse('t Zertifikat verlängern bis fr')).toEqual({ art: 'todo', todoArt: 'merker', text: 'Zertifikat verlängern', stichtag: '2026-10-02' })
+  })
+
+  it('d Deployment-Freeze ansprechen → Daily-Thema, „bis“ bleibt Text', () => {
+    expect(parse('d Deployment-Freeze ansprechen')).toEqual({ art: 'todo', todoArt: 'daily', text: 'Deployment-Freeze ansprechen' })
+    expect(parse('d warten bis morgen')).toMatchObject({ text: 'warten bis morgen' })
+  })
+
+  it('w Tim: PR-Review Login → Warten auf mit wer', () => {
+    expect(parse('w Tim: PR-Review Login')).toEqual({ art: 'todo', todoArt: 'warten', text: 'PR-Review Login', wer: 'Tim' })
+  })
+
+  it('w … bis fr / bis 2026-10-02 → Nachfass-Datum', () => {
+    expect(parse('w Tim: PR-Review Login bis fr')).toMatchObject({ wer: 'Tim', text: 'PR-Review Login', stichtag: '2026-10-02' })
+    expect(parse('w Tim: PR-Review bis 2026-10-07')).toMatchObject({ stichtag: '2026-10-07' })
+  })
+
+  it('w ohne Doppelpunkt → nur Text', () => {
+    expect(parse('w Rückmeldung Kunde')).toEqual({ art: 'todo', todoArt: 'warten', text: 'Rückmeldung Kunde' })
+  })
+
+  it('„bis“ ohne gültiges Datum bleibt Teil des Texts', () => {
+    expect(parse('t Doku lesen bis Seite')).toMatchObject({ text: 'Doku lesen bis Seite' })
+  })
+
+  it('Präfix ohne Text → Fehler', () => {
+    expect(parse('t')).toMatchObject({ art: 'fehler' })
+    expect(parse('w Tim:')).toMatchObject({ art: 'fehler' })
+  })
+
+  it('Präfix ist case-insensitive', () => {
+    expect(parse('T Merker')).toMatchObject({ art: 'todo', todoArt: 'merker' })
+  })
+})
+
 describe('parseQuickInput – Filter und Fehler', () => {
   it('abgeschlossene Aufgaben und archivierte Konten nicht per Fuzzy/Alias', () => {
     expect(parse('1h alt')).toMatchObject({ art: 'fehler' })

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import CommandPalette from '~/components/quick-input/CommandPalette.vue'
 </script>
 
 <template>
@@ -13,5 +14,6 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
         <slot />
       </main>
     </SidebarInset>
+    <CommandPalette />
   </SidebarProvider>
 </template>

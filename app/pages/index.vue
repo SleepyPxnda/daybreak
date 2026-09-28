@@ -11,6 +11,7 @@ import QuickInput from '~/components/quick-input/QuickInput.vue'
 import SaldoWidget from '~/components/widgets/SaldoWidget.vue'
 import TagEinstellung from '~/components/widgets/TagEinstellung.vue'
 import AufgabenInArbeit from '~/components/widgets/AufgabenInArbeit.vue'
+import TodoSpalte from '~/components/widgets/TodoSpalte.vue'
 import type { VorlageFormular } from '~/components/VorlageDialog.vue'
 import type { TimelineBlock } from '~/utils/timeline'
 
@@ -220,6 +221,7 @@ const abschluss = ref(false)
 
     <aside class="grid content-start gap-4">
       <AufgabenInArbeit :datum="datum" />
+      <TodoSpalte />
     </aside>
 
     <BlockDialog v-model:open="blockDialog" :block="bearbeiteterBlock" :entwurf="entwurf" />

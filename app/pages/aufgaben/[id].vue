@@ -2,11 +2,14 @@
 import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
 import { ArrowLeft, CheckCircle2, Pencil, RotateCcw, Trash2 } from '@lucide/vue'
+import { TODO_ARTEN } from '#shared/utils/todos'
 
 const route = useRoute()
 const id = computed(() => Number(route.params.id))
 
 const { data: aufgabe, error } = await useFetch(() => `/api/aufgaben/${id.value}`, { key: 'aufgabe-detail' })
+// Plan §5.8: verknüpfte Merker (offene Einträge aller Arten mit Bezug auf diese Aufgabe)
+const { data: todos } = useFetch('/api/todos', { key: 'aufgabe-todos', query: { aufgabeId: id }, default: () => [] })
 
 useHead({ title: () => `${aufgabe.value?.key ? `${aufgabe.value.key} ` : ''}${aufgabe.value?.titel ?? 'Aufgabe'} · Daybreak` })
 
@@ -118,6 +121,20 @@ const formatTag = (datum: string) => format(zuDate(datum), 'EEEE, d. MMMM yyyy',
           </div>
         </div>
         <Progress v-if="fortschritt !== undefined" :model-value="fortschritt" class="h-2" />
+      </CardContent>
+    </Card>
+
+    <Card v-if="todos.length">
+      <CardHeader>
+        <CardTitle>Merker</CardTitle>
+      </CardHeader>
+      <CardContent class="grid gap-1 text-sm">
+        <NuxtLink v-for="t in todos" :key="t.id" to="/todos" class="flex gap-2 hover:underline">
+          <Badge variant="outline">
+            {{ TODO_ARTEN.find(a => a.art === t.art)?.einzahl }}
+          </Badge>
+          <span><template v-if="t.wer">{{ t.wer }}: </template>{{ t.text }}</span>
+        </NuxtLink>
       </CardContent>
     </Card>
 

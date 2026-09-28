@@ -1,9 +1,10 @@
 import type { BlockKind, BlockStatus } from './bloecke'
+import type { TodoArt } from './todos'
 import type { Datum } from './zeit'
 import { istDatum, plusTage, RASTER_MIN, TAG_MIN, wochentag } from './zeit'
 
 // Schnelleingabe (Plan §3.8) – reiner Parser, schreibt nichts.
-// Phase 1: Zeit buchen/planen und Pausen. Präfixe t/d/w/n folgen in Phase 2/3.
+// Zeit buchen/planen, Pausen, Merker (t), Daily-Themen (d), Warten auf (w). Notizen (n) folgen in Phase 3.
 
 export interface QiAufgabe {
   id: number
@@ -48,11 +49,46 @@ export interface QiBlock {
   notiz?: string
 }
 
+export interface QiTodo {
+  art: 'todo'
+  todoArt: TodoArt
+  text: string
+  /** Nur „Warten auf“: Text vor dem ersten „:“ */
+  wer?: string
+  /** `bis <datum>`: Nachfass-Datum (warten) bzw. Fälligkeit (merker) */
+  stichtag?: Datum
+}
+
 export type QiErgebnis =
   | { art: 'leer' }
   | { art: 'suche', text: string }
   | { art: 'fehler', meldung: string }
   | QiBlock
+  | QiTodo
+
+const TODO_PRAEFIXE: Record<string, TodoArt> = { t: 'merker', d: 'daily', w: 'warten' }
+
+/** `t …`, `d …`, `w wer: …` – optional `bis <datum>` am Ende (nicht bei Daily-Themen). */
+function parseTodo(todoArt: TodoArt, woerter: string[], heute: Datum): QiTodo | { art: 'fehler', meldung: string } {
+  let rest = woerter
+  let stichtag: Datum | undefined
+  if (todoArt !== 'daily' && rest.length >= 3 && norm(rest.at(-2)!) === 'bis') {
+    stichtag = parseDatumToken(rest.at(-1)!, heute, 'vor')
+    if (stichtag) rest = rest.slice(0, -2)
+  }
+
+  let text = rest.join(' ').trim()
+  let wer: string | undefined
+  if (todoArt === 'warten') {
+    const doppelpunkt = text.indexOf(':')
+    if (doppelpunkt > 0) {
+      wer = text.slice(0, doppelpunkt).trim()
+      text = text.slice(doppelpunkt + 1).trim()
+    }
+  }
+  if (!text) return { art: 'fehler', meldung: 'Text fehlt' }
+  return { art: 'todo', todoArt, text, ...(wer ? { wer } : {}), ...(stichtag ? { stichtag } : {}) }
+}
 
 const WOCHENTAGE: Record<string, number> = { mo: 1, di: 2, mi: 3, do: 4, fr: 5, sa: 6, so: 7 }
 
@@ -164,6 +200,9 @@ export function parseQuickInput(eingabe: string, ctx: QiKontext): QiErgebnis {
   const text = eingabe.trim()
   if (!text) return { art: 'leer' }
   let woerter = text.split(/\s+/)
+
+  const todoArt = TODO_PRAEFIXE[norm(woerter[0]!)]
+  if (todoArt) return parseTodo(todoArt, woerter.slice(1), ctx.heute)
 
   let kind: BlockKind = 'arbeit'
   let status: BlockStatus = 'gebucht'

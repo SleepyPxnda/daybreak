@@ -6,6 +6,7 @@ import {
   FolderKanban,
   ListTodo,
   NotebookPen,
+  Search,
   Settings,
   Sunrise,
 } from '@lucide/vue'
@@ -22,6 +23,7 @@ import {
 } from '@/components/ui/sidebar'
 
 const route = useRoute()
+const paletteOffen = usePaletteOffen()
 
 const navigation = [
   { title: 'Heute', to: '/', icon: Sunrise },
@@ -49,6 +51,13 @@ function isActive(to: string) {
               <Sunrise class="text-primary" />
               <span class="font-semibold">Daybreak</span>
             </NuxtLink>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton tooltip="Schnelleingabe (Strg+K)" class="text-muted-foreground" @click="paletteOffen = true">
+            <Search />
+            <span class="flex-1">Schnelleingabe</span>
+            <kbd class="rounded border px-1.5 font-mono text-[10px]">Strg K</kbd>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
