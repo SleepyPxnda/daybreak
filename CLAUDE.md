@@ -23,6 +23,7 @@ Nuxt 4 · shadcn-vue (Reka UI) · Tailwind v4 · Drizzle ORM + SQLite (`@libsql/
 - DB-Pfad nur über `DATABASE_URL` (Default `file:./data/daybreak.db`, gitignored); Schemaänderungen immer per `drizzle-kit generate` + Migration. Migrationen laufen im Container beim Start automatisch.
 - Alles muss im Docker-Image laufen (Plan §9): keine Pfade/Abhängigkeiten, die nur lokal existieren; Zeitzone `Europe/Berlin` für Tagesgrenzen.
 - CI (`.github/workflows/ci.yml`) muss grün bleiben: lint, typecheck, test, build.
+- Jede Phase endet mit Dokumentation in `docs/phase-<n>-<thema>.md` (Bedienung, Fachregeln & Entscheidungen, Datenmodell & API, Offen) + Index `docs/README.md`; Fixes nachtragen. Siehe Plan §8.
 
 ## Befehle
 - `pnpm dev` – Dev-Server

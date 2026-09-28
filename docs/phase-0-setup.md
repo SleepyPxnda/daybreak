@@ -1,0 +1,61 @@
+# Phase 0 – Setup
+
+Grundgerüst: Nuxt 4 im Projektordner, shadcn-vue, dunkles Pastell-Theme, Drizzle + SQLite, Docker, CI.
+
+## Bedienung
+
+- `pnpm dev` startet die App auf <http://127.0.0.1:3000> (unter Windows `127.0.0.1` statt `localhost` – schnellere DNS-Auflösung).
+- Linke Sidebar (einklappbar über das Symbol oben links) mit allen Seiten: Heute, Woche, Übersicht, Kalender, Merker & Daily, Notizen, Konten & Aufgaben, Einstellungen. Noch nicht umgesetzte Seiten zeigen „Kommt in Phase X“.
+- `GET /api/health` liefert `{ ok: true }` inkl. DB-Ping (503 bei DB-Fehler).
+
+## Technik & Entscheidungen
+
+### Stack & Versionen
+- Nuxt 4.5, Vue 3.5, Tailwind v4 (`@tailwindcss/vite`), shadcn-vue (Reka UI, Stil *nova*), Drizzle ORM 0.45 + `@libsql/client`, zod 4, Vitest 5.
+- **pnpm 12** (festgelegt über `packageManager` in `package.json`), **Node ≥ 22** (CI und Docker nutzen Node 22).
+- **TypeScript auf `~6.0` gepinnt** – typescript-eslint unterstützt TS 7 noch nicht.
+- **Icons aus `@lucide/vue`** (Nachfolger von `lucide-vue-next`; so generiert shadcn-vue die Komponenten).
+- **Schrift Inter self-hosted** über `@fontsource-variable/inter` statt Google Fonts (offline-fähig, keine externe Anfrage).
+
+### pnpm-Build-Skripte
+pnpm 12 blockiert Postinstall-Skripte, bis sie freigegeben sind. Freigaben in `pnpm-workspace.yaml`:
+`esbuild` ✔, `vue-demi` ✔, `unrs-resolver` ✘ (liefert vorkompilierte Binaries).
+
+### Theme
+- Tokens aus Plan §6 in `app/assets/css/main.css`, Dark-only (`<html class="dark">` fest in `nuxt.config.ts`).
+- Kontofarben als Tailwind-Farben (`bg-konto-mint` …) plus dunkle Textfarbe je Farbton (`text-konto-mint-fg`, Plan §6: `oklch(0.22 0.03 <hue>)`).
+- Utility `schraffiert` für geplante Blöcke.
+- ⚠️ **shadcn-CLI:** `shadcn-vue add` schreibt jedes Mal einen Google-Fonts-Import und einen doppelten `@layer base` in `main.css`. Nach jedem `add` die Datei zurücksetzen (`git checkout -- app/assets/css/main.css`) bzw. prüfen.
+
+### Datenbank & Migrationen
+- Schema in `server/db/schema.ts` (vollständig nach Plan §4), Client in `server/db/client.ts`. Pfad nur über `DATABASE_URL` (Default `file:./data/daybreak.db`); fehlende Verzeichnisse werden angelegt.
+- **Abweichung vom Plan:** Statt eines separaten `migrate.mjs` wendet ein **Nitro-Server-Plugin** (`server/plugins/migrate.ts`) die Migrationen beim Serverstart an; die Middleware `server/middleware/00.migrations.ts` lässt Requests erst danach durch. Grund: Ein eigenständiges Skript bräuchte im Image vollständige `drizzle-orm`/`@libsql/client`-Pakete, die Nitro nicht mitkopiert. So gilt lokal und im Container derselbe Weg, ohne `drizzle-kit` zur Laufzeit. Schlägt eine Migration fehl, beendet sich der Prozess.
+- Neue Migration: Schema ändern → `pnpm db:generate --name <name>` → Dev-Server neu starten.
+- **libsql-Binary:** libsql lädt sein natives Binary dynamisch; Nitros Tracing erkennt das nicht. `nuxt.config.ts` gibt das installierte Plattform-Paket per `nitro.externals.traceInclude` mit (lokal `win32-x64-msvc`, im Container `linux-x64-gnu`).
+
+### Zugangsschutz (Plan §9)
+- Ist `DAYBREAK_PASSWORD` gesetzt, verlangt `server/middleware/01.auth.ts` HTTP Basic Auth (Benutzer beliebig, timing-sicherer Vergleich über SHA-256-Digests). `/api/health` ist ausgenommen.
+- Ohne Variable: Warnung beim Start (`server/plugins/auth-warning.ts`).
+
+### Docker & CI
+- `Dockerfile` (Multi-Stage auf `node:22-slim`, läuft als `node`, `VOLUME /data`, `HEALTHCHECK` gegen `/api/health`, `TZ=Europe/Berlin`), `docker-compose.yml`, `.dockerignore`.
+- Workflows: `.github/workflows/ci.yml` (lint, typecheck, test, build) und `docker.yml` (Image nach GHCR bei Push auf `main`/Tags `v*`).
+- `.gitattributes` erzwingt LF-Zeilenenden (Container-Skripte).
+
+## Projektstruktur
+
+```
+app/        Seiten, Komponenten (ui/ = shadcn, generiert), Composables, Utils
+server/     api/ (Routen), db/ (Schema, Client, Migrate), middleware/, plugins/, utils/
+shared/     utils/ – reine Fachlogik, in App und Server auto-importiert
+tests/      Vitest
+drizzle/    Migrationen
+docs/       diese Dokumentation
+```
+
+## Offen / bekannte Grenzen
+
+- **Docker und CI sind ungetestet** (`docker compose up --build`, Neustart-Persistenz, CI auf Push).
+- `pnpm build` braucht unter Windows ~4 min (Nitro-Tracing); bricht man ihn ab, kann ein verwaister Prozess die Build-Sperre halten → Prozess beenden oder `NUXT_IGNORE_LOCK=1`.
+- Unter Node 25 erscheinen `DEP0155`-Deprecation-Warnungen aus `@vue/shared`/`@vueuse` – harmlos.
+- Nach dem libsql-Fix wurde der gebaute Server (`node .output/server/index.mjs`) nicht erneut gestartet.

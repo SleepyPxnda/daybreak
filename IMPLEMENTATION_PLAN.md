@@ -311,6 +311,8 @@ API (Nitro, JSON): `GET/POST/PATCH/DELETE /api/konten|aufgaben|blocks|tage|todos
 
 ## 8. Phasen & Abnahmekriterien
 
+**Jede Phase endet mit einem Dokumentationsschritt:** `docs/phase-<n>-<thema>.md` anlegen bzw. aktualisieren und in `docs/README.md` verlinken. Inhalt: *Bedienung* (Funktionen, Schnelleingabe, Tastenkürzel, Abläufe), *Fachregeln & Entscheidungen* (inkl. Abweichungen vom Plan), *Datenmodell & API*, *Offen / bekannte Grenzen*. Spätere Fixes einer Phase werden in deren Dokument nachgetragen.
+
 ### Phase 0 – Setup
 - Nuxt 4 **im bestehenden Ordner** scaffolden (Plan-Dateien und `.mcp.json` behalten), Tailwind v4, `shadcn-vue init`, Skill installieren, Drizzle + libsql, Vitest.
 - Theme aus §6, Sidebar-Layout mit allen Routen als Platzhalter.
