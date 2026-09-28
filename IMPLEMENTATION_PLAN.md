@@ -383,7 +383,7 @@ Die gesamte Datenhaltung ist die Datei `/data/daybreak.db` im Volume; Backup = D
 - **`.github/workflows/ci.yml`** – bei Push und Pull Request:
   `pnpm install --frozen-lockfile` → `pnpm lint` → `pnpm typecheck` (`nuxi typecheck`) → `pnpm test` → `pnpm build`. pnpm-Store cachen.
 - **`.github/workflows/docker.yml`** – nur bei veröffentlichten **GitHub-Releases** (Tag `vX.Y.Z`):
-  `docker/setup-buildx-action` → `docker/login-action` (GHCR, `GITHUB_TOKEN`, `permissions: packages: write`) → `docker/metadata-action` (Tags: `X.Y.Z`, `X.Y`, `latest` außer bei Pre-Releases) → `docker/build-push-action` mit GHA-Cache. Plattform `linux/amd64` (arm64 optional ergänzen, falls der Server ARM ist).
+  `docker/setup-buildx-action` → `docker/login-action` (GHCR, `GITHUB_TOKEN`, `permissions: packages: write`) → `docker/metadata-action` (Tags: `X.Y.Z`, `X.Y`, `latest` außer bei Pre-Releases) → `docker/build-push-action` mit GHA-Cache. Plattformen `linux/amd64` und `linux/arm64` (QEMU; u. a. für Macs mit Apple Silicon).
 - Kein automatisches Ausrollen auf den Server; Update per `docker compose pull && docker compose up -d` (oder Watchtower).
 
 ---
