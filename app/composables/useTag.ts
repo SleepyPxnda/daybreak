@@ -1,7 +1,7 @@
 import type { TimelineBlock } from '~/utils/timeline'
 
 /** useFetch-Keys, die nach jeder Block-Änderung neu geladen werden. */
-export const TAG_KEYS = ['tag-bloecke', 'tag-info', 'woche-bloecke', 'woche-tage', 'kalender-tage', 'urlaub', 'saldo', 'aufgaben', 'aufgaben-in-arbeit', 'zuletzt']
+export const TAG_KEYS = ['tag-bloecke', 'tag-info', 'woche-bloecke', 'woche-tage', 'kalender-tage', 'urlaub', 'naechster-urlaub', 'saldo', 'aufgaben', 'aufgaben-in-arbeit', 'zuletzt']
 
 /** Blöcke (inkl. Vorlagen-Materialisierung), Tagesinfo und Saldo für einen Tag. */
 export function useTag(datum: Ref<string>) {

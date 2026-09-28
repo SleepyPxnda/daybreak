@@ -15,6 +15,11 @@ Jahreskalender mit Abwesenheiten, Urlaubskonto mit variablen Anspruchsposten, Wo
 - **„Rest aus Vorjahr übernehmen“** legt den Rest des Vorjahres als Posten „Resturlaub <Jahr>“ an bzw. aktualisiert ihn (erscheint, wenn es im Vorjahr Posten gibt).
 - **Vorbelegung beim ersten Start** (laufendes Jahr): Grundanspruch 32, „Sonderurlaub WS 26/27“ +2, „Sonderurlaub SS 27“ +2 – insgesamt 36 wie im Plan.
 
+### Nächster Urlaub auf „Heute“ (Nachtrag)
+- **Karte „Nächster Urlaub“** unter der Timeline: Zeitraum, „in 84 Tagen“, Anzahl Urlaubstage. Ohne geplanten Urlaub ein Link zum Kalender.
+- **Erinnerung:** Ab *X Tagen* vor Beginn (Einstellungen → „Urlaubserinnerung (Tage vorher)“, Standard 7) erscheint stattdessen ein hervorgehobener Hinweis über der Timeline mit Countdown, verbleibenden Arbeitstagen und dem **Erinnerungstext** aus den Einstellungen (Standard „Übergabe planen, Abwesenheitsnotiz und Vertretung einrichten.“).
+- Während des Urlaubs: „Im Urlaub bis …“.
+
 ### Woche (`/woche`)
 - Kalenderwoche mit `‹ KW 40 ›` wechseln (`?woche=<Datum>`), „Diese Woche“ springt zurück.
 - **Eine Timeline pro Tag** (kompakt: ohne Zoom-Leiste, Zoomen per `Strg`+Mausrad geht trotzdem). Alle Timeline-Aktionen wie auf „Heute“: ziehen zum Anlegen, verschieben, Ränder ziehen, Rechtsklick-Menü, Klick zum Bearbeiten.
@@ -30,6 +35,7 @@ Reine Funktionen in `shared/utils/urlaub.ts` (Tests: `tests/urlaub.test.ts`).
 - **Urlaubstage:** Urlaub = 1, ½ Urlaub = 0,5 – nur an regulären Arbeitstagen; Urlaub an Wochenenden/Feiertagen zählt nicht (Plan §3.5).
 - **genommen** = Urlaubstage bis **einschließlich heute**, **geplant** = danach, **Rest** = Anspruch − genommen − geplant (kann negativ werden).
 - **Vorbelegung** läuft genau einmal (Flag `urlaubVorbelegt` in `settings`) und nur, wenn noch gar keine Posten existieren – gelöschte Posten kommen nicht zurück. Bezeichnungen wortgleich zum Plan.
+- **Nächster Urlaub** (`naechsterUrlaub`): Aufeinanderfolgende Urlaubstage (auch ½) bilden einen Zeitraum; Wochenenden/Feiertage dazwischen überbrücken ihn, ein Arbeitstag ohne Urlaub beendet ihn. Ist heute ein freier Tag mitten im Urlaub, gilt der Urlaub als laufend. Krank und Gleittag zählen nicht. „Arbeitstage davor“ zählt reguläre Arbeitstage zwischen heute und Beginn (beide exklusiv). Suchhorizont 1 Jahr. Ergänzung zum Plan (Wunsch nach Phase 4).
 - **Rest übernehmen** ersetzt einen vorhandenen Rest-Posten des Jahres (auf halbe Tage gerundet).
 - **Bereich setzen:** Abwesenheiten werden nur an regulären Arbeitstagen gespeichert (Wochenenden/Feiertage bleiben sauber). „Zurücksetzen“ löscht Einträge ohne Soll-Override/Notiz und setzt die übrigen auf Arbeitstag – Override und Notiz bleiben erhalten.
 - **Nicht umgesetzt (optional laut Plan):** Vorlage für wiederkehrende Zusatzposten (Semester-Tage) – Posten werden pro Jahr manuell gepflegt.
@@ -44,6 +50,7 @@ Tabellen `urlaubsanspruch` (`jahr`, `art`, `bezeichnung`, `tage`) und `tag` – 
 | `GET /api/urlaub?jahr` | Konto (`anspruch`, `genommen`, `geplant`, `rest`), `posten`, `vorjahrRest`; legt beim ersten Aufruf die Vorbelegung an |
 | `POST /api/urlaub/posten`, `PATCH/DELETE /api/urlaub/posten/:id` | Posten pflegen (Tage in 0,5-Schritten) |
 | `POST /api/urlaub/rest-uebernehmen` | `{ jahr }` → Rest-Posten aus dem Vorjahr |
+| `GET /api/urlaub/naechster` | nächster/laufender Urlaub, `erinnern` (innerhalb des Vorlaufs), `erinnerungText` |
 | `PUT /api/tage/bereich` | `{ von, bis, typ }` – Tagestyp für einen Bereich (max. 1 Jahr) |
 | `GET /api/tage?von&bis` | liefert jetzt zusätzlich `sollOverride` |
 

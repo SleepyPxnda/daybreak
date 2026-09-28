@@ -20,6 +20,8 @@ const form = reactive({
   timelineBis: 1140,
   startDatum: heute(),
   startSaldoStunden: 0,
+  urlaubErinnerungTage: 7,
+  urlaubErinnerungText: '',
 })
 
 watchEffect(() => {
@@ -33,6 +35,8 @@ watchEffect(() => {
   form.timelineBis = e.timelineBis
   form.startDatum = e.stundenkontoStart.datum
   form.startSaldoStunden = e.stundenkontoStart.saldoMin / 60
+  form.urlaubErinnerungTage = e.urlaubErinnerungTage
+  form.urlaubErinnerungText = e.urlaubErinnerungText
 })
 
 async function speichern() {
@@ -46,8 +50,10 @@ async function speichern() {
       timelineVon: form.timelineVon,
       timelineBis: form.timelineBis,
       stundenkontoStart: { datum: form.startDatum, saldoMin: Math.round(form.startSaldoStunden * 60) },
+      urlaubErinnerungTage: Math.max(0, Math.round(form.urlaubErinnerungTage || 0)),
+      urlaubErinnerungText: form.urlaubErinnerungText,
     },
-  }), ['einstellungen', 'saldo'])
+  }), ['einstellungen', 'saldo', 'naechster-urlaub'])
   if (ok) toast.success('Einstellungen gespeichert')
 }
 
@@ -136,6 +142,16 @@ const archivOffen = ref(false)
             <div class="grid gap-2">
               <Label for="start-saldo">Startsaldo (Stunden, ±)</Label>
               <Input id="start-saldo" v-model.number="form.startSaldoStunden" type="number" step="0.25" class="w-28" />
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-6">
+            <div class="grid gap-2">
+              <Label for="urlaub-vorlauf">Urlaubserinnerung (Tage vorher)</Label>
+              <Input id="urlaub-vorlauf" v-model.number="form.urlaubErinnerungTage" type="number" min="0" max="90" class="w-28" />
+            </div>
+            <div class="grid flex-1 gap-2">
+              <Label for="urlaub-text">Erinnerungstext</Label>
+              <Input id="urlaub-text" v-model="form.urlaubErinnerungText" placeholder="z. B. Übergabe planen, Abwesenheitsnotiz einrichten" />
             </div>
           </div>
           <div>

@@ -11,6 +11,7 @@ import TagEinstellung from '~/components/widgets/TagEinstellung.vue'
 import AufgabenInArbeit from '~/components/widgets/AufgabenInArbeit.vue'
 import TodoSpalte from '~/components/widgets/TodoSpalte.vue'
 import AngepinnteNotizen from '~/components/widgets/AngepinnteNotizen.vue'
+import NaechsterUrlaub from '~/components/widgets/NaechsterUrlaub.vue'
 
 const route = useRoute()
 const datum = computed(() => {
@@ -105,6 +106,8 @@ const abschluss = ref(false)
         </div>
       </div>
 
+      <NaechsterUrlaub darstellung="banner" />
+
       <Badge v-if="konflikte.length" variant="outline" class="w-fit gap-1 border-konto-butter text-konto-butter">
         <TriangleAlert class="size-3.5" />
         {{ konflikte.length }} wiederkehrende{{ konflikte.length === 1 ? 'r Block' : ' Blöcke' }} nicht eingetragen – Zeitraum belegt
@@ -150,6 +153,7 @@ const abschluss = ref(false)
       <AufgabenInArbeit :datum="datum" />
       <TodoSpalte />
       <AngepinnteNotizen />
+      <NaechsterUrlaub darstellung="karte" />
     </section>
 
     <BlockDialog v-model:open="blockDialog" :block="bearbeiteterBlock" :entwurf="entwurf" />

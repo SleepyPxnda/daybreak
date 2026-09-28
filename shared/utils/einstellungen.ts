@@ -21,6 +21,10 @@ export const einstellungenSchema = z.object({
     datum: datumSchema,
     saldoMin: z.number().int(),
   }),
+  /** Ab so vielen Tagen vor Urlaubsbeginn erscheint die Erinnerung auf „Heute“ */
+  urlaubErinnerungTage: z.number().int().min(0).max(90),
+  /** Text der Urlaubserinnerung */
+  urlaubErinnerungText: z.string().trim().max(300),
 })
 
 export type Einstellungen = z.infer<typeof einstellungenSchema>
@@ -33,4 +37,6 @@ export const STANDARD_EINSTELLUNGEN: Omit<Einstellungen, 'stundenkontoStart'> = 
   arbeitsbeginn: 480,
   timelineVon: 420,
   timelineBis: 1140,
+  urlaubErinnerungTage: 7,
+  urlaubErinnerungText: 'Übergabe planen, Abwesenheitsnotiz und Vertretung einrichten.',
 }
