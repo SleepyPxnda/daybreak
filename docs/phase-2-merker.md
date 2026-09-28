@@ -68,5 +68,5 @@ Tabelle `todo` (Plan §4): `art` (`merker` | `daily` | `warten`), `text`, `wer`,
 
 - Nicht im Browser geprüft (Palette, Drag & Drop, Abnahme „2 Tastendrücke + Text“).
 - Suche ist nur für ASCII-Buchstaben unabhängig von Groß-/Kleinschreibung (SQLite-`LIKE`): „Übung“ findet nicht „übung“.
-- Notizen in Suche und Palette, `n`-Präfix und angepinnte Notizen auf „Heute“ folgen in Phase 3.
+- ~~Notizen in Suche und Palette, `n`-Präfix und angepinnte Notizen auf „Heute“~~ → umgesetzt in [Phase 3](phase-3-notizen.md).
 - Nur Merker (nicht Warten auf/Daily-Themen) lassen sich auf die Timeline ziehen.

@@ -4,7 +4,7 @@ import type { Datum } from './zeit'
 import { istDatum, plusTage, RASTER_MIN, TAG_MIN, wochentag } from './zeit'
 
 // Schnelleingabe (Plan §3.8) – reiner Parser, schreibt nichts.
-// Zeit buchen/planen, Pausen, Merker (t), Daily-Themen (d), Warten auf (w). Notizen (n) folgen in Phase 3.
+// Zeit buchen/planen, Pausen, Merker (t), Daily-Themen (d), Warten auf (w), Notizen (n).
 
 export interface QiAufgabe {
   id: number
@@ -59,12 +59,19 @@ export interface QiTodo {
   stichtag?: Datum
 }
 
+/** `n Titel` – neue Notiz, öffnet den Editor */
+export interface QiNotiz {
+  art: 'notiz'
+  titel: string
+}
+
 export type QiErgebnis =
   | { art: 'leer' }
   | { art: 'suche', text: string }
   | { art: 'fehler', meldung: string }
   | QiBlock
   | QiTodo
+  | QiNotiz
 
 const TODO_PRAEFIXE: Record<string, TodoArt> = { t: 'merker', d: 'daily', w: 'warten' }
 
@@ -203,6 +210,11 @@ export function parseQuickInput(eingabe: string, ctx: QiKontext): QiErgebnis {
 
   const todoArt = TODO_PRAEFIXE[norm(woerter[0]!)]
   if (todoArt) return parseTodo(todoArt, woerter.slice(1), ctx.heute)
+
+  if (norm(woerter[0]!) === 'n') {
+    const titel = woerter.slice(1).join(' ')
+    return titel ? { art: 'notiz', titel } : { art: 'fehler', meldung: 'Titel fehlt' }
+  }
 
   let kind: BlockKind = 'arbeit'
   let status: BlockStatus = 'gebucht'

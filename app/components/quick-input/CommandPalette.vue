@@ -11,6 +11,7 @@ import {
   ListTodo,
   MessageSquare,
   NotebookPen,
+  Pin,
   Search,
   Settings,
   StickyNote,
@@ -47,6 +48,7 @@ watch(offen, (jetztOffen) => {
 interface SuchErgebnis {
   aufgaben: { id: number, key: string | null, titel: string, status: string, kontoFarbe: string }[]
   konten: { id: number, name: string, farbe: string, status: string }[]
+  notizen: { id: number, titel: string, angepinnt: boolean }[]
   todos: { id: number, art: TodoArt, text: string, wer: string | null }[]
 }
 const treffer = ref<SuchErgebnis | null>(null)
@@ -102,7 +104,7 @@ async function ausfuehrenUndSchliessen(gewaehlt?: Parameters<typeof ausfuehren>[
  */
 function enterAbfangen(e: KeyboardEvent) {
   const r = ergebnis.value
-  const eindeutig = r.art === 'todo' || r.art === 'fehler' || (r.art === 'block' && !r.kandidaten)
+  const eindeutig = r.art === 'todo' || r.art === 'notiz' || r.art === 'fehler' || (r.art === 'block' && !r.kandidaten)
   if (!eindeutig) return
   e.preventDefault()
   e.stopPropagation()
@@ -119,7 +121,7 @@ function enterAbfangen(e: KeyboardEvent) {
           v-model="text"
           auto-focus
           :disabled="laeuft"
-          placeholder="t Merker · d Daily-Thema · w Tim: PR-Review · 2h Aufgabe · suchen …"
+          placeholder="t Merker · d Daily-Thema · w Tim: PR-Review · n Notiz · 2h Aufgabe · suchen …"
           class="w-full bg-transparent font-mono text-sm outline-hidden"
         />
       </div>
@@ -163,6 +165,12 @@ function enterAbfangen(e: KeyboardEvent) {
             <span :class="{ 'text-muted-foreground': k.status !== 'aktiv' }">{{ k.name }}</span>
           </CommandItem>
         </CommandGroup>
+        <CommandGroup v-if="treffer.notizen.length" heading="Notizen">
+          <CommandItem v-for="n in treffer.notizen" :key="`n${n.id}`" :value="`notiz-${n.id}`" @select="oeffne(`/notizen?id=${n.id}`)">
+            <component :is="n.angepinnt ? Pin : NotebookPen" />
+            <span class="truncate">{{ n.titel }}</span>
+          </CommandItem>
+        </CommandGroup>
         <CommandGroup v-if="treffer.todos.length" heading="Merker & Daily">
           <CommandItem v-for="t in treffer.todos" :key="`t${t.id}`" :value="`todo-${t.id}`" @select="oeffne('/todos')">
             <component :is="TODO_ICONS[t.art]" />
@@ -171,7 +179,7 @@ function enterAbfangen(e: KeyboardEvent) {
           </CommandItem>
         </CommandGroup>
         <p
-          v-if="!treffer.aufgaben.length && !treffer.konten.length && !treffer.todos.length && !seiten.length"
+          v-if="!treffer.aufgaben.length && !treffer.konten.length && !treffer.notizen.length && !treffer.todos.length && !seiten.length"
           class="px-3 py-6 text-center text-sm text-muted-foreground"
         >
           Nichts gefunden.

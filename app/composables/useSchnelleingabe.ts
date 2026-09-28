@@ -63,6 +63,7 @@ export function useSchnelleingabe(datum: MaybeRefOrGetter<string>) {
     const r = ergebnis.value
     if (r.art === 'block') return { text: blockVorschau(r), notiz: r.notiz }
     if (r.art === 'todo') return { text: todoVorschau(r), notiz: undefined }
+    if (r.art === 'notiz') return { text: `Neue Notiz · ${r.titel} – öffnet den Editor`, notiz: undefined }
     return null
   })
 
@@ -111,13 +112,15 @@ export function useSchnelleingabe(datum: MaybeRefOrGetter<string>) {
       toast.error(r.meldung)
       return false
     }
-    if (r.art !== 'block' && r.art !== 'todo') return false
+    if (r.art !== 'block' && r.art !== 'todo' && r.art !== 'notiz') return false
     const ziel = r.art === 'block' ? gewaehlt ?? r.ziel : undefined
     if (r.art === 'block' && r.kind === 'arbeit' && !ziel) return false // Kandidaten werden angezeigt
 
     laeuft.value = true
     try {
-      const ok = r.art === 'block' ? await blockAnlegen(r, ziel) : await todoAnlegen(r)
+      const ok = r.art === 'block'
+        ? await blockAnlegen(r, ziel)
+        : r.art === 'todo' ? await todoAnlegen(r) : await neueNotiz(r.titel)
       if (ok) text.value = ''
       return ok
     }

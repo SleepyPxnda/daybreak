@@ -131,6 +131,28 @@
   }
 }
 
+/* Markdown-Vorschau der Notizen */
+@layer components {
+  .markdown {
+    @apply text-sm leading-relaxed break-words;
+  }
+  .markdown > * + * { @apply mt-3; }
+  .markdown h1 { @apply text-xl font-semibold; }
+  .markdown h2 { @apply text-lg font-semibold; }
+  .markdown h3, .markdown h4 { @apply font-semibold; }
+  .markdown a { @apply text-primary underline underline-offset-2; }
+  .markdown ul { @apply list-disc pl-5; }
+  .markdown ol { @apply list-decimal pl-5; }
+  .markdown li + li { @apply mt-1; }
+  .markdown blockquote { @apply border-l-2 border-border pl-3 text-muted-foreground; }
+  .markdown code { @apply rounded bg-muted px-1 py-0.5 font-mono text-[0.85em]; }
+  .markdown pre { @apply overflow-x-auto rounded-md bg-muted p-3; }
+  .markdown pre code { @apply bg-transparent p-0; }
+  .markdown hr { @apply border-border; }
+  .markdown table { @apply w-full border-collapse text-left; }
+  .markdown th, .markdown td { @apply border border-border px-2 py-1; }
+}
+
 /* Geplante Blöcke: halbtransparent + schraffiert (Plan §3.2) */
 @utility schraffiert {
   opacity: 0.6;

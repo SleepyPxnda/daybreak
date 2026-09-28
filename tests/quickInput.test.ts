@@ -185,6 +185,17 @@ describe('parseQuickInput – Merker, Daily, Warten auf (Plan §3.8)', () => {
   })
 })
 
+describe('parseQuickInput – Notiz (Plan §3.8)', () => {
+  it('n Architektur-Idee → neue Notiz mit Titel', () => {
+    expect(parse('n Architektur-Idee')).toEqual({ art: 'notiz', titel: 'Architektur-Idee' })
+    expect(parse('N Idee für später')).toEqual({ art: 'notiz', titel: 'Idee für später' })
+  })
+
+  it('n ohne Titel → Fehler', () => {
+    expect(parse('n')).toMatchObject({ art: 'fehler' })
+  })
+})
+
 describe('parseQuickInput – Filter und Fehler', () => {
   it('abgeschlossene Aufgaben und archivierte Konten nicht per Fuzzy/Alias', () => {
     expect(parse('1h alt')).toMatchObject({ art: 'fehler' })

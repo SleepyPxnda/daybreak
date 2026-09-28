@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
-import { ArrowLeft, CheckCircle2, Pencil, RotateCcw, Trash2 } from '@lucide/vue'
+import { ArrowLeft, CheckCircle2, Pencil, Plus, RotateCcw, Trash2 } from '@lucide/vue'
 import { TODO_ARTEN } from '#shared/utils/todos'
 
 const route = useRoute()
@@ -10,6 +10,7 @@ const id = computed(() => Number(route.params.id))
 const { data: aufgabe, error } = await useFetch(() => `/api/aufgaben/${id.value}`, { key: 'aufgabe-detail' })
 // Plan §5.8: verknüpfte Merker (offene Einträge aller Arten mit Bezug auf diese Aufgabe)
 const { data: todos } = useFetch('/api/todos', { key: 'aufgabe-todos', query: { aufgabeId: id }, default: () => [] })
+const { data: notizen } = useFetch('/api/notizen', { key: 'aufgabe-notizen', query: { aufgabeId: id }, default: () => [] })
 
 useHead({ title: () => `${aufgabe.value?.key ? `${aufgabe.value.key} ` : ''}${aufgabe.value?.titel ?? 'Aufgabe'} · Daybreak` })
 
@@ -121,6 +122,24 @@ const formatTag = (datum: string) => format(zuDate(datum), 'EEEE, d. MMMM yyyy',
           </div>
         </div>
         <Progress v-if="fortschritt !== undefined" :model-value="fortschritt" class="h-2" />
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader class="flex flex-row items-center justify-between">
+        <CardTitle>Notizen</CardTitle>
+        <Button size="sm" variant="secondary" @click="neueNotiz(aufgabe.titel, { aufgabeId: aufgabe.id })">
+          <Plus /> Notiz
+        </Button>
+      </CardHeader>
+      <CardContent class="grid gap-1 text-sm">
+        <p v-if="!notizen.length" class="text-muted-foreground">
+          Keine verknüpften Notizen.
+        </p>
+        <NuxtLink v-for="n in notizen" :key="n.id" :to="`/notizen?id=${n.id}`" class="grid gap-0.5 rounded-md px-1 py-1 hover:bg-accent/50">
+          <span class="font-medium">{{ n.titel }}</span>
+          <span v-if="n.ausschnitt" class="line-clamp-1 text-xs text-muted-foreground">{{ n.ausschnitt }}</span>
+        </NuxtLink>
       </CardContent>
     </Card>
 

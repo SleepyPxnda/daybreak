@@ -12,6 +12,7 @@ import SaldoWidget from '~/components/widgets/SaldoWidget.vue'
 import TagEinstellung from '~/components/widgets/TagEinstellung.vue'
 import AufgabenInArbeit from '~/components/widgets/AufgabenInArbeit.vue'
 import TodoSpalte from '~/components/widgets/TodoSpalte.vue'
+import AngepinnteNotizen from '~/components/widgets/AngepinnteNotizen.vue'
 import type { VorlageFormular } from '~/components/VorlageDialog.vue'
 import type { TimelineBlock } from '~/utils/timeline'
 
@@ -252,6 +253,7 @@ const abschluss = ref(false)
     <section class="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-4">
       <AufgabenInArbeit :datum="datum" />
       <TodoSpalte />
+      <AngepinnteNotizen />
     </section>
 
     <BlockDialog v-model:open="blockDialog" :block="bearbeiteterBlock" :entwurf="entwurf" />
