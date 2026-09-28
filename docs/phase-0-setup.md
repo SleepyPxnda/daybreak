@@ -40,7 +40,8 @@ pnpm 12 blockiert Postinstall-Skripte, bis sie freigegeben sind. Freigaben in `p
 
 ### Docker & CI
 - `Dockerfile` (Multi-Stage auf `node:22-slim`, läuft als `node`, `VOLUME /data`, `HEALTHCHECK` gegen `/api/health`, `TZ=Europe/Berlin`), `docker-compose.yml`, `.dockerignore`.
-- Workflows: `.github/workflows/ci.yml` (lint, typecheck, test, build) und `docker.yml` (Image nach GHCR bei Push auf `main`/Tags `v*`).
+- Workflows: `.github/workflows/ci.yml` (lint, typecheck, test, build) und `docker.yml` (Image nach GHCR **nur bei veröffentlichten GitHub-Releases**, Tag `vX.Y.Z` → Image-Tags `X.Y.Z`, `X.Y` und `latest`; Pre-Releases ohne `latest`).
+- Repo: `git@github.com:SleepyPxnda/daybreak.git`, Branch `main`.
 - `.gitattributes` erzwingt LF-Zeilenenden (Container-Skripte).
 
 ## Projektstruktur
