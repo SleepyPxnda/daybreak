@@ -31,9 +31,19 @@ const liste = ref<TodoZeile[]>([])
 watch(() => props.todos, (neu) => { liste.value = [...neu] }, { immediate: true })
 const gezogen = ref<number | null>(null)
 
+/** Heute-Seite: Merker lassen sich auf die Timeline ziehen (→ 30-min-Block geplant) */
+const aufTimelineZiehbar = computed(() => props.kompakt && props.art === 'merker')
+
 function dragStart(e: DragEvent, id: number) {
+  if (!e.dataTransfer) return
+  if (aufTimelineZiehbar.value) {
+    e.dataTransfer.setData(DRAG_MERKER, String(id))
+    e.dataTransfer.effectAllowed = 'copy'
+    return
+  }
   gezogen.value = id
-  if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
+  e.dataTransfer.setData('text/plain', '') // Firefox startet Drag nur mit Daten
+  e.dataTransfer.effectAllowed = 'move'
 }
 
 function dragOver(e: DragEvent, zielId: number) {
@@ -114,13 +124,14 @@ function stichtagText(t: TodoZeile): string | undefined {
         istFaellig(t, heuteDatum) ? 'bg-konto-butter/10 ring-1 ring-konto-butter/40' : 'hover:bg-accent/50',
         gezogen === t.id && 'opacity-40',
       ]"
-      :draggable="!kompakt"
+      :draggable="!kompakt || aufTimelineZiehbar"
+      :title="aufTimelineZiehbar ? 'Auf die Timeline ziehen → 30 min geplant' : undefined"
       @dragstart="dragStart($event, t.id)"
       @dragover="dragOver($event, t.id)"
       @dragend="dragEnd"
       @drop.prevent
     >
-      <GripVertical v-if="!kompakt" class="mt-0.5 size-4 shrink-0 cursor-grab text-muted-foreground opacity-0 group-hover:opacity-100" />
+      <GripVertical v-if="!kompakt || aufTimelineZiehbar" class="mt-0.5 size-4 shrink-0 cursor-grab text-muted-foreground opacity-0 group-hover:opacity-100" />
       <Checkbox
         class="mt-0.5"
         :aria-label="art === 'daily' ? 'Besprochen' : 'Erledigt'"

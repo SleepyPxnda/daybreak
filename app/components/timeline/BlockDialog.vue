@@ -10,6 +10,7 @@ export interface BlockEntwurf {
   kind?: BlockKind
   aufgabeId?: number | null
   kontoId?: number | null
+  notiz?: string | null
 }
 
 const props = defineProps<{
@@ -37,7 +38,7 @@ watch(offen, (jetztOffen) => {
   start.value = quelle.start
   ende.value = quelle.ende
   gebucht.value = quelle.status === 'gebucht'
-  notiz.value = props.block?.notiz ?? ''
+  notiz.value = quelle.notiz ?? ''
 })
 
 const gueltig = computed(() => start.value < ende.value && (pause.value || !!ziel.value))

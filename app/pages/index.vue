@@ -127,6 +127,34 @@ async function ablegen(aufgabeId: number, start: number) {
   }), TAG_KEYS)
 }
 
+// --- Drop eines Merkers: 30 min geplant, Text als Notiz ----------------
+const { data: offeneTodos } = useOffeneTodos()
+
+async function ablegenMerker(todoId: number, start: number) {
+  const merker = offeneTodos.value.find(t => t.id === todoId)
+  if (!merker) return
+  const ende = Math.min(start + 30, TAG_MIN)
+  // Arbeitsblock braucht ein Konto – ohne Bezug im Dialog wählen lassen
+  if (!merker.aufgabeId && !merker.kontoId) {
+    bearbeiteterBlock.value = null
+    entwurf.value = { datum: datum.value, start, ende, status: 'geplant', notiz: merker.text }
+    blockDialog.value = true
+    return
+  }
+  await aktion(() => api('/api/blocks', {
+    method: 'POST',
+    body: {
+      datum: datum.value,
+      kind: 'arbeit',
+      status: 'geplant',
+      start,
+      ende,
+      ...(merker.aufgabeId ? { aufgabeId: merker.aufgabeId } : { kontoId: merker.kontoId }),
+      notiz: merker.text,
+    },
+  }), TAG_KEYS)
+}
+
 // --- Wie gestern / Tagesabschluss --------------------------------------
 async function wieGestern() {
   const r = await aktion(() => api<{ quelle: string | null, angelegt: unknown[], uebersprungen: number }>(
@@ -196,6 +224,7 @@ const abschluss = ref(false)
         @oeffnen="oeffnen"
         @menue="menue"
         @ablegen="ablegen"
+        @ablegen-merker="ablegenMerker"
       />
 
       <!-- Fortschritt -->

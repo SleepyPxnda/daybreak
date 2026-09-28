@@ -20,6 +20,7 @@ const emit = defineEmits<{
   oeffnen: [block: TimelineBlock]
   menue: [aktion: 'umschalten' | 'teilen' | 'loeschen' | 'bearbeiten' | 'wiederkehrend', block: TimelineBlock, minute: number]
   ablegen: [aufgabeId: number, start: number]
+  ablegenMerker: [todoId: number, start: number]
 }>()
 
 const spur = useTemplateRef<HTMLDivElement>('spur')
@@ -176,14 +177,18 @@ function menueOeffnen(e: MouseEvent) {
   menueMinute.value = minuteBei(e.clientX)
 }
 
-// --- Drop aus „Aufgaben in Arbeit“ -------------------------------------
+// --- Drop aus „Aufgaben in Arbeit“ bzw. Merker-Liste -------------------
 function drop(e: DragEvent) {
-  const id = Number(e.dataTransfer?.getData(DRAG_AUFGABE))
-  if (id) emit('ablegen', id, minuteBei(e.clientX))
+  const minute = minuteBei(e.clientX)
+  const aufgabeId = Number(e.dataTransfer?.getData(DRAG_AUFGABE))
+  if (aufgabeId) return emit('ablegen', aufgabeId, minute)
+  const todoId = Number(e.dataTransfer?.getData(DRAG_MERKER))
+  if (todoId) emit('ablegenMerker', todoId, minute)
 }
 
-function istAufgabeDrag(e: DragEvent) {
-  return e.dataTransfer?.types.includes(DRAG_AUFGABE) ?? false
+function istAblegbar(e: DragEvent) {
+  const typen = e.dataTransfer?.types ?? []
+  return typen.includes(DRAG_AUFGABE) || typen.includes(DRAG_MERKER)
 }
 
 // --- Darstellung --------------------------------------------------------
@@ -236,7 +241,7 @@ function position(z: Zeitraum) {
       @pointerup="pointerUp"
       @pointercancel="zug = null"
       @wheel="rad"
-      @dragover="istAufgabeDrag($event) && $event.preventDefault()"
+      @dragover="istAblegbar($event) && $event.preventDefault()"
       @drop.prevent="drop"
     >
       <!-- Skalenlinien -->

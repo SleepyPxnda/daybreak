@@ -30,8 +30,9 @@ export function blockTitel(b: Pick<TimelineBlock, 'kind' | 'aufgabeKey' | 'aufga
   return b.kontoName ?? '–'
 }
 
-/** MIME-Typ für Drag & Drop von Aufgaben auf die Timeline */
+/** MIME-Typen für Drag & Drop auf die Timeline */
 export const DRAG_AUFGABE = 'application/x-daybreak-aufgabe'
+export const DRAG_MERKER = 'application/x-daybreak-merker'
 
 // --- Zoom & Verschieben ---------------------------------------------------
 
