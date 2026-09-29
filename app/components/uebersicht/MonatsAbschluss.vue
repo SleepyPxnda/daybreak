@@ -38,14 +38,28 @@ const summe = computed(() => {
 })
 
 const uhrzeit = (min: number | null) => (min == null ? '–' : formatUhrzeit(min))
+
+// Dauern wahlweise als h:mm oder Dezimalstunden (1:15 → 1,25) fürs Firmentool; Start/Ende bleiben Uhrzeiten
+const dezimal = useCookie<boolean>('daybreak-abschluss-dezimal', { default: () => false, maxAge: 60 * 60 * 24 * 365 })
+const dauer = (min: number) => (dezimal.value ? formatDezimal(min) : formatDauer(min))
 </script>
 
 <template>
   <!-- Monatssumme -->
-  <div class="rounded-lg border bg-card px-3 py-2 text-sm tabular-nums">
-    Gebucht <strong>{{ formatDauer(summe.ist) }}</strong> / Soll {{ formatDauer(summe.soll) }}
-    <span :class="summe.ist - summe.soll >= 0 ? 'text-positiv' : 'text-negativ'">({{ formatSaldo(summe.ist - summe.soll) }})</span>
-    <span class="text-muted-foreground"> · Pausen {{ formatDauer(summe.pause) }}</span>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="rounded-lg border bg-card px-3 py-2 text-sm tabular-nums">
+      Gebucht <strong>{{ dauer(summe.ist) }}</strong> / Soll {{ dauer(summe.soll) }}
+      <span :class="summe.ist - summe.soll >= 0 ? 'text-positiv' : 'text-negativ'">({{ formatSaldo(summe.ist - summe.soll, dauer) }})</span>
+      <span class="text-muted-foreground"> · Pausen {{ dauer(summe.pause) }}</span>
+    </div>
+    <div class="flex gap-1 rounded-lg border bg-card p-1" role="group" aria-label="Darstellung der Dauer">
+      <Button size="sm" :variant="dezimal ? 'ghost' : 'secondary'" :aria-pressed="!dezimal" @click="dezimal = false">
+        h:mm
+      </Button>
+      <Button size="sm" :variant="dezimal ? 'secondary' : 'ghost'" :aria-pressed="dezimal" @click="dezimal = true">
+        Dezimal
+      </Button>
+    </div>
   </div>
 
   <div class="grid grid-cols-1 rounded-lg border bg-card text-sm tabular-nums">
@@ -64,14 +78,14 @@ const uhrzeit = (min: number | null) => (min == null ? '–' : formatUhrzeit(min
           {{ format(zuDate(t.datum), 'EEE d.M.', { locale: de }) }}
         </NuxtLink>
         <span>{{ uhrzeit(t.start) }} – {{ uhrzeit(t.ende) }}</span>
-        <span class="text-right">{{ t.start == null ? '–' : formatDauer(t.pause) }}</span>
+        <span class="text-right">{{ t.start == null ? '–' : dauer(t.pause) }}</span>
         <span class="flex min-w-0 flex-wrap items-baseline gap-2">
           <Badge v-if="tagLabel(t)" variant="secondary">{{ tagLabel(t) }}</Badge>
           <span v-if="!t.ist && t.soll && t.datum < heuteDatum" class="text-xs text-negativ">keine Buchung</span>
           <span v-if="t.notiz" class="truncate text-xs text-muted-foreground">{{ t.notiz }}</span>
         </span>
         <span class="text-right">
-          <strong>{{ formatDauer(t.ist) }}</strong><span class="text-muted-foreground"> / {{ formatDauer(t.soll) }}</span>
+          <strong>{{ dauer(t.ist) }}</strong><span class="text-muted-foreground"> / {{ dauer(t.soll) }}</span>
         </span>
       </div>
 
@@ -84,7 +98,7 @@ const uhrzeit = (min: number | null) => (min == null ? '–' : formatUhrzeit(min
           <span class="size-2 shrink-0 rounded-full" :class="kontoFarbKlassen(k.farbe).punkt" />
           <span class="truncate">{{ k.name }}</span>
         </span>
-        <span class="text-right text-foreground">{{ formatDauer(k.minuten) }}</span>
+        <span class="text-right text-foreground">{{ dauer(k.minuten) }}</span>
         <span class="col-span-2 min-w-0 truncate" :title="k.bezeichnungen.join(', ')">{{ k.bezeichnungen.join(', ') }}</span>
       </div>
     </div>
@@ -97,7 +111,7 @@ const uhrzeit = (min: number | null) => (min == null ? '–' : formatUhrzeit(min
           <span class="size-2 shrink-0 rounded-full" :class="kontoFarbKlassen(k.farbe).punkt" />
           <span class="truncate">{{ k.name }}</span>
         </span>
-        <span class="text-right font-medium">{{ formatDauer(k.minuten) }}</span>
+        <span class="text-right font-medium">{{ dauer(k.minuten) }}</span>
       </div>
     </div>
   </div>

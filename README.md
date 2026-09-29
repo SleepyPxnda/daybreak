@@ -10,7 +10,7 @@ Single-User, läuft lokal oder selbst gehostet im Docker-Container – die Daten
 - **Konten & Aufgaben** – Konto → Aufgabe → Blöcke; Blöcke können auch direkt auf ein Konto gehen (z. B. Firmenmeeting). Aufgaben mit Key, Schätzung und gebuchter Zeit.
 - **Vorlagen** – wiederkehrende Termine (Daily, Jour fixe …) mit Wochentagen, Intervall und Ausnahmen.
 - **Stundenkonto** – Soll/Ist/Saldo je Tag, Monat und gesamt, inkl. Feiertagen (Bundesland wählbar) und Verlaufsdiagramm.
-- **Übersicht** – gebuchte Zeit nach Konto → Aufgabe → Tag für Woche, Monat oder freien Zeitraum; Monatsabschluss.
+- **Übersicht** – gebuchte Zeit nach Konto → Aufgabe → Tag für Woche, Monat oder freien Zeitraum; Monatsabschluss zum Übertragen ins Firmentool, wahlweise in Dezimalstunden.
 - **Kalender & Urlaub** – Jahreskalender für Urlaub, halbe Tage, Krank, Gleittag und Blocker; Urlaubskonto mit Anspruch, Resturlaub und Erinnerung vor dem nächsten Urlaub.
 - **Woche** – Timelines aller Wochentage untereinander, Planung per Drag & Drop, Tages- und Wochensummen mit Saldo.
 - **Merker, Daily-Themen, Warten auf** – kleine Listen mit Fälligkeit bzw. Nachfass-Datum, verknüpfbar mit Aufgaben oder Konten.

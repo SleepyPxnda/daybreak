@@ -18,6 +18,7 @@ Gebuchte Zeit gruppiert nach Konto → Aufgabe → Tage und der Verlauf des Stun
   - Darunter je **Konto** eine Zeile mit Summe und den **Keys** der gebuchten Aufgaben (ohne Key: Titel; Blöcke ohne Aufgabe: Block-Notiz).
   - Oben die Monatssumme (Ist / Soll, ±, Pausen), unten die **Monatssumme je Konto**.
   - Wochenenden ohne Buchung werden ausgeblendet, Feiertage und Abwesenheiten bleiben sichtbar.
+  - Umschalter **h:mm / Dezimal**: alle Dauern (Pause, Ist/Soll, Konten, Summen, Saldo) wahlweise in Dezimalstunden (1:15 → 1,25, 2:30 → 2,5); Start/Ende bleiben Uhrzeiten. Die Wahl bleibt per Cookie `daybreak-abschluss-dezimal` erhalten.
 - Rechts **Stundenkonto:** Linie mit dem Kontostand am Monatsende (Stunden), Tooltip mit Stand und Monatsdelta; darunter die Monate absteigend mit Delta und Stand. Der laufende Monat ist als „laufend“ markiert (Stand bis gestern).
 
 ## Fachregeln & Entscheidungen
@@ -29,6 +30,7 @@ Reine Funktionen in `shared/utils/uebersicht.ts` und `shared/utils/saldo.ts` (Te
 - **Sortierung:** Konten und Aufgaben nach Stunden absteigend, Tage chronologisch. Archivierte Konten und abgeschlossene Aufgaben bleiben enthalten (Plan §3.1).
 - **Block-Notizen** werden pro Tag gesammelt, getrimmt und ohne Duplikate angezeigt.
 - **Monatsabschluss** (`monatsabschluss`, Ergänzung zum Plan auf Wunsch nach Phase 5): Start = Beginn des ersten, Ende = Ende des letzten *gebuchten Arbeitsblocks*. **Pause = Ende − Start − Ist** – also Pausenblöcke *und* Lücken zusammen, damit Start/Ende/Pause immer genau die gebuchte Zeit ergeben. Bezeichnung je Block: Aufgaben-Key → Aufgaben-Titel → Block-Notiz, pro Konto und Tag ohne Duplikate. Konten nach Stunden absteigend.
+- **Dezimalstunden** (`formatDezimal` in `shared/utils/zeit.ts`): deutsches Format mit höchstens zwei Nachkommastellen, ohne Nullen am Ende (8:00 → 8, 0:20 → 0,33). Im 15-min-Raster ist das exakt; `formatSaldo` nimmt die Formatfunktion als optionalen zweiten Parameter.
 - **Stundenkonto-Verlauf** (`saldoVerlauf`): vom Monat des Startdatums bis zum laufenden Monat; Delta = Σ Tagesdelta des Monats (nur Tage ab Startdatum bis gestern), Stand = Kontostand am Monatsende. Der Stand des letzten Monats ist identisch mit „Konto bis gestern“ im Saldo-Widget. Liegt das Startdatum in der Zukunft, ist der Verlauf leer.
 - **Chart:** shadcn-vue `chart` (Unovis, neue Abhängigkeiten `@unovis/vue`, `@unovis/ts`), nur clientseitig gerendert (`<ClientOnly>`). Die Änderungen, die `shadcn-vue add chart` an `main.css` vornehmen wollte (Google-Fonts-Import, Base-Layer), wurden verworfen – Inter kommt weiter lokal über `@fontsource-variable/inter`.
 - **Umbau:** Das Laden von Ist-Zeiten und Tagesabweichungen fürs Stundenkonto liegt jetzt in `server/utils/saldo.ts` (`ladeSaldoEingabe`) und wird von `/api/saldo` und `/api/saldo/verlauf` gemeinsam genutzt; die Abfrage gebuchter Arbeitsblöcke (`ladeGebuchteArbeit` in `server/utils/blockAnsicht.ts`) teilen sich `/api/uebersicht` und `/api/uebersicht/abschluss`. Die Seite ist in `components/uebersicht/KontoBaum.vue` und `MonatsAbschluss.vue` aufgeteilt, damit nur die aktive Ansicht lädt. Die ungenutzte `PagePlaceholder.vue` ist entfernt.

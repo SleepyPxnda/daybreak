@@ -77,8 +77,15 @@ export function formatDauer(minuten: number): string {
   return minuten < 0 ? `-${text}` : text
 }
 
+const DEZIMAL = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 })
+
+/** Dauer in Dezimalstunden: 75 → '1,25', 150 → '2,5', 480 → '8', −30 → '-0,5' */
+export function formatDezimal(minuten: number): string {
+  return DEZIMAL.format(minuten / 60).replace('−', '-')
+}
+
 /** Saldo immer mit Vorzeichen (Plan §6: Plus/Minus nie nur über Farbe): '+3:15', '-0:30', '±0:00'. */
-export function formatSaldo(minuten: number): string {
-  if (minuten === 0) return '±0:00'
-  return minuten > 0 ? `+${formatDauer(minuten)}` : formatDauer(minuten)
+export function formatSaldo(minuten: number, format: (minuten: number) => string = formatDauer): string {
+  if (minuten === 0) return `±${format(0)}`
+  return minuten > 0 ? `+${format(minuten)}` : format(minuten)
 }

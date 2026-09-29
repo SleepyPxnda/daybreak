@@ -3,6 +3,7 @@ import {
   aufRaster,
   datumsBereich,
   formatDauer,
+  formatDezimal,
   formatSaldo,
   formatUhrzeit,
   istDatum,
@@ -62,5 +63,17 @@ describe('zeit', () => {
     expect(formatSaldo(195)).toBe('+3:15')
     expect(formatSaldo(-30)).toBe('-0:30')
     expect(formatSaldo(0)).toBe('±0:00')
+  })
+
+  it('formatiert Dauer und Saldo in Dezimalstunden', () => {
+    expect(formatDezimal(75)).toBe('1,25')
+    expect(formatDezimal(150)).toBe('2,5')
+    expect(formatDezimal(480)).toBe('8')
+    expect(formatDezimal(0)).toBe('0')
+    expect(formatDezimal(20)).toBe('0,33')
+    expect(formatDezimal(-30)).toBe('-0,5')
+    expect(formatSaldo(195, formatDezimal)).toBe('+3,25')
+    expect(formatSaldo(-45, formatDezimal)).toBe('-0,75')
+    expect(formatSaldo(0, formatDezimal)).toBe('±0')
   })
 })
