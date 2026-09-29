@@ -10,6 +10,11 @@ Jahreskalender mit Abwesenheiten, Urlaubskonto mit variablen Anspruchsposten, Wo
 - **Tagestyp setzen:** einen Tag anklicken oder über mehrere Tage ziehen (auch über Monatsgrenzen). Die Leiste oben zeigt den Bereich und die Zahl der Arbeitstage – dann **Urlaub**, **½ Urlaub**, **Krank**, **Gleittag** oder **Zurücksetzen** wählen. Bei einem einzelnen Tag gibt es „Tag öffnen“ (→ Heute). `Esc` hebt die Auswahl auf.
 - Rechts die **Urlaubskarte**: Resttage groß, darunter Anspruch (aufklappbar mit allen Posten), genommen, geplant; „bearbeiten“ führt zu den Einstellungen.
 
+### Blocker (Nachtrag)
+- Markiert Tage, an denen man **keinen Urlaub nehmen sollte** (Release, Messe, Vertretung …): im Kalender **rot schraffiert**, Tooltip „Blocker – kein Urlaub“.
+- Setzen wie Tagestypen: Bereich auswählen → **Blocker**. Sind alle Arbeitstage der Auswahl schon blockiert, heißt der Knopf **Blocker entfernen**. „Zurücksetzen“ entfernt auch den Blocker.
+- Enthält eine Auswahl Blocker-Tage, warnt die Aktionsleiste („2 Blocker-Tage – hier besser kein Urlaub“). Urlaub lässt sich trotzdem setzen – der Tag ist dann grün **und** schraffiert, der Konflikt bleibt sichtbar.
+
 ### Urlaubsanspruch (Einstellungen)
 - Pro Jahr beliebig viele **Posten**: Art (Grund, Zusatz, Rest), Bezeichnung, Tage (halbe Tage möglich, negative für Abzüge). Änderungen werden beim Verlassen eines Feldes gespeichert.
 - **„Rest aus Vorjahr übernehmen“** legt den Rest des Vorjahres als Posten „Resturlaub <Jahr>“ an bzw. aktualisiert ihn (erscheint, wenn es im Vorjahr Posten gibt).
@@ -38,6 +43,7 @@ Reine Funktionen in `shared/utils/urlaub.ts` (Tests: `tests/urlaub.test.ts`).
 - **Nächster Urlaub** (`naechsterUrlaub`): Aufeinanderfolgende Urlaubstage (auch ½) bilden einen Zeitraum; Wochenenden/Feiertage dazwischen überbrücken ihn, ein Arbeitstag ohne Urlaub beendet ihn. Ist heute ein freier Tag mitten im Urlaub, gilt der Urlaub als laufend. Krank und Gleittag zählen nicht. „Arbeitstage davor“ zählt reguläre Arbeitstage zwischen heute und Beginn (beide exklusiv). Suchhorizont 1 Jahr. Ergänzung zum Plan (Wunsch nach Phase 4).
 - **Rest übernehmen** ersetzt einen vorhandenen Rest-Posten des Jahres (auf halbe Tage gerundet).
 - **Bereich setzen:** Abwesenheiten werden nur an regulären Arbeitstagen gespeichert (Wochenenden/Feiertage bleiben sauber). „Zurücksetzen“ löscht Einträge ohne Soll-Override/Notiz und setzt die übrigen auf Arbeitstag – Override und Notiz bleiben erhalten.
+- **Blocker** (Ergänzung zum Plan) ist ein eigenes Flag `tag.blocker`, **kein Tagestyp**: Er ändert weder Soll noch Urlaubszählung und kann mit Urlaub/Krank/Gleittag kombiniert werden, damit Konflikte sichtbar bleiben statt den Blocker stillschweigend zu überschreiben. Nur an regulären Arbeitstagen gespeichert. Ein Tag mit Blocker gilt als Abweichung und wird nicht gelöscht – auch nicht, wenn man auf „Heute“ den Tagestyp auf Arbeit zurückstellt; entfernen nur im Kalender. Rot schraffiert über die Utility `blocker-schraffur` (Token `--destructive`).
 - **Nicht umgesetzt (optional laut Plan):** Vorlage für wiederkehrende Zusatzposten (Semester-Tage) – Posten werden pro Jahr manuell gepflegt.
 - **Umbau:** Die Timeline-Aktionen (anlegen, ändern, Menü, Drop von Aufgaben/Merkern, Dialog-Zustand) liegen jetzt im Composable `useBlockBearbeitung` und werden von Heute und Woche gemeinsam genutzt; die Jetzt-Minute in `useJetzt`.
 
@@ -51,8 +57,10 @@ Tabellen `urlaubsanspruch` (`jahr`, `art`, `bezeichnung`, `tage`) und `tag` – 
 | `POST /api/urlaub/posten`, `PATCH/DELETE /api/urlaub/posten/:id` | Posten pflegen (Tage in 0,5-Schritten) |
 | `POST /api/urlaub/rest-uebernehmen` | `{ jahr }` → Rest-Posten aus dem Vorjahr |
 | `GET /api/urlaub/naechster` | nächster/laufender Urlaub, `erinnern` (innerhalb des Vorlaufs), `erinnerungText` |
-| `PUT /api/tage/bereich` | `{ von, bis, typ }` – Tagestyp für einen Bereich (max. 1 Jahr) |
-| `GET /api/tage?von&bis` | liefert jetzt zusätzlich `sollOverride` |
+| `PUT /api/tage/bereich` | `{ von, bis, typ }` – Tagestyp für einen Bereich (max. 1 Jahr) – oder `{ von, bis, blocker: true \| false }` |
+| `GET /api/tage?von&bis` | liefert jetzt zusätzlich `sollOverride` und `blocker` |
+
+Migration `0002_tag_blocker`: Spalte `tag.blocker` (boolean, Default `false`).
 
 ## Offen / bekannte Grenzen
 

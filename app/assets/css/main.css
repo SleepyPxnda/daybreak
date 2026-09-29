@@ -153,6 +153,24 @@
   .markdown th, .markdown td { @apply border border-border px-2 py-1; }
 }
 
+/* Einzeilig, zu langer Text läuft rechts weich aus statt hart abgeschnitten.
+   Nur für Elemente, die die Zeile füllen (flex-1/w-full) – sonst würde auch kurzer Text am Ende verblassen. */
+@utility auslaufen {
+  overflow: hidden;
+  white-space: nowrap;
+  mask-image: linear-gradient(to right, black calc(100% - 2.5rem), transparent);
+}
+
+/* Kalender-Blocker („hier keinen Urlaub“): rot schraffiert, legt sich über eine evtl. Tagesfarbe */
+@utility blocker-schraffur {
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--destructive) 70%, transparent) 0 2px,
+    transparent 2px 5px
+  );
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--destructive) 60%, transparent);
+}
+
 /* Geplante Blöcke: halbtransparent + schraffiert (Plan §3.2) */
 @utility schraffiert {
   opacity: 0.6;

@@ -25,7 +25,7 @@ function dragStart(e: DragEvent, id: number) {
         Aufgaben in Arbeit
       </CardTitle>
     </CardHeader>
-    <CardContent class="grid gap-1">
+    <CardContent class="grid grid-cols-1 gap-1">
       <p v-if="!aufgaben.length" class="text-sm text-muted-foreground">
         Keine – buche per Schnelleingabe oder lege Aufgaben unter Konten an.
       </p>
@@ -33,16 +33,17 @@ function dragStart(e: DragEvent, id: number) {
         v-for="a in aufgaben"
         :key="a.id"
         draggable="true"
-        class="group flex cursor-grab items-center gap-2 rounded-md px-1 py-1.5 text-sm hover:bg-accent active:cursor-grabbing"
+        class="group relative flex cursor-grab items-center gap-2 rounded-md px-1 py-1.5 text-sm hover:bg-accent active:cursor-grabbing"
         @dragstart="dragStart($event, a.id)"
       >
-        <GripVertical class="size-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
+        <!-- Griff liegt im Karten-Innenabstand, damit er links keinen Platz belegt -->
+        <GripVertical class="absolute top-1/2 -left-3.5 size-3.5 -translate-y-1/2 text-muted-foreground opacity-0 group-hover:opacity-100" />
         <span class="size-2.5 shrink-0 rounded-full" :class="kontoFarbKlassen(farbe(a.kontoId)).punkt" />
-        <NuxtLink :to="`/aufgaben/${a.id}`" class="flex-1 truncate hover:underline" draggable="false">
-          <span v-if="a.key" class="font-mono text-xs text-muted-foreground">{{ a.key }}</span>
+        <NuxtLink :to="`/aufgaben/${a.id}`" class="auslaufen min-w-0 flex-1 hover:underline" draggable="false" :title="a.titel">
+          <AufgabeKey v-if="a.key" :wert="a.key" :farbe="farbe(a.kontoId)" class="mr-1" />
           {{ a.titel }}
         </NuxtLink>
-        <span class="tabular-nums text-muted-foreground">{{ formatDauer(a.gebuchtMin) }}</span>
+        <span class="shrink-0 tabular-nums text-muted-foreground">{{ formatDauer(a.gebuchtMin) }}</span>
       </div>
     </CardContent>
   </Card>

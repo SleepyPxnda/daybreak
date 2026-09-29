@@ -46,10 +46,11 @@ function isActive(to: string) {
     <SidebarHeader>
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton size="lg" as-child>
+          <!-- Eingeklappt: nur das Logo, zentriert -->
+          <SidebarMenuButton size="lg" as-child class="group-data-[collapsible=icon]:justify-center">
             <NuxtLink to="/">
               <Sunrise class="text-primary" />
-              <span class="font-semibold">Daybreak</span>
+              <span class="font-semibold group-data-[collapsible=icon]:hidden">Daybreak</span>
             </NuxtLink>
           </SidebarMenuButton>
         </SidebarMenuItem>

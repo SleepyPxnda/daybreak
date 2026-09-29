@@ -1,0 +1,1 @@
+ALTER TABLE `tag` ADD `blocker` integer DEFAULT false NOT NULL;

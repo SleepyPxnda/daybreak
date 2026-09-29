@@ -140,13 +140,12 @@ function enterAbfangen(e: KeyboardEvent) {
             :value="`kandidat-${i}`"
             @select="ausfuehrenUndSchliessen(k)"
           >
-            <CornerDownLeft /> {{ vorschau.text }} · {{ zielText(k) }}
+            <CornerDownLeft /> <span class="min-w-0 truncate">{{ vorschau.text }} · {{ zielText(k) }}</span>
           </CommandItem>
         </template>
         <CommandItem v-else value="ausfuehren" @select="ausfuehrenUndSchliessen()">
           <CornerDownLeft />
-          <span>{{ vorschau.text }}</span>
-          <span v-if="vorschau.notiz" class="text-muted-foreground">· „{{ vorschau.notiz }}“</span>
+          <span class="min-w-0 truncate">{{ vorschau.text }}<span v-if="vorschau.notiz" class="text-muted-foreground"> · „{{ vorschau.notiz }}“</span></span>
         </CommandItem>
       </CommandGroup>
 
@@ -155,14 +154,14 @@ function enterAbfangen(e: KeyboardEvent) {
         <CommandGroup v-if="treffer.aufgaben.length" heading="Aufgaben">
           <CommandItem v-for="a in treffer.aufgaben" :key="`a${a.id}`" :value="`aufgabe-${a.id}`" @select="oeffne(`/aufgaben/${a.id}`)">
             <span class="size-2.5 shrink-0 rounded-full" :class="kontoFarbKlassen(a.kontoFarbe).punkt" />
-            <span v-if="a.key" class="font-mono text-xs text-muted-foreground">{{ a.key }}</span>
-            <span :class="{ 'text-muted-foreground': a.status !== 'offen' }">{{ a.titel }}</span>
+            <AufgabeKey v-if="a.key" :wert="a.key" :farbe="a.kontoFarbe" />
+            <span class="min-w-0 truncate" :class="{ 'text-muted-foreground': a.status !== 'offen' }">{{ a.titel }}</span>
           </CommandItem>
         </CommandGroup>
         <CommandGroup v-if="treffer.konten.length" heading="Konten">
           <CommandItem v-for="k in treffer.konten" :key="`k${k.id}`" :value="`konto-${k.id}`" @select="oeffne(`/konten?konto=${k.id}`)">
             <span class="size-2.5 shrink-0 rounded-full" :class="kontoFarbKlassen(k.farbe).punkt" />
-            <span :class="{ 'text-muted-foreground': k.status !== 'aktiv' }">{{ k.name }}</span>
+            <span class="min-w-0 truncate" :class="{ 'text-muted-foreground': k.status !== 'aktiv' }">{{ k.name }}</span>
           </CommandItem>
         </CommandGroup>
         <CommandGroup v-if="treffer.notizen.length" heading="Notizen">

@@ -11,12 +11,13 @@ Hier ist dokumentiert, was pro Phase **tatsächlich** gebaut wurde – inklusive
 | [2](phase-2-merker.md) | Merker, Warten auf, Daily-Themen, Befehlspalette | fertig |
 | [3](phase-3-notizen.md) | Notizen: Markdown-Editor, Tags, Suche, Anpinnen | fertig |
 | [4](phase-4-kalender.md) | Kalender, Urlaubskonto, Woche | fertig |
-| 5 | Übersicht | offen |
+| [5](phase-5-uebersicht.md) | Übersicht: Konto → Aufgabe → Tage, Stundenkonto-Verlauf | fertig |
 
 ## Schnellstart
 
 ```bash
 pnpm install
+pnpm db:seed      # optional: leert die DB und füllt sie mit ~2 Monaten Testdaten rund um heute
 pnpm dev          # http://127.0.0.1:3000 – Migrationen laufen beim Start automatisch
 ```
 

@@ -68,7 +68,7 @@ const abschluss = ref(false)
 
 <template>
   <div class="grid gap-8">
-    <div class="grid min-w-0 content-start gap-5">
+    <div class="grid min-w-0 grid-cols-1 content-start gap-5">
       <!-- Kopf -->
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2">
@@ -149,7 +149,7 @@ const abschluss = ref(false)
     </div>
 
     <!-- Karten unter der Timeline: Aufgaben in Arbeit, Merker, Nachfassen, Daily-Themen -->
-    <section class="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <section class="grid grid-cols-1 items-start gap-4 md:grid-cols-2 xl:grid-cols-4">
       <AufgabenInArbeit :datum="datum" />
       <TodoSpalte />
       <AngepinnteNotizen />

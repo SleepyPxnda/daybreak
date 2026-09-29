@@ -17,6 +17,7 @@ logs
 *.log
 
 # Misc
+.playwright-mcp
 .DS_Store
 .fleet
 .idea

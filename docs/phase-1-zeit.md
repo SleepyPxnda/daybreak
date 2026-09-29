@@ -99,6 +99,16 @@ Offene Aufgaben mit Buchung in den letzten 14 Tagen **oder** Planung am Tag **od
 - Mutationen über `app/utils/api.ts` (untypisiertes `$fetch`): Nitros Routen-Typinferenz läuft bei dynamischen URLs in „Excessive stack depth“.
 - Timeline-Zoom-Rechnung als reine Funktionen in `app/utils/timeline.ts` (getestet); Zoom-Stand wird nicht gespeichert.
 
+### Fix: lange Aufgabentitel (nach Phase 5)
+Lange Titel (auch ohne Leerzeichen) haben Dialoge und Tabellen verbreitert. Regel jetzt: **Listen, Chips und Auswahlfelder schneiden ab** (`truncate`, voller Titel als Tooltip), **Überschriften und Fließtext brechen um** (`wrap-anywhere`).
+- `ZielAuswahl` (Block-, Vorlagen-, Merker-, Notiz-Dialog): Wert im Trigger mit `truncate` + `contain-inline-size`, damit er den Dialog nicht aufzieht; Dropdown max. 36rem breit, Einträge abgeschnitten.
+- Konten-Tabelle: Titel-Spalte bricht um (statt `whitespace-nowrap` der shadcn-Zelle); Kontoname im Kopf abgeschnitten.
+- Aufgaben-Detailseite: Überschrift bricht um, Buttons bleiben daneben.
+- Befehlspalette, Schnelleingabe-Treffer, Tagesabschluss-Chips und geplante Blöcke, Merker-Bezug, „Aufgaben in Arbeit“: abgeschnitten mit Tooltip.
+- **Ursache für „Text verschwindet hart hinter dem Kartenrand“:** `grid` ohne explizite Spalten hat eine `auto`-Spalte, die nicht umbrechenden Text in voller Breite aufnimmt – die Karte schneidet dann ab, Ellipse und rechte Spalte (Stunden) fehlen. Regel: Grids mit einzeiligen Texten bekommen **`grid-cols-1`** (= `minmax(0, 1fr)`), gesetzt auf Seiten-Spalten, Karten-Inhalten, Todo-Liste, Tagesabschluss, Übersicht.
+- **Weiches Auslaufen:** Utility `auslaufen` (`main.css`) blendet zu lange Titel rechts per Maske aus statt „…“ – nur auf Elementen, die die Zeile füllen (Aufgaben in Arbeit, angepinnte Notizen, geplante Blöcke im Tagesabschluss, Notizen der Aufgabe). Schmale Elemente (Chips, Palette) behalten die Ellipse, sonst würde auch kurzer Text am Ende verblassen.
+- „Aufgaben in Arbeit“: Der Ziehgriff liegt im Karten-Innenabstand und belegt links keinen Platz mehr.
+
 ## Datenmodell & API
 
 Tabellen (Plan §4): `konto`, `aufgabe`, `block` (+ `vorlageId`), `vorlage` (+ `name`, Migration `0001`), `vorlage_ausnahme`, `tag`, `settings`.

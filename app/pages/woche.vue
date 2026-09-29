@@ -92,7 +92,7 @@ function tagLabel(info?: { feiertag?: string, typ: string, istArbeitstag: boolea
 
 <template>
   <div class="grid gap-6 xl:grid-cols-[1fr_18rem]">
-    <div class="grid min-w-0 content-start gap-5">
+    <div class="grid min-w-0 grid-cols-1 content-start gap-5">
       <!-- Kopf -->
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2">
@@ -164,7 +164,7 @@ function tagLabel(info?: { feiertag?: string, typ: string, istArbeitstag: boolea
       </div>
     </div>
 
-    <aside class="grid content-start gap-4">
+    <aside class="grid grid-cols-1 content-start gap-4">
       <AufgabenInArbeit :datum="heute()" />
       <p class="text-xs text-muted-foreground">
         Aufgaben auf einen Tag ziehen, um sie einzuplanen (1 h). Blöcke lassen sich wie auf „Heute“ ziehen, verschieben und per Rechtsklick bearbeiten.

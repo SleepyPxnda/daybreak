@@ -7,7 +7,7 @@ const props = defineProps<{
   jahr: number
   /** 1 … 12 */
   monat: number
-  infos: Map<string, TagesInfo & { notiz: string | null, sollOverride: number | null }>
+  infos: Map<string, TagesInfo & { notiz: string | null, sollOverride: number | null, blocker: boolean }>
   auswahl: { von: string, bis: string } | null
 }>()
 
@@ -36,6 +36,7 @@ function klassen(datum: string) {
     else if (info.typ === 'halb_urlaub') liste.push('bg-konto-mint/45 text-foreground')
     else if (info.typ === 'krank') liste.push('bg-konto-pfirsich text-konto-pfirsich-fg')
     else if (info.typ === 'gleittag') liste.push('bg-konto-himmel text-konto-himmel-fg')
+    if (info.blocker) liste.push('blocker-schraffur')
   }
   if (datum === heuteDatum) liste.push('font-bold underline underline-offset-2')
   const a = props.auswahl
@@ -50,6 +51,7 @@ function titel(datum: string) {
   const teile = [format(zuDate(datum), 'EEEE, d. MMMM', { locale: de })]
   if (info?.feiertag) teile.push(info.feiertag)
   if (info?.istArbeitstag && info.typ !== 'arbeit') teile.push(TYP[info.typ] ?? info.typ)
+  if (info?.istArbeitstag && info.blocker) teile.push('Blocker – kein Urlaub')
   if (info?.sollOverride != null) teile.push(`Soll ${formatDauer(info.sollOverride)}`)
   if (info?.notiz) teile.push(info.notiz)
   return teile.join(' · ')

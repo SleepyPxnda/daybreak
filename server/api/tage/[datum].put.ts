@@ -13,13 +13,15 @@ const schema = z.object({
   notiz: z.string().trim().max(500).nullable().default(null),
 })
 
-// Nur Abweichungen werden gespeichert (Plan §4) – ein normaler Arbeitstag ohne Override/Notiz löscht den Eintrag.
+// Nur Abweichungen werden gespeichert (Plan §4) – ein normaler Arbeitstag ohne Override/Notiz/Blocker löscht den Eintrag.
+// Der Blocker wird nur im Kalender gesetzt und bleibt hier unangetastet.
 export default defineEventHandler(async (event) => {
   const { datum } = await getValidatedRouterParams(event, paramsSchema.parse)
   const daten = await readValidatedBody(event, schema.parse)
   const notiz = daten.notiz || null
+  const [vorher] = await db.select({ blocker: tag.blocker }).from(tag).where(eq(tag.datum, datum))
 
-  if (daten.typ === 'arbeit' && daten.sollOverride === null && !notiz) {
+  if (daten.typ === 'arbeit' && daten.sollOverride === null && !notiz && !vorher?.blocker) {
     await db.delete(tag).where(eq(tag.datum, datum))
   }
   else {
@@ -28,5 +30,5 @@ export default defineEventHandler(async (event) => {
   }
 
   const [eintrag] = await db.select().from(tag).where(eq(tag.datum, datum))
-  return { ...tagesInfo(datum, eintrag, await ladeEinstellungen()), notiz: eintrag?.notiz ?? null }
+  return { ...tagesInfo(datum, eintrag, await ladeEinstellungen()), notiz: eintrag?.notiz ?? null, blocker: eintrag?.blocker ?? false }
 })

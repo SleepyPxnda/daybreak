@@ -39,6 +39,10 @@ async function buchen(v: { aufgabeId: number | null, kontoId: number | null }) {
     body: { datum: props.datum, kind: 'arbeit', status: 'gebucht', dauer: dauer.value, ...(v.aufgabeId ? { aufgabeId: v.aufgabeId } : { kontoId: v.kontoId }) },
   }), TAG_KEYS)
 }
+
+function chipText(v: { aufgabeKey: string | null, aufgabeTitel: string | null, kontoName: string | null }) {
+  return v.aufgabeTitel ? `${v.aufgabeKey ? `${v.aufgabeKey} ` : ''}${v.aufgabeTitel}` : (v.kontoName ?? '')
+}
 </script>
 
 <template>
@@ -71,7 +75,7 @@ async function buchen(v: { aufgabeId: number | null, kontoId: number | null }) {
           </template>
         </div>
 
-        <section class="grid gap-2">
+        <section class="grid grid-cols-1 gap-2">
           <div class="flex items-center justify-between">
             <h3 class="font-medium">
               Geplant
@@ -85,7 +89,7 @@ async function buchen(v: { aufgabeId: number | null, kontoId: number | null }) {
           </p>
           <div v-for="b in geplante" :key="b.id" class="flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
             <span class="size-2.5 shrink-0 rounded-full" :class="b.kind === 'pause' ? 'bg-muted-foreground' : kontoFarbKlassen(b.kontoFarbe).punkt" />
-            <span class="flex-1 truncate">{{ blockTitel(b) }}</span>
+            <span class="auslaufen min-w-0 flex-1" :title="blockTitel(b)">{{ blockTitel(b) }}</span>
             <span class="tabular-nums text-muted-foreground">{{ formatUhrzeit(b.start) }}–{{ formatUhrzeit(b.ende) }}</span>
             <Button size="icon" variant="ghost" aria-label="Übernehmen" @click="uebernehmen([b.id])">
               <Check />
@@ -93,7 +97,7 @@ async function buchen(v: { aufgabeId: number | null, kontoId: number | null }) {
           </div>
         </section>
 
-        <section class="grid gap-2">
+        <section class="grid grid-cols-1 gap-2">
           <h3 class="font-medium">
             Schnell buchen
           </h3>
@@ -110,12 +114,13 @@ async function buchen(v: { aufgabeId: number | null, kontoId: number | null }) {
               v-for="v in vorschlaege"
               :key="`${v.aufgabeId}-${v.kontoId}`"
               type="button"
-              class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm transition hover:brightness-110"
+              class="inline-flex max-w-full items-center gap-1 rounded-full px-3 py-1 text-sm transition hover:brightness-110"
               :class="kontoFarbKlassen(v.kontoFarbe).flaeche"
+              :title="chipText(v)"
               @click="buchen(v)"
             >
-              <Plus class="size-3.5" />
-              {{ v.aufgabeTitel ? `${v.aufgabeKey ? `${v.aufgabeKey} ` : ''}${v.aufgabeTitel}` : v.kontoName }}
+              <Plus class="size-3.5 shrink-0" />
+              <span class="truncate">{{ chipText(v) }}</span>
             </button>
           </div>
         </section>

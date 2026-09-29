@@ -74,14 +74,16 @@ function waehle(id: number) {
 
     <Card v-if="gewaehlt">
       <CardHeader class="flex flex-row items-center justify-between gap-4">
-        <div class="flex items-center gap-2">
-          <span class="size-3 rounded-full" :class="kontoFarbKlassen(gewaehlt.farbe).punkt" />
-          <CardTitle>{{ gewaehlt.name }}</CardTitle>
+        <div class="flex min-w-0 items-center gap-2">
+          <span class="size-3 shrink-0 rounded-full" :class="kontoFarbKlassen(gewaehlt.farbe).punkt" />
+          <CardTitle class="truncate" :title="gewaehlt.name">
+            {{ gewaehlt.name }}
+          </CardTitle>
           <Badge v-if="gewaehlt.status === 'archiviert'" variant="secondary">
             archiviert
           </Badge>
         </div>
-        <div class="flex gap-2">
+        <div class="flex shrink-0 gap-2">
           <Button size="sm" variant="ghost" @click="kontoAendern">
             <Pencil /> Bearbeiten
           </Button>
@@ -117,10 +119,12 @@ function waehle(id: number) {
               :class="{ 'text-muted-foreground': a.status === 'abgeschlossen' }"
               @click="navigateTo(`/aufgaben/${a.id}`)"
             >
-              <TableCell class="font-mono text-xs">
-                {{ a.key }}
+              <TableCell>
+                <AufgabeKey v-if="a.key" :wert="a.key" :farbe="gewaehlt.farbe" :class="{ 'opacity-60': a.status === 'abgeschlossen' }" />
               </TableCell>
-              <TableCell>{{ a.titel }}</TableCell>
+              <TableCell class="whitespace-normal wrap-anywhere">
+                {{ a.titel }}
+              </TableCell>
               <TableCell>
                 <Badge :variant="a.status === 'offen' ? 'outline' : 'secondary'">
                   {{ a.status }}

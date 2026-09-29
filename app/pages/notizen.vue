@@ -34,7 +34,7 @@ function datumText(iso: string) {
 
 <template>
   <div class="grid gap-6 lg:grid-cols-[20rem_1fr]">
-    <aside class="grid content-start gap-3">
+    <aside class="grid grid-cols-1 content-start gap-3">
       <div class="flex gap-2">
         <div class="relative flex-1">
           <Search class="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -58,7 +58,7 @@ function datumText(iso: string) {
         </button>
       </div>
 
-      <div class="grid gap-1">
+      <div class="grid grid-cols-1 gap-1">
         <p v-if="!notizen.length" class="py-4 text-center text-sm text-muted-foreground">
           {{ suche || tag ? 'Keine Treffer.' : 'Noch keine Notizen.' }}
         </p>

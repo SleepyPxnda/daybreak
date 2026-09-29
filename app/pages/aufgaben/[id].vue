@@ -63,19 +63,19 @@ const formatTag = (datum: string) => format(zuDate(datum), 'EEEE, d. MMMM yyyy',
     </div>
 
     <div class="flex flex-wrap items-start justify-between gap-4">
-      <div class="space-y-1">
+      <div class="min-w-0 flex-1 basis-80 space-y-1">
         <div class="flex items-center gap-2">
           <span class="size-3 rounded-full" :class="kontoFarbKlassen(aufgabe.konto.farbe).punkt" />
-          <span v-if="aufgabe.key" class="font-mono text-sm text-muted-foreground">{{ aufgabe.key }}</span>
+          <AufgabeKey v-if="aufgabe.key" :wert="aufgabe.key" :farbe="aufgabe.konto.farbe" />
           <Badge :variant="aufgabe.status === 'offen' ? 'outline' : 'secondary'">
             {{ aufgabe.status }}
           </Badge>
         </div>
-        <h1 class="text-2xl font-semibold">
+        <h1 class="text-2xl font-semibold wrap-anywhere">
           {{ aufgabe.titel }}
         </h1>
       </div>
-      <div class="flex gap-2">
+      <div class="flex shrink-0 gap-2">
         <Button variant="ghost" size="sm" @click="bearbeiten = true">
           <Pencil /> Bearbeiten
         </Button>
@@ -132,12 +132,12 @@ const formatTag = (datum: string) => format(zuDate(datum), 'EEEE, d. MMMM yyyy',
           <Plus /> Notiz
         </Button>
       </CardHeader>
-      <CardContent class="grid gap-1 text-sm">
+      <CardContent class="grid grid-cols-1 gap-1 text-sm">
         <p v-if="!notizen.length" class="text-muted-foreground">
           Keine verknüpften Notizen.
         </p>
-        <NuxtLink v-for="n in notizen" :key="n.id" :to="`/notizen?id=${n.id}`" class="grid gap-0.5 rounded-md px-1 py-1 hover:bg-accent/50">
-          <span class="font-medium">{{ n.titel }}</span>
+        <NuxtLink v-for="n in notizen" :key="n.id" :to="`/notizen?id=${n.id}`" class="grid grid-cols-1 gap-0.5 rounded-md px-1 py-1 hover:bg-accent/50" :title="n.titel">
+          <span class="auslaufen font-medium">{{ n.titel }}</span>
           <span v-if="n.ausschnitt" class="line-clamp-1 text-xs text-muted-foreground">{{ n.ausschnitt }}</span>
         </NuxtLink>
       </CardContent>
@@ -147,12 +147,12 @@ const formatTag = (datum: string) => format(zuDate(datum), 'EEEE, d. MMMM yyyy',
       <CardHeader>
         <CardTitle>Merker</CardTitle>
       </CardHeader>
-      <CardContent class="grid gap-1 text-sm">
+      <CardContent class="grid grid-cols-1 gap-1 text-sm">
         <NuxtLink v-for="t in todos" :key="t.id" to="/todos" class="flex gap-2 hover:underline">
           <Badge variant="outline">
             {{ TODO_ARTEN.find(a => a.art === t.art)?.einzahl }}
           </Badge>
-          <span><template v-if="t.wer">{{ t.wer }}: </template>{{ t.text }}</span>
+          <span class="min-w-0 wrap-anywhere"><template v-if="t.wer">{{ t.wer }}: </template>{{ t.text }}</span>
         </NuxtLink>
       </CardContent>
     </Card>

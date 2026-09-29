@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { kontostand } from '../shared/utils/saldo'
+import { kontostand, saldoVerlauf } from '../shared/utils/saldo'
 import type { SaldoEingabe } from '../shared/utils/saldo'
 
 const einstellungen = { sollProTagMin: 480, arbeitstage: [1, 2, 3, 4, 5], bundesland: 'BW' }
@@ -68,5 +68,43 @@ describe('kontostand', () => {
 
   it('Startdatum in der Zukunft/heute: nur Startsaldo', () => {
     expect(kontostand(eingabe({ start: { datum: '2026-06-08', saldoMin: 30 } }))).toBe(30)
+  })
+})
+
+describe('saldoVerlauf', () => {
+  // Start Fr 29.5.2026, heute Mi 3.6. → Mai: nur 29.5. (Fr), Juni: 1.–2.6. (Mo, Di), laufend
+  const verlaufEingabe = eingabe({
+    start: { datum: '2026-05-29', saldoMin: 60 },
+    heute: '2026-06-03',
+    istProTag: { '2026-05-29': 540, '2026-06-01': 420, '2026-06-02': 480, '2026-06-03': 600 },
+  })
+
+  it('Monatsdelta und Stand am Monatsende', () => {
+    expect(saldoVerlauf(verlaufEingabe)).toEqual([
+      { monat: '2026-05', delta: 60, stand: 120, laufend: false },
+      { monat: '2026-06', delta: -60, stand: 60, laufend: true },
+    ])
+  })
+
+  it('letzter Stand entspricht dem Kontostand', () => {
+    expect(saldoVerlauf(verlaufEingabe).at(-1)?.stand).toBe(kontostand(verlaufEingabe))
+  })
+
+  it('am Monatsersten: laufender Monat mit Delta 0', () => {
+    const v = saldoVerlauf(eingabe({ start: { datum: '2026-05-29', saldoMin: 0 }, heute: '2026-06-01', istProTag: { '2026-05-29': 480 } }))
+    expect(v).toEqual([
+      { monat: '2026-05', delta: 0, stand: 0, laufend: false },
+      { monat: '2026-06', delta: 0, stand: 0, laufend: true },
+    ])
+  })
+
+  it('Start heute: nur laufender Monat mit Startsaldo', () => {
+    expect(saldoVerlauf(eingabe({ start: { datum: '2026-06-08', saldoMin: 30 } }))).toEqual([
+      { monat: '2026-06', delta: 0, stand: 30, laufend: true },
+    ])
+  })
+
+  it('Start in der Zukunft: leer', () => {
+    expect(saldoVerlauf(eingabe({ start: { datum: '2026-07-01', saldoMin: 30 } }))).toEqual([])
   })
 })

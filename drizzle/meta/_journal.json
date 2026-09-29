@@ -15,6 +15,13 @@
       "when": 1790628558662,
       "tag": "0001_vorlage_name",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1790713456650,
+      "tag": "0002_tag_blocker",
+      "breakpoints": true
     }
   ]
 }

@@ -38,14 +38,14 @@ async function enter() {
         Dauer oder Präfix voranstellen, z. B. „1h {{ ergebnis.text }}“ oder „t {{ ergebnis.text }}“ – suchen mit Strg+K
       </p>
       <template v-else-if="vorschau">
-        <p>
+        <p class="wrap-anywhere">
           {{ vorschau.text }}
           <span v-if="vorschau.notiz" class="text-muted-foreground">· „{{ vorschau.notiz }}“</span>
         </p>
         <div v-if="ergebnis.art === 'block' && ergebnis.kandidaten" class="mt-2 flex flex-wrap items-center gap-2">
           <span class="text-muted-foreground">Mehrere Treffer:</span>
-          <Button v-for="(k, i) in ergebnis.kandidaten" :key="i" size="sm" variant="secondary" @click="ausfuehren(k)">
-            {{ zielText(k) }}
+          <Button v-for="(k, i) in ergebnis.kandidaten" :key="i" size="sm" variant="secondary" class="max-w-full" :title="zielText(k)" @click="ausfuehren(k)">
+            <span class="truncate">{{ zielText(k) }}</span>
           </Button>
         </div>
       </template>

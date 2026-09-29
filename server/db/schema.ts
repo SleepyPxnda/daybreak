@@ -74,6 +74,8 @@ export const tag = sqliteTable('tag', {
   typ: text('typ', { enum: ['arbeit', 'urlaub', 'halb_urlaub', 'krank', 'gleittag'] }).notNull(),
   sollOverride: integer('soll_override'),
   notiz: text('notiz'),
+  /** Kalender-Blocker: Hinweis „hier keinen Urlaub nehmen“ – unabhängig vom Tagestyp, ändert kein Soll */
+  blocker: integer('blocker', { mode: 'boolean' }).notNull().default(false),
 })
 
 export const todo = sqliteTable('todo', {

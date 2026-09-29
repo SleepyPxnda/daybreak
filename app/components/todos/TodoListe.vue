@@ -112,7 +112,7 @@ function stichtagText(t: TodoZeile): string | undefined {
 </script>
 
 <template>
-  <div class="grid gap-1">
+  <div class="grid grid-cols-1 gap-1">
     <p v-if="!liste.length && leerText" class="py-1 text-sm text-muted-foreground">
       {{ leerText }}
     </p>
@@ -139,15 +139,15 @@ function stichtagText(t: TodoZeile): string | undefined {
         @update:model-value="erledigen(t)"
       />
       <button type="button" class="min-w-0 flex-1 text-left" @click="bearbeiten(t)">
-        <div class="break-words">
+        <div class="wrap-anywhere">
           <span v-if="t.wer" class="font-medium">{{ t.wer }}: </span>{{ t.text }}
         </div>
         <div class="flex flex-wrap gap-x-2 text-xs text-muted-foreground">
           <span v-if="art === 'warten'">{{ alterText(tageSeit(t.erstelltAm, heuteDatum)) }}</span>
           <span v-if="stichtagText(t)" :class="{ 'font-medium text-konto-butter': istFaellig(t, heuteDatum) }">{{ stichtagText(t) }}</span>
-          <span v-if="t.aufgabeTitel || t.kontoName" class="inline-flex items-center gap-1">
-            <span class="size-2 rounded-full" :class="kontoFarbKlassen(t.kontoFarbe).punkt" />
-            {{ t.aufgabeTitel ?? t.kontoName }}
+          <span v-if="t.aufgabeTitel || t.kontoName" class="inline-flex max-w-full min-w-0 items-center gap-1" :title="t.aufgabeTitel ?? t.kontoName ?? undefined">
+            <span class="size-2 shrink-0 rounded-full" :class="kontoFarbKlassen(t.kontoFarbe).punkt" />
+            <span class="truncate">{{ t.aufgabeTitel ?? t.kontoName }}</span>
           </span>
         </div>
       </button>

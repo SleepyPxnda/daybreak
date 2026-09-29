@@ -60,11 +60,22 @@ const auswahlText = computed(() => {
   const f = (d: string) => format(zuDate(d), 'EEE d. MMM', { locale: de })
   return a.von === a.bis ? f(a.von) : `${f(a.von)} – ${f(a.bis)}`
 })
-const arbeitstageInAuswahl = computed(() => {
+const arbeitstageAuswahl = computed(() => {
   const a = auswahl.value
-  if (!a) return 0
-  return datumsBereich(a.von, a.bis).filter(d => infos.value.get(d)?.istArbeitstag).length
+  if (!a) return []
+  return datumsBereich(a.von, a.bis).filter(d => infos.value.get(d)?.istArbeitstag)
 })
+const arbeitstageInAuswahl = computed(() => arbeitstageAuswahl.value.length)
+// Blocker: Hinweis „hier keinen Urlaub nehmen“ – eigener Schalter, unabhängig vom Tagestyp
+const blockerInAuswahl = computed(() => arbeitstageAuswahl.value.filter(d => infos.value.get(d)?.blocker).length)
+const alleBlockiert = computed(() => arbeitstageInAuswahl.value > 0 && blockerInAuswahl.value === arbeitstageInAuswahl.value)
+
+async function blockerSetzen() {
+  const a = auswahl.value
+  if (!a) return
+  const ok = await aktion(() => api('/api/tage/bereich', { method: 'PUT', body: { ...a, blocker: !alleBlockiert.value } }), TAG_KEYS)
+  if (ok) auswahl.value = null
+}
 
 const TYPEN: { typ: TagTyp, label: string }[] = [
   { typ: 'urlaub', label: 'Urlaub' },
@@ -84,7 +95,7 @@ async function setzen(typ: TagTyp) {
 
 <template>
   <div class="grid gap-6 xl:grid-cols-[1fr_18rem]">
-    <div class="grid min-w-0 content-start gap-4">
+    <div class="grid min-w-0 grid-cols-1 content-start gap-4">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2">
           <Button size="icon" variant="ghost" aria-label="Vorheriges Jahr" @click="jahrWechseln(-1)">
@@ -104,6 +115,7 @@ async function setzen(typ: TagTyp) {
           <span class="flex items-center gap-1"><span class="size-3 rounded-sm bg-konto-pfirsich" /> Krank</span>
           <span class="flex items-center gap-1"><span class="size-3 rounded-sm bg-konto-himmel" /> Gleittag</span>
           <span class="flex items-center gap-1"><span class="size-3 rounded-sm ring-1 ring-inset ring-konto-rose" /> Feiertag</span>
+          <span class="flex items-center gap-1"><span class="blocker-schraffur size-3 rounded-sm" /> Blocker</span>
           <span class="flex items-center gap-1"><span class="size-1.5 rounded-full bg-primary" /> Soll abweichend</span>
         </div>
       </div>
@@ -113,9 +125,17 @@ async function setzen(typ: TagTyp) {
         <template v-if="auswahl">
           <span class="font-medium">{{ auswahlText }}</span>
           <span class="text-muted-foreground">({{ arbeitstageInAuswahl }} Arbeitstag{{ arbeitstageInAuswahl === 1 ? '' : 'e' }})</span>
+          <span v-if="blockerInAuswahl" class="flex items-center gap-1 text-negativ">
+            <span class="blocker-schraffur size-3 rounded-sm" />
+            {{ blockerInAuswahl }} Blocker-Tag{{ blockerInAuswahl === 1 ? '' : 'e' }} – hier besser kein Urlaub
+          </span>
           <span class="flex-1" />
           <Button v-for="t in TYPEN" :key="t.typ" size="sm" :variant="t.typ === 'arbeit' ? 'ghost' : 'secondary'" @click="setzen(t.typ)">
             {{ t.label }}
+          </Button>
+          <Button size="sm" variant="secondary" :disabled="!arbeitstageInAuswahl" @click="blockerSetzen">
+            <span class="blocker-schraffur size-3 rounded-sm" />
+            {{ alleBlockiert ? 'Blocker entfernen' : 'Blocker' }}
           </Button>
           <Button v-if="auswahl.von === auswahl.bis" size="sm" variant="ghost" @click="navigateTo(`/?datum=${auswahl.von}`)">
             Tag öffnen
@@ -124,7 +144,7 @@ async function setzen(typ: TagTyp) {
             <X />
           </Button>
         </template>
-        <span v-else class="text-muted-foreground">Tag anklicken oder über mehrere Tage ziehen, um Urlaub, Krank oder Gleittag zu setzen.</span>
+        <span v-else class="text-muted-foreground">Tag anklicken oder über mehrere Tage ziehen, um Urlaub, Krank, Gleittag oder einen Blocker zu setzen.</span>
       </div>
 
       <div class="grid grid-cols-2 gap-x-6 gap-y-5 md:grid-cols-3 2xl:grid-cols-4">
@@ -141,7 +161,7 @@ async function setzen(typ: TagTyp) {
       </div>
     </div>
 
-    <aside class="grid content-start gap-4">
+    <aside class="grid grid-cols-1 content-start gap-4">
       <UrlaubCard :jahr="jahr" />
     </aside>
   </div>
