@@ -25,6 +25,7 @@ pnpm 12 blockiert Postinstall-Skripte, bis sie freigegeben sind. Freigaben in `p
 - Tokens aus Plan §6 in `app/assets/css/main.css`, Dark-only (`<html class="dark">` fest in `nuxt.config.ts`).
 - Kontofarben als Tailwind-Farben (`bg-konto-mint` …) plus dunkle Textfarbe je Farbton (`text-konto-mint-fg`, Plan §6: `oklch(0.22 0.03 <hue>)`).
 - Utility `schraffiert` für geplante Blöcke.
+- **Logo** (Sonnenaufgang über Wasser: Lavendel-Himmel, blaues Wasser, Pfirsich-Sonne mit Spiegelung): `AppLogo.vue` in der Sidebar (über Tokens eingefärbt) und `public/favicon.svg` (gleiche Form, Farben fest als `oklch`-Werte von `--primary`/`--logo-wasser`/`--konto-pfirsich`, da Favicons kein CSS erben; im SVG-Kommentar kein `--`, sonst ist die Datei ungültig). Formänderungen in beiden Dateien nachziehen. Keine PWA: Installation bräuchte HTTPS, Daybreak bleibt ein lokales Tool.
 - **Zahlenfelder** immer über `ZahlInput` (Wrapper um shadcn `NumberField`, deutsches Zahlenformat, `−`/`+`-Buttons, leer = `null`) – kein natives `type="number"` mit Browser-Spinnern. **Uhrzeiten** über `UhrzeitInput` (`type="time"`, 15-min-Raster, `w-36`).
 - ⚠️ **shadcn-CLI:** `shadcn-vue add` schreibt jedes Mal einen Google-Fonts-Import und einen doppelten `@layer base` in `main.css`. Nach jedem `add` die Datei zurücksetzen (`git checkout -- app/assets/css/main.css`) bzw. prüfen.
 

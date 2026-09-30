@@ -34,6 +34,7 @@ export default defineNuxtConfig({
     head: {
       htmlAttrs: { lang: 'de', class: 'dark' },
       title: 'Daybreak',
+      link: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
     },
   },
 

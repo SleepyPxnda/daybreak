@@ -59,6 +59,7 @@
     --color-konto-butter-fg: oklch(0.22 0.03 95);
     --color-konto-salbei-fg: oklch(0.22 0.03 140);
     --color-konto-flieder-fg: oklch(0.22 0.03 320);
+    --color-logo-wasser: var(--logo-wasser);
     --color-positiv: var(--positiv);
     --color-negativ: var(--negativ);
 
@@ -103,6 +104,9 @@
     /* Status */
     --positiv: oklch(0.84 0.08 165);  /* Plus-Stunden */
     --negativ: oklch(0.80 0.09 5);    /* Minus-Stunden */
+
+    /* Logo (AppLogo.vue, public/favicon.svg): Wasserfläche */
+    --logo-wasser: oklch(0.45 0.07 265);
 
     /* Charts nutzen die Kontofarben */
     --chart-1: var(--konto-lavendel);

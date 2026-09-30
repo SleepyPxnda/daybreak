@@ -49,7 +49,7 @@ function isActive(to: string) {
           <!-- Eingeklappt: nur das Logo, zentriert -->
           <SidebarMenuButton size="lg" as-child class="group-data-[collapsible=icon]:justify-center">
             <NuxtLink to="/">
-              <Sunrise class="text-primary" />
+              <AppLogo class="size-6!" />
               <span class="font-semibold group-data-[collapsible=icon]:hidden">Daybreak</span>
             </NuxtLink>
           </SidebarMenuButton>
