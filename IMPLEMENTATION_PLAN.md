@@ -229,31 +229,31 @@ Layout: shadcn **Sidebar** links (einklappbar), Inhalt rechts, deutsches UI, Des
 
 ---
 
-## 6. Design: Brand-Kit „daybreak“ (dunkel, warm)
+## 6. Design: dunkles, warmes Theme
 
-Quelle ist `brand_kit/` (Farben in `theme/tokens.json`, Logos in `logo/`, Übersicht in `vorschau.html`). Dark-only in v1 (`class="dark"` fest auf `<html>`): neutrale, leicht warme Graus, Gold als Primärfarbe, schlichter Hintergrund ohne den Verlauf (bg-glow) des Brand-Kits. Die Brand-Werte sind in `app/assets/css/main.css` auf die shadcn-CSS-Variablen gemappt:
+Dark-only in v1 (`class="dark"` fest auf `<html>`): neutrale, leicht warme Graus, Gold als Primärfarbe, schlichter einfarbiger Hintergrund. Die Werte stehen in `app/assets/css/main.css` als shadcn-CSS-Variablen:
 
-| shadcn-Token | Brand | Wert |
+| shadcn-Token | Rolle | Wert |
 |---|---|---|
-| `--background` | bg | `#121212` |
-| `--card`, `--sidebar` | surface | `#1B1A18` |
-| `--popover`, `--muted`, `--secondary`, `--sidebar-accent` | surface-2 | `#252422` |
-| `--accent` (Hover) | abgeleitet | `#2F2D2A` |
-| `--border`, `--input` | border | `#3B3935` |
-| `--foreground` | text | `#F2F2F2` |
-| `--muted-foreground` | muted | `#AAA7A1` |
-| `--primary`, `--ring` | primary-500 (Gold) | `#DFAB40`, Text darauf `#2C2C2C` |
-| `--destructive` | danger-400 | `#E4626D` |
-| `--positiv` / `--negativ` | success-300 / danger-300 | `#85EAAF` / `#EA858D` |
-| `--chart-1…5` | chart | `#DE633F` → `#C7DE3F` |
+| `--background` | Hintergrund | `#121212` |
+| `--card`, `--sidebar` | Fläche | `#1B1A18` |
+| `--popover`, `--muted`, `--secondary`, `--sidebar-accent` | Fläche 2 | `#252422` |
+| `--accent` | Hover | `#2F2D2A` |
+| `--border`, `--input` | Rahmen | `#3B3935` |
+| `--foreground` | Text | `#F2F2F2` |
+| `--muted-foreground` | Nebentext | `#AAA7A1` |
+| `--primary`, `--ring` | Gold | `#DFAB40`, Text darauf `#2C2C2C` |
+| `--destructive` | Rot (aufgehellt für dunklen Grund) | `#E4626D` |
+| `--positiv` / `--negativ` | Grün / Rot als Textfarbe | `#85EAAF` / `#EA858D` |
+| `--chart-1…5` | warme Reihe Orange → Lindgrün | `#DE633F`, `#DE883F`, `#DEAC3F`, `#DED13F`, `#C7DE3F` |
 
-Kontofarben bleiben die acht Pastelltöne (`--konto-*`, OKLCH): Die Brand-Reihe ist bewusst warm und zu ähnlich, um acht Konten zu unterscheiden; die Konto-Schlüssel stehen außerdem in der DB.
+Kontofarben sind acht Pastelltöne (`--konto-*`, OKLCH, siehe `main.css`): Die warme Akzentreihe ist zu ähnlich, um acht Konten zu unterscheiden; die Konto-Schlüssel stehen außerdem in der DB.
 
 Regeln:
 - Schrift **Montserrat** (self-hosted über `@fontsource-variable/montserrat`), Headlines (`h1–h3`, Karten-/Dialog-Titel) ExtraBold, Wortmarke „daybreak“ Black und kleingeschrieben. Zahlen mit `tabular-nums`.
 - Buttons als Pille (`rounded-full`), Eingaben 12 px (`--radius`), Karten 16 px (`rounded-xl`).
 - Akzentfarben nie für Fließtext; Pastellfarben nur als Flächen mit dunklem Text darauf (`oklch(0.22 0.03 <hue>)`). Plus/Minus nie nur über Farbe – immer mit Vorzeichen.
-- Logo: `AppLogo.vue` (Icon ohne Hintergrund, Striche `currentColor`, Sonne `--primary`), Favicon = `brand_kit/logo/daybreak-app-icon.svg` als `public/favicon.svg`.
+- Logo: `AppLogo.vue` (Icon ohne Hintergrund, Striche `currentColor`, Sonne `--primary`); `public/favicon.svg` ist dasselbe Icon als App-Icon mit dunklem Hintergrund und festen Farben (Favicons erben kein CSS).
 
 ---
 

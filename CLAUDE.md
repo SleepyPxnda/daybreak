@@ -18,7 +18,7 @@ Nuxt 4 · shadcn-vue (Reka UI) · Tailwind v4 · Drizzle ORM + SQLite (`@libsql/
 - Hierarchie: Konto (Sammlung) → Aufgabe (gehört zu genau einem Konto) → Blöcke an beliebigen Tagen. Blöcke können auch ohne Aufgabe direkt auf ein Konto gehen (abstrakte Konten wie Firmenmeeting). Siehe Plan §3.1.
 - Datum als `YYYY-MM-DD`-String, Uhrzeiten als Minuten seit Mitternacht, 15-min-Raster.
 - Fachlogik (Schnelleingabe-Parser, Soll/Saldo, Urlaub) als reine Funktionen in `shared/utils/` mit Vitest-Tests.
-- Nur dunkles Theme nach Brand-Kit `brand_kit/` (Tokens in `app/assets/css/main.css`, siehe Plan §6). Farben nur über Tokens, keine Hex-Werte in Komponenten.
+- Nur dunkles, warmes Theme (Tokens in `app/assets/css/main.css`, siehe Plan §6). Farben nur über Tokens, keine Hex-Werte in Komponenten.
 - Keine Features außerhalb des Plans (kein Kanban, kein Export, keine Pausenregeln, keine Ticket-Integration).
 - DB-Pfad nur über `DATABASE_URL` (Default `file:./data/daybreak.db`, gitignored); Schemaänderungen immer per `drizzle-kit generate` + Migration. Migrationen laufen im Container beim Start automatisch.
 - Alles muss im Docker-Image laufen (Plan §9): keine Pfade/Abhängigkeiten, die nur lokal existieren; Zeitzone `Europe/Berlin` für Tagesgrenzen.

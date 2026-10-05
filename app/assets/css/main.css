@@ -69,7 +69,7 @@
 }
 
 /* Dark-only (v1): <html class="dark"> ist fest gesetzt, siehe nuxt.config.ts.
-   Werte aus dem Brand-Kit (brand_kit/theme/tokens.json, neutral.dark + Farbrollen). */
+   Werte und Rollen siehe Plan §6. */
 .dark {
     --background:           #121212;  /* bg */
     --foreground:           #F2F2F2;  /* text */
@@ -105,7 +105,7 @@
     --positiv: #85EAAF;  /* success-300, Plus-Stunden */
     --negativ: #EA858D;  /* danger-300, Minus-Stunden */
 
-    /* Charts: warme Brand-Reihe Orange → Lindgrün */
+    /* Charts: warme Reihe Orange → Lindgrün */
     --chart-1: #DE633F;
     --chart-2: #DE883F;
     --chart-3: #DEAC3F;
@@ -130,7 +130,7 @@
   body {
     @apply bg-background text-foreground font-sans;
   }
-  /* Brand: Headlines in Montserrat ExtraBold, leicht enger gesetzt */
+  /* Headlines in Montserrat ExtraBold, leicht enger gesetzt */
   h1, h2, h3, .cn-font-heading {
     @apply font-heading font-extrabold tracking-tight;
   }

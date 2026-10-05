@@ -16,7 +16,7 @@ Single-User, läuft lokal oder selbst gehostet im Docker-Container – die Daten
 - **Merker, Daily-Themen, Warten auf** – kleine Listen mit Fälligkeit bzw. Nachfass-Datum, verknüpfbar mit Aufgaben oder Konten.
 - **Notizen** – Markdown-Editor mit Tags, Suche und angepinnten Notizen auf „Heute“.
 
-Nur ein dunkles, warmes Theme (Brand-Kit in `brand_kit/`), Oberfläche auf Deutsch.
+Nur ein dunkles, warmes Theme, Oberfläche auf Deutsch.
 
 ## Betrieb mit Docker
 

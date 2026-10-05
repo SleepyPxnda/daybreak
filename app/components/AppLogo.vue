@@ -1,5 +1,5 @@
-<!-- Daybreak-Icon (Kalenderblatt mit aufgehender Sonne) aus brand_kit/logo/daybreak-icon-dark.svg,
-     ohne Hintergrund und über Theme-Tokens eingefärbt. public/favicon.svg ist das App-Icon des Brand-Kits. -->
+<!-- Daybreak-Icon (Kalenderblatt mit aufgehender Sonne),
+     ohne Hintergrund und über Theme-Tokens eingefärbt. public/favicon.svg ist dasselbe Icon als App-Icon (feste Farben). -->
 <script setup lang="ts">
 // Mask-ID pro Instanz eindeutig, sonst kollidieren mehrere Logos auf einer Seite
 const maskId = useId()
