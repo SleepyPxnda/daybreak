@@ -77,7 +77,7 @@ function chipText(v: { aufgabeKey: string | null, aufgabeTitel: string | null, k
 
         <section class="grid grid-cols-1 gap-2">
           <div class="flex items-center justify-between">
-            <h3 class="font-medium">
+            <h3>
               Geplant
             </h3>
             <Button v-if="geplante.length" size="sm" @click="uebernehmen()">
@@ -98,7 +98,7 @@ function chipText(v: { aufgabeKey: string | null, aufgabeTitel: string | null, k
         </section>
 
         <section class="grid grid-cols-1 gap-2">
-          <h3 class="font-medium">
+          <h3>
             Schnell buchen
           </h3>
           <div class="flex items-center gap-2">

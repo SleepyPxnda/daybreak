@@ -100,7 +100,7 @@ function tagLabel(info?: { feiertag?: string, typ: string, istArbeitstag: boolea
             <ChevronLeft />
           </Button>
           <div class="w-60 shrink-0 text-center">
-            <h1 class="text-2xl font-semibold">
+            <h1 class="text-2xl">
               KW {{ kw }}
             </h1>
             <p class="text-sm text-muted-foreground">

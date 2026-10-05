@@ -101,7 +101,7 @@ async function setzen(typ: TagTyp) {
           <Button size="icon" variant="ghost" aria-label="Vorheriges Jahr" @click="jahrWechseln(-1)">
             <ChevronLeft />
           </Button>
-          <h1 class="w-20 text-center text-2xl font-semibold tabular-nums">
+          <h1 class="w-20 text-center text-2xl tabular-nums">
             {{ jahr }}
           </h1>
           <Button size="icon" variant="ghost" aria-label="Nächstes Jahr" @click="jahrWechseln(1)">

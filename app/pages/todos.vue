@@ -41,7 +41,7 @@ async function loeschen(id: number) {
 
 <template>
   <div class="grid gap-6">
-    <h1 class="text-2xl font-semibold">
+    <h1 class="text-2xl">
       Merker & Daily
     </h1>
 

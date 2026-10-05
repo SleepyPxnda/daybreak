@@ -50,7 +50,7 @@ function isActive(to: string) {
           <SidebarMenuButton size="lg" as-child class="group-data-[collapsible=icon]:justify-center">
             <NuxtLink to="/">
               <AppLogo class="size-6!" />
-              <span class="font-semibold group-data-[collapsible=icon]:hidden">Daybreak</span>
+              <span class="font-heading text-lg font-black tracking-tight group-data-[collapsible=icon]:hidden">daybreak</span>
             </NuxtLink>
           </SidebarMenuButton>
         </SidebarMenuItem>

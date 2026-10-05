@@ -77,7 +77,7 @@ const abschluss = ref(false)
           </Button>
           <!-- Feste Breite, damit die Pfeile beim Blättern nicht springen (längstes Datum passt rein) -->
           <div class="w-60 shrink-0 text-center">
-            <h1 class="truncate text-2xl font-semibold">
+            <h1 class="truncate text-2xl">
               {{ istHeute ? 'Heute' : format(zuDate(datum), 'EEEE', { locale: de }) }}
             </h1>
             <p class="truncate text-sm text-muted-foreground">

@@ -87,7 +87,7 @@ const archivOffen = ref(false)
 
 <template>
   <div class="grid max-w-3xl gap-6">
-    <h1 class="text-2xl font-semibold">
+    <h1 class="text-2xl">
       Einstellungen
     </h1>
 

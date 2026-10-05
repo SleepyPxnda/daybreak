@@ -229,48 +229,32 @@ Layout: shadcn **Sidebar** links (einklappbar), Inhalt rechts, deutsches UI, Des
 
 ---
 
-## 6. Design: dunkles Pastell-Theme
+## 6. Design: Brand-Kit „daybreak“ (dunkel, warm)
 
-Dark-only in v1 (`class="dark"` fest auf `<html>`), ruhige, leicht violett-getönte Graus, gedämpfte Pastell-Akzente. Theme-Tokens in `app/assets/css/main.css` als shadcn-CSS-Variablen (OKLCH):
+Quelle ist `brand_kit/` (Farben in `theme/tokens.json`, Logos in `logo/`, Übersicht in `vorschau.html`). Dark-only in v1 (`class="dark"` fest auf `<html>`): neutrale, leicht warme Graus, Gold als Primärfarbe, warmer Schein aus Orange (oben links) und Lindgrün (unten rechts). Die Brand-Werte sind in `app/assets/css/main.css` auf die shadcn-CSS-Variablen gemappt:
 
-```css
-.dark {
-  --background:        oklch(0.18 0.015 280);
-  --foreground:        oklch(0.93 0.010 280);
-  --card:              oklch(0.215 0.018 280);
-  --card-foreground:   oklch(0.93 0.010 280);
-  --popover:           oklch(0.23 0.020 280);
-  --popover-foreground:oklch(0.93 0.010 280);
-  --primary:           oklch(0.80 0.090 290);  /* Lavendel */
-  --primary-foreground:oklch(0.20 0.030 290);
-  --secondary:         oklch(0.27 0.020 280);
-  --secondary-foreground: oklch(0.90 0.010 280);
-  --muted:             oklch(0.26 0.018 280);
-  --muted-foreground:  oklch(0.70 0.020 280);
-  --accent:            oklch(0.29 0.025 285);
-  --accent-foreground: oklch(0.93 0.010 280);
-  --destructive:       oklch(0.72 0.120 20);   /* gedämpftes Rosé-Rot */
-  --border:            oklch(0.31 0.020 280);
-  --input:             oklch(0.31 0.020 280);
-  --ring:              oklch(0.80 0.090 290);
-  --radius: 0.75rem;
+| shadcn-Token | Brand | Wert |
+|---|---|---|
+| `--background` | bg | `#121212` |
+| `--card`, `--sidebar` | surface | `#1B1A18` |
+| `--popover`, `--muted`, `--secondary`, `--sidebar-accent` | surface-2 | `#252422` |
+| `--accent` (Hover) | abgeleitet | `#2F2D2A` |
+| `--border`, `--input` | border | `#3B3935` |
+| `--foreground` | text | `#F2F2F2` |
+| `--muted-foreground` | muted | `#AAA7A1` |
+| `--primary`, `--ring` | primary-500 (Gold) | `#DFAB40`, Text darauf `#2C2C2C` |
+| `--destructive` | danger-400 | `#E4626D` |
+| `--positiv` / `--negativ` | success-300 / danger-300 | `#85EAAF` / `#EA858D` |
+| `--chart-1…5` | chart | `#DE633F` → `#C7DE3F` |
+| `--bg-glow` | bg-glow | Orange/Lindgrün je 12 %, auf `SidebarInset` |
 
-  /* Kontofarben (Pastell) */
-  --konto-lavendel: oklch(0.80 0.09 295);
-  --konto-pfirsich: oklch(0.83 0.08 55);
-  --konto-mint:     oklch(0.84 0.08 165);
-  --konto-himmel:   oklch(0.82 0.08 235);
-  --konto-rose:     oklch(0.80 0.09 5);
-  --konto-butter:   oklch(0.88 0.08 95);
-  --konto-salbei:   oklch(0.82 0.06 140);
-  --konto-flieder:  oklch(0.78 0.08 320);
+Kontofarben bleiben die acht Pastelltöne (`--konto-*`, OKLCH): Die Brand-Reihe ist bewusst warm und zu ähnlich, um acht Konten zu unterscheiden; die Konto-Schlüssel stehen außerdem in der DB.
 
-  /* Status */
-  --positiv: oklch(0.84 0.08 165);  /* Plus-Stunden */
-  --negativ: oklch(0.80 0.09 5);    /* Minus-Stunden */
-}
-```
-Regeln: Pastellfarben nur als Flächen/Akzente mit dunklem Text darauf (`oklch(0.22 0.03 <hue>)`), nie als Fließtextfarbe auf dunklem Grund unter 14px. Plus/Minus nie nur über Farbe – immer mit Vorzeichen. Schrift: Inter (oder System-UI), Zahlen mit `tabular-nums`.
+Regeln:
+- Schrift **Montserrat** (self-hosted über `@fontsource-variable/montserrat`), Headlines (`h1–h3`, Karten-/Dialog-Titel) ExtraBold, Wortmarke „daybreak“ Black und kleingeschrieben. Zahlen mit `tabular-nums`.
+- Buttons als Pille (`rounded-full`), Eingaben 12 px (`--radius`), Karten 16 px (`rounded-xl`).
+- Akzentfarben nie für Fließtext; Pastellfarben nur als Flächen mit dunklem Text darauf (`oklch(0.22 0.03 <hue>)`). Plus/Minus nie nur über Farbe – immer mit Vorzeichen.
+- Logo: `AppLogo.vue` (Icon ohne Hintergrund, Striche `currentColor`, Sonne `--primary`), Favicon = `brand_kit/logo/daybreak-app-icon.svg` als `public/favicon.svg`.
 
 ---
 

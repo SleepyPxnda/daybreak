@@ -1,6 +1,6 @@
 # Phase 0 – Setup
 
-Grundgerüst: Nuxt 4 im Projektordner, shadcn-vue, dunkles Pastell-Theme, Drizzle + SQLite, Docker, CI.
+Grundgerüst: Nuxt 4 im Projektordner, shadcn-vue, dunkles Theme, Drizzle + SQLite, Docker, CI.
 
 ## Bedienung
 
@@ -15,7 +15,7 @@ Grundgerüst: Nuxt 4 im Projektordner, shadcn-vue, dunkles Pastell-Theme, Drizzl
 - **pnpm 12** (festgelegt über `packageManager` in `package.json`), **Node ≥ 22** (CI und Docker nutzen Node 22).
 - **TypeScript auf `~6.0` gepinnt** – typescript-eslint unterstützt TS 7 noch nicht.
 - **Icons aus `@lucide/vue`** (Nachfolger von `lucide-vue-next`; so generiert shadcn-vue die Komponenten).
-- **Schrift Inter self-hosted** über `@fontsource-variable/inter` statt Google Fonts (offline-fähig, keine externe Anfrage).
+- **Schrift self-hosted** (heute Montserrat über `@fontsource-variable/montserrat`, ursprünglich Inter) statt Google Fonts (offline-fähig, keine externe Anfrage).
 
 ### pnpm-Build-Skripte
 pnpm 12 blockiert Postinstall-Skripte, bis sie freigegeben sind. Freigaben in `pnpm-workspace.yaml`:
@@ -25,7 +25,13 @@ pnpm 12 blockiert Postinstall-Skripte, bis sie freigegeben sind. Freigaben in `p
 - Tokens aus Plan §6 in `app/assets/css/main.css`, Dark-only (`<html class="dark">` fest in `nuxt.config.ts`).
 - Kontofarben als Tailwind-Farben (`bg-konto-mint` …) plus dunkle Textfarbe je Farbton (`text-konto-mint-fg`, Plan §6: `oklch(0.22 0.03 <hue>)`).
 - Utility `schraffiert` für geplante Blöcke.
-- **Logo** (Sonnenaufgang über Wasser: Lavendel-Himmel, blaues Wasser, Pfirsich-Sonne mit Spiegelung): `AppLogo.vue` in der Sidebar (über Tokens eingefärbt) und `public/favicon.svg` (gleiche Form, Farben fest als `oklch`-Werte von `--primary`/`--logo-wasser`/`--konto-pfirsich`, da Favicons kein CSS erben; im SVG-Kommentar kein `--`, sonst ist die Datei ungültig). Formänderungen in beiden Dateien nachziehen. Keine PWA: Installation bräuchte HTTPS, Daybreak bleibt ein lokales Tool.
+- **Brand-Kit** (Nachtrag): Farben, Schrift, Buttons und Logo folgen `brand_kit/`.
+  - Farben: shadcn-Tokens in `main.css` zeigen auf die Brand-Werte (warme Neutraltöne `#121212`/`#1B1A18`/`#252422`, Primär Gold `#DFAB40`, Plus/Minus `success-300`/`danger-300`, Charts Orange → Lindgrün), Token-Tabelle in Plan §6. Warmer Hintergrund-Schein `--bg-glow` auf dem Inhaltsbereich (`SidebarInset` im Default-Layout).
+  - Kontofarben bleiben die acht Pastelltöne: Die Brand-Reihe ist zu ähnlich für acht Konten, und die Farbschlüssel stehen in der DB.
+  - Schrift Montserrat; Headlines (`h1–h3` und `cn-font-heading` der shadcn-Titel) ExtraBold per Base-Layer, dafür in den shadcn-Titeln `font-medium` entfernt.
+  - Buttons als Pille (`rounded-full` in `ui/button/index.ts`, auch `xs`/`sm`/`icon-*`).
+  - Logo: `AppLogo.vue` ist das Brand-Icon (Kalenderblatt mit aufgehender Sonne) ohne Hintergrund, Striche in `currentColor`, Sonne in `--primary`, Mask-ID per `useId()`. Wortmarke in der Sidebar als Text „daybreak“ (Black, kleingeschrieben). `public/favicon.svg` ist 1:1 `brand_kit/logo/daybreak-app-icon.svg` (feste Farben, da Favicons kein CSS erben).
+- Keine PWA: Installation bräuchte HTTPS, Daybreak bleibt ein lokales Tool.
 - **Zahlenfelder** immer über `ZahlInput` (Wrapper um shadcn `NumberField`, deutsches Zahlenformat, `−`/`+`-Buttons, leer = `null`) – kein natives `type="number"` mit Browser-Spinnern. **Uhrzeiten** über `UhrzeitInput` (`type="time"`, 15-min-Raster, `w-36`).
 - ⚠️ **shadcn-CLI:** `shadcn-vue add` schreibt jedes Mal einen Google-Fonts-Import und einen doppelten `@layer base` in `main.css`. Nach jedem `add` die Datei zurücksetzen (`git checkout -- app/assets/css/main.css`) bzw. prüfen.
 

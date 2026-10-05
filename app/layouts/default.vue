@@ -6,7 +6,7 @@ import CommandPalette from '~/components/quick-input/CommandPalette.vue'
 <template>
   <SidebarProvider>
     <AppSidebar />
-    <SidebarInset>
+    <SidebarInset class="bg-(image:--bg-glow) bg-fixed">
       <header class="flex h-12 items-center gap-2 border-b px-4">
         <SidebarTrigger />
       </header>

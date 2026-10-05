@@ -72,7 +72,7 @@ function blaettern(richtung: number) {
             <Button size="icon" variant="ghost" :aria-label="modus === 'woche' ? 'Vorherige Woche' : 'Vorheriger Monat'" @click="blaettern(-1)">
               <ChevronLeft />
             </Button>
-            <h1 class="w-72 shrink-0 text-center text-2xl font-semibold">
+            <h1 class="w-72 shrink-0 text-center text-2xl">
               {{ titel }}
             </h1>
             <Button size="icon" variant="ghost" :aria-label="modus === 'woche' ? 'Nächste Woche' : 'Nächster Monat'" @click="blaettern(1)">
@@ -80,7 +80,7 @@ function blaettern(richtung: number) {
             </Button>
           </template>
           <template v-else>
-            <h1 class="text-2xl font-semibold">
+            <h1 class="text-2xl">
               Übersicht
             </h1>
             <Input type="date" class="w-40" aria-label="Von" :model-value="zeitraum.von" @change="setzeQuery({ von: ($event.target as HTMLInputElement).value || undefined })" />

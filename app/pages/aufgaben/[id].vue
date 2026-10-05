@@ -71,7 +71,7 @@ const formatTag = (datum: string) => format(zuDate(datum), 'EEEE, d. MMMM yyyy',
             {{ aufgabe.status }}
           </Badge>
         </div>
-        <h1 class="text-2xl font-semibold wrap-anywhere">
+        <h1 class="text-2xl wrap-anywhere">
           {{ aufgabe.titel }}
         </h1>
       </div>
