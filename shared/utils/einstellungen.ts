@@ -25,6 +25,12 @@ export const einstellungenSchema = z.object({
   urlaubErinnerungTage: z.number().int().min(0).max(90),
   /** Text der Urlaubserinnerung */
   urlaubErinnerungText: z.string().trim().max(300),
+  /** Browser-Benachrichtigungen bei fehlender Buchung (nur solange ein Daybreak-Tab offen ist) */
+  erinnerungenAktiv: z.boolean(),
+  /** Nach so vielen Minuten ohne gebuchte Zeit erinnern */
+  erinnerungLueckeMin: z.number().int().min(30).max(480).multipleOf(15),
+  /** Ab dieser Uhrzeit an fehlende Zeit zum Soll erinnern */
+  erinnerungFeierabend: uhrzeitSchema,
 })
 
 export type Einstellungen = z.infer<typeof einstellungenSchema>
@@ -39,4 +45,7 @@ export const STANDARD_EINSTELLUNGEN: Omit<Einstellungen, 'stundenkontoStart'> = 
   timelineBis: 1140,
   urlaubErinnerungTage: 7,
   urlaubErinnerungText: 'Übergabe planen, Abwesenheitsnotiz und Vertretung einrichten.',
+  erinnerungenAktiv: false,
+  erinnerungLueckeMin: 120,
+  erinnerungFeierabend: 990,
 }

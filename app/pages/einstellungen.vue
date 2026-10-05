@@ -22,6 +22,9 @@ const form = reactive({
   startSaldoStunden: 0,
   urlaubErinnerungTage: 7,
   urlaubErinnerungText: '',
+  erinnerungenAktiv: false,
+  erinnerungLueckeStunden: 2,
+  erinnerungFeierabend: 990,
 })
 
 watchEffect(() => {
@@ -37,7 +40,30 @@ watchEffect(() => {
   form.startSaldoStunden = e.stundenkontoStart.saldoMin / 60
   form.urlaubErinnerungTage = e.urlaubErinnerungTage
   form.urlaubErinnerungText = e.urlaubErinnerungText
+  form.erinnerungenAktiv = e.erinnerungenAktiv
+  form.erinnerungLueckeStunden = e.erinnerungLueckeMin / 60
+  form.erinnerungFeierabend = e.erinnerungFeierabend
 })
+
+// Browser-Erlaubnis gilt pro Browser, die Einstellung serverseitig – beides anzeigen
+const erlaubnis = ref<NotificationPermission | 'nicht-unterstuetzt'>('default')
+onMounted(() => {
+  erlaubnis.value = 'Notification' in window ? Notification.permission : 'nicht-unterstuetzt'
+})
+
+async function erinnerungenUmschalten(an: boolean) {
+  if (!an) {
+    form.erinnerungenAktiv = false
+    return
+  }
+  if (!('Notification' in window)) {
+    toast.error('Dieser Browser unterstützt hier keine Benachrichtigungen (nur über HTTPS oder localhost).')
+    return
+  }
+  erlaubnis.value = await Notification.requestPermission()
+  form.erinnerungenAktiv = erlaubnis.value === 'granted'
+  if (!form.erinnerungenAktiv) toast.error('Benachrichtigungen sind im Browser blockiert.')
+}
 
 async function speichern() {
   const ok = await aktion(() => api('/api/settings', {
@@ -52,6 +78,9 @@ async function speichern() {
       stundenkontoStart: { datum: form.startDatum, saldoMin: Math.round(form.startSaldoStunden * 60) },
       urlaubErinnerungTage: Math.max(0, Math.round(form.urlaubErinnerungTage || 0)),
       urlaubErinnerungText: form.urlaubErinnerungText,
+      erinnerungenAktiv: form.erinnerungenAktiv,
+      erinnerungLueckeMin: Math.min(480, Math.max(30, aufRaster((form.erinnerungLueckeStunden || 0) * 60))),
+      erinnerungFeierabend: form.erinnerungFeierabend,
     },
   }), ['einstellungen', 'saldo', 'naechster-urlaub'])
   if (ok) toast.success('Einstellungen gespeichert')
@@ -152,6 +181,28 @@ const archivOffen = ref(false)
             <div class="grid flex-1 gap-2">
               <Label for="urlaub-text">Erinnerungstext</Label>
               <Input id="urlaub-text" v-model="form.urlaubErinnerungText" placeholder="z. B. Übergabe planen, Abwesenheitsnotiz einrichten" />
+            </div>
+          </div>
+          <div class="grid gap-3">
+            <div class="flex items-center gap-3">
+              <Switch id="erinnerungen" :model-value="form.erinnerungenAktiv" @update:model-value="erinnerungenUmschalten" />
+              <Label for="erinnerungen">Browser-Erinnerungen ans Buchen</Label>
+            </div>
+            <p class="text-sm text-muted-foreground">
+              Nur an Arbeitstagen und solange ein Daybreak-Tab offen ist: wenn länger nichts gebucht wurde und ab Feierabend, falls das Soll noch nicht erreicht ist.
+            </p>
+            <p v-if="form.erinnerungenAktiv && erlaubnis !== 'granted'" class="text-sm text-destructive">
+              In diesem Browser sind Benachrichtigungen nicht erlaubt – Schalter aus- und wieder einschalten oder in den Website-Einstellungen freigeben.
+            </p>
+            <div v-if="form.erinnerungenAktiv" class="flex flex-wrap gap-6">
+              <div class="grid gap-2">
+                <Label for="erinnerung-luecke">Erinnern nach (Stunden ohne Buchung)</Label>
+                <ZahlInput id="erinnerung-luecke" v-model="form.erinnerungLueckeStunden" :min="0.5" :max="8" :step="0.25" class="w-32" />
+              </div>
+              <div class="grid gap-2">
+                <Label>Feierabend-Erinnerung ab</Label>
+                <UhrzeitInput v-model="form.erinnerungFeierabend" />
+              </div>
             </div>
           </div>
           <div>

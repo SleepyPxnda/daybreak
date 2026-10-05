@@ -12,6 +12,7 @@ Hier ist dokumentiert, was pro Phase **tatsächlich** gebaut wurde – inklusive
 | [3](phase-3-notizen.md) | Notizen: Markdown-Editor, Tags, Suche, Anpinnen | fertig |
 | [4](phase-4-kalender.md) | Kalender, Urlaubskonto, Woche | fertig |
 | [5](phase-5-uebersicht.md) | Übersicht: Konto → Aufgabe → Tage, Stundenkonto-Verlauf | fertig |
+| [6](phase-6-erinnerungen.md) | Browser-Erinnerungen ans Buchen | fertig |
 
 ## Schnellstart
 

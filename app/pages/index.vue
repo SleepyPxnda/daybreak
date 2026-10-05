@@ -64,6 +64,12 @@ async function wieGestern() {
 }
 
 const abschluss = ref(false)
+// Klick auf die Feierabend-Erinnerung öffnet den Tagesabschluss über ?abschluss=1
+watch(() => route.query.abschluss, (wert) => {
+  if (wert === undefined) return
+  abschluss.value = true
+  navigateTo({ query: {} }, { replace: true })
+}, { immediate: true })
 </script>
 
 <template>

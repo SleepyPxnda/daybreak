@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import CommandPalette from '~/components/quick-input/CommandPalette.vue'
+
+useErinnerungen()
 </script>
 
 <template>
