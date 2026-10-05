@@ -26,7 +26,7 @@ pnpm 12 blockiert Postinstall-Skripte, bis sie freigegeben sind. Freigaben in `p
 - Kontofarben als Tailwind-Farben (`bg-konto-mint` …) plus dunkle Textfarbe je Farbton (`text-konto-mint-fg`, Plan §6: `oklch(0.22 0.03 <hue>)`).
 - Utility `schraffiert` für geplante Blöcke.
 - **Brand-Kit** (Nachtrag): Farben, Schrift, Buttons und Logo folgen `brand_kit/`.
-  - Farben: shadcn-Tokens in `main.css` zeigen auf die Brand-Werte (warme Neutraltöne `#121212`/`#1B1A18`/`#252422`, Primär Gold `#DFAB40`, Plus/Minus `success-300`/`danger-300`, Charts Orange → Lindgrün), Token-Tabelle in Plan §6. Warmer Hintergrund-Schein `--bg-glow` auf dem Inhaltsbereich (`SidebarInset` im Default-Layout).
+  - Farben: shadcn-Tokens in `main.css` zeigen auf die Brand-Werte (warme Neutraltöne `#121212`/`#1B1A18`/`#252422`, Primär Gold `#DFAB40`, Plus/Minus `success-300`/`danger-300`, Charts Orange → Lindgrün), Token-Tabelle in Plan §6. Den Hintergrund-Verlauf (bg-glow) des Kits bewusst weggelassen.
   - Kontofarben bleiben die acht Pastelltöne: Die Brand-Reihe ist zu ähnlich für acht Konten, und die Farbschlüssel stehen in der DB.
   - Schrift Montserrat; Headlines (`h1–h3` und `cn-font-heading` der shadcn-Titel) ExtraBold per Base-Layer, dafür in den shadcn-Titeln `font-medium` entfernt.
   - Buttons als Pille (`rounded-full` in `ui/button/index.ts`, auch `xs`/`sm`/`icon-*`).

@@ -91,11 +91,6 @@
     --ring:                 #DFAB40;
     --radius: 0.75rem;                /* Eingaben 12px, Karten (radius-xl) 16px */
 
-    /* Warmer Hintergrund-Schein (Brand-Kit bg-glow): Orange oben links, Lindgrün unten rechts */
-    --bg-glow:
-      radial-gradient(circle at 0 0, color-mix(in srgb, #DF6440 12%, transparent), transparent 45%),
-      radial-gradient(circle at 100% 100%, color-mix(in srgb, #C8DF40 12%, transparent), transparent 45%);
-
     /* Kontofarben (Pastell) */
     --konto-lavendel: oklch(0.80 0.09 295);
     --konto-pfirsich: oklch(0.83 0.08 55);

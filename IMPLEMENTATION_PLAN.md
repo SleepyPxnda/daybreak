@@ -231,7 +231,7 @@ Layout: shadcn **Sidebar** links (einklappbar), Inhalt rechts, deutsches UI, Des
 
 ## 6. Design: Brand-Kit „daybreak“ (dunkel, warm)
 
-Quelle ist `brand_kit/` (Farben in `theme/tokens.json`, Logos in `logo/`, Übersicht in `vorschau.html`). Dark-only in v1 (`class="dark"` fest auf `<html>`): neutrale, leicht warme Graus, Gold als Primärfarbe, warmer Schein aus Orange (oben links) und Lindgrün (unten rechts). Die Brand-Werte sind in `app/assets/css/main.css` auf die shadcn-CSS-Variablen gemappt:
+Quelle ist `brand_kit/` (Farben in `theme/tokens.json`, Logos in `logo/`, Übersicht in `vorschau.html`). Dark-only in v1 (`class="dark"` fest auf `<html>`): neutrale, leicht warme Graus, Gold als Primärfarbe, schlichter Hintergrund ohne den Verlauf (bg-glow) des Brand-Kits. Die Brand-Werte sind in `app/assets/css/main.css` auf die shadcn-CSS-Variablen gemappt:
 
 | shadcn-Token | Brand | Wert |
 |---|---|---|
@@ -246,7 +246,6 @@ Quelle ist `brand_kit/` (Farben in `theme/tokens.json`, Logos in `logo/`, Übers
 | `--destructive` | danger-400 | `#E4626D` |
 | `--positiv` / `--negativ` | success-300 / danger-300 | `#85EAAF` / `#EA858D` |
 | `--chart-1…5` | chart | `#DE633F` → `#C7DE3F` |
-| `--bg-glow` | bg-glow | Orange/Lindgrün je 12 %, auf `SidebarInset` |
 
 Kontofarben bleiben die acht Pastelltöne (`--konto-*`, OKLCH): Die Brand-Reihe ist bewusst warm und zu ähnlich, um acht Konten zu unterscheiden; die Konto-Schlüssel stehen außerdem in der DB.
 
