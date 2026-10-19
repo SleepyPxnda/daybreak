@@ -45,7 +45,7 @@ Reine Funktionen in `shared/utils/urlaub.ts` (Tests: `tests/urlaub.test.ts`).
 - **Rest übernehmen** ersetzt einen vorhandenen Rest-Posten des Jahres (auf halbe Tage gerundet).
 - **Bereich setzen:** Abwesenheiten werden nur an regulären Arbeitstagen gespeichert (Wochenenden/Feiertage bleiben sauber). „Zurücksetzen“ löscht Einträge ohne Soll-Override/Notiz und setzt die übrigen auf Arbeitstag – Override und Notiz bleiben erhalten.
 - **Blocker** (Ergänzung zum Plan) ist ein eigenes Flag `tag.blocker`, **kein Tagestyp**: Er ändert weder Soll noch Urlaubszählung und kann mit Urlaub/Krank/Gleittag kombiniert werden, damit Konflikte sichtbar bleiben statt den Blocker stillschweigend zu überschreiben. Nur an regulären Arbeitstagen gespeichert. Ein Tag mit Blocker gilt als Abweichung und wird nicht gelöscht – auch nicht, wenn man auf „Heute“ den Tagestyp auf Arbeit zurückstellt; entfernen nur im Kalender. Rot schraffiert über die Utility `blocker-schraffur` (Token `--destructive`).
-- **Bestätigung** (Nachtrag) ist ein Flag `tag.bestaetigt` an den Urlaubstagen. Ein Urlaub gilt als bestätigt, wenn **alle** seine (½-)Urlaubstage bestätigt sind – kommt später ein Tag dazu, erscheint der Button wieder. Ändert sich der Tagestyp eines Tages (Kalender oder „Heute“), wird seine Bestätigung verworfen; gleicher Typ erneut gesetzt behält sie. Während des Urlaubs gibt es keinen Button.
+- **Bestätigung** (Nachtrag) ist ein Flag `tag.bestaetigt` an den Urlaubstagen. Ein Urlaub gilt als bestätigt, wenn **alle** seine (½-)Urlaubstage bestätigt sind – kommt später ein Tag dazu, erscheint der Button wieder. Ändert sich der Tagestyp eines Tages (Kalender oder „Heute“), wird seine Bestätigung verworfen; gleicher Typ erneut gesetzt behält sie. Während des Urlaubs gibt es keinen Button. Im Kalender sind unbestätigte (½-)Urlaubstage gestrichelt umrandet mit leichter Füllung (Tooltip „unbestätigt“), bestätigte flächig wie bisher; bestätigt wird nur auf „Heute“.
 - **Nicht umgesetzt (optional laut Plan):** Vorlage für wiederkehrende Zusatzposten (Semester-Tage) – Posten werden pro Jahr manuell gepflegt.
 - **Umbau:** Die Timeline-Aktionen (anlegen, ändern, Menü, Drop von Aufgaben/Merkern, Dialog-Zustand) liegen jetzt im Composable `useBlockBearbeitung` und werden von Heute und Woche gemeinsam genutzt; die Jetzt-Minute in `useJetzt`.
 
@@ -61,7 +61,7 @@ Tabellen `urlaubsanspruch` (`jahr`, `art`, `bezeichnung`, `tage`) und `tag` – 
 | `GET /api/urlaub/naechster` | nächster/laufender Urlaub (inkl. `bestaetigt`), `erinnern` (innerhalb des Vorlaufs), `erinnerungText` |
 | `POST /api/urlaub/bestaetigen` | `{ von, bis }` – alle Urlaubstage im Zeitraum als bestätigt markieren (Migration `0003_tag_bestaetigt`) |
 | `PUT /api/tage/bereich` | `{ von, bis, typ }` – Tagestyp für einen Bereich (max. 1 Jahr) – oder `{ von, bis, blocker: true \| false }` |
-| `GET /api/tage?von&bis` | liefert jetzt zusätzlich `sollOverride` und `blocker` |
+| `GET /api/tage?von&bis` | liefert jetzt zusätzlich `sollOverride`, `blocker` und `bestaetigt` |
 
 Migration `0002_tag_blocker`: Spalte `tag.blocker` (boolean, Default `false`).
 

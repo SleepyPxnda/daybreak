@@ -7,7 +7,7 @@ const props = defineProps<{
   jahr: number
   /** 1 … 12 */
   monat: number
-  infos: Map<string, TagesInfo & { notiz: string | null, sollOverride: number | null, blocker: boolean }>
+  infos: Map<string, TagesInfo & { notiz: string | null, sollOverride: number | null, blocker: boolean, bestaetigt: boolean }>
   auswahl: { von: string, bis: string } | null
 }>()
 
@@ -32,8 +32,10 @@ function klassen(datum: string) {
   if (info?.feiertag) liste.push('ring-1 ring-inset ring-konto-rose text-konto-rose')
   else if (!info?.istArbeitstag) liste.push('text-muted-foreground/50')
   if (info?.istArbeitstag) {
-    if (info.typ === 'urlaub') liste.push('bg-konto-mint text-konto-mint-fg')
-    else if (info.typ === 'halb_urlaub') liste.push('bg-konto-mint/45 text-foreground')
+    // Unbestätigter Urlaub: gestrichelt mit leichter Füllung, bestätigt: wie gewohnt flächig
+    const offen = !info.bestaetigt && 'border border-dashed border-konto-mint text-foreground'
+    if (info.typ === 'urlaub') liste.push(offen ? `${offen} bg-konto-mint/25` : 'bg-konto-mint text-konto-mint-fg')
+    else if (info.typ === 'halb_urlaub') liste.push(offen ? `${offen} bg-konto-mint/10` : 'bg-konto-mint/45 text-foreground')
     else if (info.typ === 'krank') liste.push('bg-konto-pfirsich text-konto-pfirsich-fg')
     else if (info.typ === 'gleittag') liste.push('bg-konto-himmel text-konto-himmel-fg')
     if (info.blocker) liste.push('blocker-schraffur')
@@ -50,7 +52,10 @@ function titel(datum: string) {
   const info = props.infos.get(datum)
   const teile = [format(zuDate(datum), 'EEEE, d. MMMM', { locale: de })]
   if (info?.feiertag) teile.push(info.feiertag)
-  if (info?.istArbeitstag && info.typ !== 'arbeit') teile.push(TYP[info.typ] ?? info.typ)
+  if (info?.istArbeitstag && info.typ !== 'arbeit') {
+    const unbestaetigt = (info.typ === 'urlaub' || info.typ === 'halb_urlaub') && !info.bestaetigt
+    teile.push(`${TYP[info.typ] ?? info.typ}${unbestaetigt ? ' (unbestätigt)' : ''}`)
+  }
   if (info?.istArbeitstag && info.blocker) teile.push('Blocker – kein Urlaub')
   if (info?.sollOverride != null) teile.push(`Soll ${formatDauer(info.sollOverride)}`)
   if (info?.notiz) teile.push(info.notiz)

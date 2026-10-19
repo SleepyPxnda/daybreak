@@ -12,7 +12,7 @@ export async function ladeTagEintraege(von: Datum, bis: Datum): Promise<Record<D
   return Object.fromEntries(zeilen.map(z => [z.datum, z]))
 }
 
-export type TagesInfoMitNotiz = TagesInfo & { notiz: string | null, sollOverride: number | null, blocker: boolean }
+export type TagesInfoMitNotiz = TagesInfo & { notiz: string | null, sollOverride: number | null, blocker: boolean, bestaetigt: boolean }
 
 /** TagesInfo (Soll, Feiertag, Typ) für jeden Tag im Zeitraum, plus Notiz, gespeichertem Soll-Override und Blocker. */
 export async function ladeTagesInfos(von: Datum, bis: Datum, einstellungen: Einstellungen): Promise<TagesInfoMitNotiz[]> {
@@ -22,5 +22,6 @@ export async function ladeTagesInfos(von: Datum, bis: Datum, einstellungen: Eins
     notiz: eintraege[datum]?.notiz ?? null,
     sollOverride: eintraege[datum]?.sollOverride ?? null,
     blocker: eintraege[datum]?.blocker ?? false,
+    bestaetigt: eintraege[datum]?.bestaetigt ?? false,
   }))
 }

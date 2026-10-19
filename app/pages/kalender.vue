@@ -112,6 +112,7 @@ async function setzen(typ: TagTyp) {
         <div class="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
           <span class="flex items-center gap-1"><span class="size-3 rounded-sm bg-konto-mint" /> Urlaub</span>
           <span class="flex items-center gap-1"><span class="size-3 rounded-sm bg-konto-mint/45" /> ½ Urlaub</span>
+          <span class="flex items-center gap-1"><span class="size-3 rounded-sm border border-dashed border-konto-mint bg-konto-mint/25" /> Urlaub unbestätigt</span>
           <span class="flex items-center gap-1"><span class="size-3 rounded-sm bg-konto-pfirsich" /> Krank</span>
           <span class="flex items-center gap-1"><span class="size-3 rounded-sm bg-konto-himmel" /> Gleittag</span>
           <span class="flex items-center gap-1"><span class="size-3 rounded-sm ring-1 ring-inset ring-konto-rose" /> Feiertag</span>
