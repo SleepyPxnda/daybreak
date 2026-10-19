@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { tag } from '../../db/schema'
+import { bestaetigtBeiTypwechsel, tag } from '../../db/schema'
 import { db } from '../../db/client'
 import { datumSchema } from '#shared/utils/einstellungen'
 import { tagesInfo } from '#shared/utils/soll'
@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
   }
   else {
     const werte = { typ: daten.typ, sollOverride: daten.sollOverride, notiz }
-    await db.insert(tag).values({ datum, ...werte }).onConflictDoUpdate({ target: tag.datum, set: werte })
+    await db.insert(tag).values({ datum, ...werte }).onConflictDoUpdate({ target: tag.datum, set: { ...werte, bestaetigt: bestaetigtBeiTypwechsel } })
   }
 
   const [eintrag] = await db.select().from(tag).where(eq(tag.datum, datum))

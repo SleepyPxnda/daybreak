@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
-import { Palmtree } from '@lucide/vue'
+import { Check, Palmtree } from '@lucide/vue'
 
 // Nächster Urlaub auf „Heute“: als Karte, bzw. als Banner über der Timeline, sobald die Erinnerung greift
 const props = defineProps<{ darstellung: 'banner' | 'karte' }>()
@@ -19,6 +19,12 @@ const zeitraum = computed(() => {
   return u.von === u.bis ? f(u.von) : `${f(u.von)} – ${f(u.bis)}`
 })
 const zahl = (t: number) => t.toLocaleString('de-DE', { maximumFractionDigits: 1 })
+
+// Nach der Übergabe bestätigen: danach nur noch der Urlaubsvermerk, ohne Erinnerungstext
+function bestaetigen() {
+  const u = urlaub.value
+  if (u) aktion(() => api('/api/urlaub/bestaetigen', { method: 'POST', body: { von: u.von, bis: u.bis } }), ['naechster-urlaub'])
+}
 
 const countdown = computed(() => {
   const u = urlaub.value
@@ -41,7 +47,10 @@ const countdown = computed(() => {
       {{ zeitraum }} · {{ zahl(urlaub.urlaubstage) }} Urlaubstag{{ urlaub.urlaubstage === 1 ? '' : 'e' }}
       <template v-if="!urlaub.laeuft"> · noch {{ urlaub.arbeitstageBis }} Arbeitstag{{ urlaub.arbeitstageBis === 1 ? '' : 'e' }} davor</template>
     </span>
-    <span v-if="!urlaub.laeuft && data?.erinnerungText" class="basis-full pl-8">{{ data.erinnerungText }}</span>
+    <Button v-if="!urlaub.laeuft && !urlaub.bestaetigt" size="sm" variant="secondary" class="ml-auto" @click="bestaetigen">
+      <Check /> Bestätigt
+    </Button>
+    <span v-if="!urlaub.laeuft && !urlaub.bestaetigt && data?.erinnerungText" class="basis-full pl-8">{{ data.erinnerungText }}</span>
   </div>
 
   <!-- Karte unter der Timeline -->

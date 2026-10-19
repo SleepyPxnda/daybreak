@@ -1,6 +1,6 @@
 import { and, eq, gte, inArray, isNull, lte } from 'drizzle-orm'
 import { z } from 'zod'
-import { tag } from '../../db/schema'
+import { bestaetigtBeiTypwechsel, tag } from '../../db/schema'
 import { db } from '../../db/client'
 import { datumSchema } from '#shared/utils/einstellungen'
 import { tagesInfo } from '#shared/utils/soll'
@@ -51,7 +51,7 @@ export default defineEventHandler(async (event) => {
       return
     }
     for (const datum of arbeitstage) {
-      await tx.insert(tag).values({ datum, typ }).onConflictDoUpdate({ target: tag.datum, set: { typ } })
+      await tx.insert(tag).values({ datum, typ }).onConflictDoUpdate({ target: tag.datum, set: { typ, bestaetigt: bestaetigtBeiTypwechsel } })
     }
   })
 

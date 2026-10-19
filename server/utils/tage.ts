@@ -7,7 +7,7 @@ import { tagesInfo } from '#shared/utils/soll'
 import type { Datum } from '#shared/utils/zeit'
 import { datumsBereich } from '#shared/utils/zeit'
 
-export async function ladeTagEintraege(von: Datum, bis: Datum): Promise<Record<Datum, TagEintrag & { notiz: string | null, blocker: boolean }>> {
+export async function ladeTagEintraege(von: Datum, bis: Datum): Promise<Record<Datum, TagEintrag & { notiz: string | null, blocker: boolean, bestaetigt: boolean }>> {
   const zeilen = await db.select().from(tag).where(and(gte(tag.datum, von), lte(tag.datum, bis)))
   return Object.fromEntries(zeilen.map(z => [z.datum, z]))
 }

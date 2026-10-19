@@ -1,0 +1,1 @@
+ALTER TABLE `tag` ADD `bestaetigt` integer DEFAULT false NOT NULL;

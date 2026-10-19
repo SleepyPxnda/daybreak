@@ -76,7 +76,12 @@ export const tag = sqliteTable('tag', {
   notiz: text('notiz'),
   /** Kalender-Blocker: Hinweis „hier keinen Urlaub nehmen“ – unabhängig vom Tagestyp, ändert kein Soll */
   blocker: integer('blocker', { mode: 'boolean' }).notNull().default(false),
+  /** Urlaub bestätigt (Übergabe erledigt) – wird zurückgesetzt, sobald sich der Tagestyp ändert */
+  bestaetigt: integer('bestaetigt', { mode: 'boolean' }).notNull().default(false),
 })
+
+/** Bei Typwechsel per Upsert die Bestätigung verwerfen, sonst behalten */
+export const bestaetigtBeiTypwechsel = sql`CASE WHEN ${tag.typ} = excluded.typ THEN ${tag.bestaetigt} ELSE 0 END`
 
 export const todo = sqliteTable('todo', {
   id: integer('id').primaryKey({ autoIncrement: true }),
