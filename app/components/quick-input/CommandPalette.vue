@@ -115,14 +115,14 @@ function enterAbfangen(e: KeyboardEvent) {
 <template>
   <CommandDialog v-model:open="offen" title="Befehlspalette" description="Buchen, Merker erfassen, suchen und navigieren">
     <div class="p-1 pb-0" @keydown.enter.capture="enterAbfangen">
-      <div class="flex h-9 items-center gap-2 rounded-lg bg-input/30 px-2">
-        <Search class="size-4 shrink-0 opacity-50" />
+      <div class="flex h-9 items-center gap-2 rounded-md border border-input bg-raised px-2.5">
+        <Search class="size-4 shrink-0 text-muted-foreground" />
         <ListboxFilter
           v-model="text"
           auto-focus
           :disabled="laeuft"
           placeholder="t Merker · d Daily-Thema · w Tim: PR-Review · n Notiz · 2h Aufgabe · suchen …"
-          class="w-full bg-transparent font-mono text-sm outline-hidden"
+          class="w-full bg-transparent font-mono text-sm outline-hidden placeholder:text-muted-foreground"
         />
       </div>
     </div>

@@ -46,7 +46,7 @@ withDefaults(defineProps<{
   >
     <NumberFieldContent>
       <NumberFieldDecrement />
-      <NumberFieldInput :placeholder="placeholder" :aria-label="ariaLabel" class="tabular-nums" />
+      <NumberFieldInput :placeholder="placeholder" :aria-label="ariaLabel" class="h-9 rounded-md font-mono" />
       <NumberFieldIncrement />
     </NumberFieldContent>
   </NumberField>

@@ -13,6 +13,7 @@ Hier ist dokumentiert, was pro Phase **tatsächlich** gebaut wurde – inklusive
 | [4](phase-4-kalender.md) | Kalender, Urlaubskonto, Woche | fertig |
 | [5](phase-5-uebersicht.md) | Übersicht: Konto → Aufgabe → Tage, Stundenkonto-Verlauf | fertig |
 | [6](phase-6-erinnerungen.md) | Browser-Erinnerungen ans Buchen | fertig |
+| [7](phase-7-cloudypanda.md) | Redesign nach dem cloudypanda-Markensystem | fertig |
 
 ## Schnellstart
 

@@ -55,10 +55,10 @@ async function loeschen() {
         </DialogDescription>
       </DialogHeader>
       <form class="grid gap-4" @submit.prevent="speichern">
-        <div class="grid gap-2">
-          <Label>Art</Label>
+        <div class="grid gap-1.5">
+          <Label class="text-xs font-normal text-muted-foreground">Art</Label>
           <Select v-model="art">
-            <SelectTrigger class="w-full">
+            <SelectTrigger class="w-full rounded-md data-[size=default]:h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -69,19 +69,19 @@ async function loeschen() {
           </Select>
         </div>
         <div v-if="art === 'warten'" class="grid gap-2">
-          <Label for="todo-wer">Auf wen</Label>
-          <Input id="todo-wer" v-model="wer" placeholder="z. B. Tim" />
+          <Label for="todo-wer" class="text-xs font-normal text-muted-foreground">Auf wen</Label>
+          <Input id="todo-wer" v-model="wer" class="h-9 rounded-md" placeholder="z. B. Tim" />
         </div>
-        <div class="grid gap-2">
-          <Label for="todo-text">Text</Label>
-          <Textarea id="todo-text" v-model="text" rows="2" required />
+        <div class="grid gap-1.5">
+          <Label for="todo-text" class="text-xs font-normal text-muted-foreground">Text</Label>
+          <Textarea id="todo-text" v-model="text" rows="2" required class="rounded-md" />
         </div>
         <div v-if="art !== 'daily'" class="grid gap-2">
-          <Label for="todo-stichtag">{{ art === 'warten' ? 'Nachfassen am' : 'Fällig am' }} (optional)</Label>
-          <Input id="todo-stichtag" v-model="stichtag" type="date" class="w-44" />
+          <Label for="todo-stichtag" class="text-xs font-normal text-muted-foreground">{{ art === 'warten' ? 'Nachfassen am' : 'Fällig am' }} (optional)</Label>
+          <Input id="todo-stichtag" v-model="stichtag" type="date" class="h-9 w-44 rounded-md font-mono" />
         </div>
-        <div class="grid gap-2">
-          <Label>Bezug (optional)</Label>
+        <div class="grid gap-1.5">
+          <Label class="text-xs font-normal text-muted-foreground">Bezug (optional)</Label>
           <div class="flex gap-2">
             <ZielAuswahl v-model="ziel" />
             <Button v-if="ziel" type="button" variant="ghost" @click="ziel = ''">

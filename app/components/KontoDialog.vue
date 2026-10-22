@@ -55,12 +55,12 @@ async function speichern() {
         <DialogDescription>Sammlung, auf die Zeit läuft – Projekt, Kostenstelle oder abstrakt wie „Firmenmeeting“.</DialogDescription>
       </DialogHeader>
       <form class="grid gap-4" @submit.prevent="speichern">
-        <div class="grid gap-2">
-          <Label for="konto-name">Name</Label>
-          <Input id="konto-name" v-model="name" required autofocus />
+        <div class="grid gap-1.5">
+          <Label for="konto-name" class="text-xs font-normal text-muted-foreground">Name</Label>
+          <Input id="konto-name" v-model="name" class="h-9 rounded-md" required autofocus />
         </div>
-        <div class="grid gap-2">
-          <Label>Farbe</Label>
+        <div class="grid gap-1.5">
+          <Label class="text-xs font-normal text-muted-foreground">Farbe</Label>
           <div class="flex flex-wrap gap-2">
             <button
               v-for="f in KONTO_FARBEN"
@@ -74,9 +74,9 @@ async function speichern() {
             />
           </div>
         </div>
-        <div class="grid gap-2">
-          <Label for="konto-aliase">Aliase für die Schnelleingabe</Label>
-          <Input id="konto-aliase" v-model="aliase" placeholder="z. B. mtg, meeting" />
+        <div class="grid gap-1.5">
+          <Label for="konto-aliase" class="text-xs font-normal text-muted-foreground">Aliase für die Schnelleingabe</Label>
+          <Input id="konto-aliase" v-model="aliase" class="h-9 rounded-md" placeholder="z. B. mtg, meeting" />
         </div>
         <div v-if="konto" class="flex items-center gap-2">
           <Switch id="konto-archiviert" v-model="archiviert" />

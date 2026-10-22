@@ -6,15 +6,16 @@ import {
   FolderKanban,
   ListTodo,
   NotebookPen,
-  Search,
   Settings,
   Sunrise,
 } from '@lucide/vue'
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -23,52 +24,59 @@ import {
 } from '@/components/ui/sidebar'
 
 const route = useRoute()
-const paletteOffen = usePaletteOffen()
 
-const navigation = [
-  { title: 'Heute', to: '/', icon: Sunrise },
-  { title: 'Woche', to: '/woche', icon: CalendarRange },
-  { title: 'Übersicht', to: '/uebersicht', icon: BarChart3 },
-  { title: 'Kalender', to: '/kalender', icon: CalendarDays },
-  { title: 'Merker & Daily', to: '/todos', icon: ListTodo },
-  { title: 'Notizen', to: '/notizen', icon: NotebookPen },
-  { title: 'Konten & Aufgaben', to: '/konten', icon: FolderKanban },
-  { title: 'Einstellungen', to: '/einstellungen', icon: Settings },
+const gruppen = [
+  {
+    titel: 'Zeit',
+    eintraege: [
+      { title: 'Heute', to: '/', icon: Sunrise },
+      { title: 'Woche', to: '/woche', icon: CalendarRange },
+      { title: 'Übersicht', to: '/uebersicht', icon: BarChart3 },
+      { title: 'Kalender', to: '/kalender', icon: CalendarDays },
+    ],
+  },
+  {
+    titel: 'Arbeit',
+    eintraege: [
+      { title: 'Merker & Daily', to: '/todos', icon: ListTodo },
+      { title: 'Notizen', to: '/notizen', icon: NotebookPen },
+      { title: 'Konten & Aufgaben', to: '/konten', icon: FolderKanban },
+    ],
+  },
 ]
 
 function isActive(to: string) {
-  return to === '/' ? route.path === '/' : route.path.startsWith(to)
+  if (to === '/') return route.path === '/'
+  // Aufgaben-Detail gehört zu „Konten & Aufgaben“
+  return route.path.startsWith(to) || (to === '/konten' && route.path.startsWith('/aufgaben'))
 }
+
+// Aktiver Eintrag: Akzent-Text auf dunkler Akzent-Tönung (Marke)
+const eintragKlasse = 'h-9 text-muted-foreground data-active:bg-primary/12 data-active:text-primary data-active:hover:bg-primary/12 data-active:hover:text-primary'
 </script>
 
 <template>
   <Sidebar collapsible="icon">
-    <SidebarHeader>
+    <SidebarHeader class="pt-4">
       <SidebarMenu>
         <SidebarMenuItem>
-          <!-- Eingeklappt: nur das Logo, zentriert -->
-          <SidebarMenuButton size="lg" as-child class="group-data-[collapsible=icon]:justify-center">
+          <!-- Lockup: Wolken-Icon + Tool-Name in Akzentfarbe (Geist Mono). Eingeklappt nur das Icon. -->
+          <SidebarMenuButton size="lg" as-child class="h-10 hover:bg-transparent group-data-[collapsible=icon]:justify-center">
             <NuxtLink to="/">
-              <AppLogo class="size-6!" />
-              <span class="font-heading text-lg font-black tracking-tight group-data-[collapsible=icon]:hidden">daybreak</span>
+              <AppLogo class="size-7! shrink-0" />
+              <span class="font-mono text-base font-medium tracking-[-0.01em] text-primary group-data-[collapsible=icon]:hidden">daybreak</span>
             </NuxtLink>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <SidebarMenuButton tooltip="Schnelleingabe (Strg+K)" class="text-muted-foreground" @click="paletteOffen = true">
-            <Search />
-            <span class="flex-1">Schnelleingabe</span>
-            <kbd class="rounded border px-1.5 font-mono text-[10px]">Strg K</kbd>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarHeader>
     <SidebarContent>
-      <SidebarGroup>
+      <SidebarGroup v-for="g in gruppen" :key="g.titel">
+        <SidebarGroupLabel>{{ g.titel }}</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            <SidebarMenuItem v-for="item in navigation" :key="item.to">
-              <SidebarMenuButton as-child :is-active="isActive(item.to)" :tooltip="item.title">
+            <SidebarMenuItem v-for="item in g.eintraege" :key="item.to">
+              <SidebarMenuButton as-child :is-active="isActive(item.to)" :tooltip="item.title" :class="eintragKlasse">
                 <NuxtLink :to="item.to">
                   <component :is="item.icon" />
                   <span>{{ item.title }}</span>
@@ -79,6 +87,18 @@ function isActive(to: string) {
         </SidebarGroupContent>
       </SidebarGroup>
     </SidebarContent>
+    <SidebarFooter class="pb-4">
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton as-child :is-active="isActive('/einstellungen')" tooltip="Einstellungen" :class="eintragKlasse">
+            <NuxtLink to="/einstellungen">
+              <Settings />
+              <span>Einstellungen</span>
+            </NuxtLink>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </SidebarFooter>
     <SidebarRail />
   </Sidebar>
 </template>

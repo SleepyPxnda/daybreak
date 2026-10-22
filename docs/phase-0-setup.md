@@ -15,7 +15,7 @@ Grundgerüst: Nuxt 4 im Projektordner, shadcn-vue, dunkles Theme, Drizzle + SQLi
 - **pnpm 12** (festgelegt über `packageManager` in `package.json`), **Node ≥ 22** (CI und Docker nutzen Node 22).
 - **TypeScript auf `~6.0` gepinnt** – typescript-eslint unterstützt TS 7 noch nicht.
 - **Icons aus `@lucide/vue`** (Nachfolger von `lucide-vue-next`; so generiert shadcn-vue die Komponenten).
-- **Schrift self-hosted** (heute Montserrat über `@fontsource-variable/montserrat`, ursprünglich Inter) statt Google Fonts (offline-fähig, keine externe Anfrage).
+- **Schrift self-hosted** (heute Geist/Geist Mono über `@fontsource-variable/geist`, davor Montserrat und Inter – siehe [Phase 7](phase-7-cloudypanda.md)) statt Google Fonts (offline-fähig, keine externe Anfrage).
 
 ### pnpm-Build-Skripte
 pnpm 12 blockiert Postinstall-Skripte, bis sie freigegeben sind. Freigaben in `pnpm-workspace.yaml`:
@@ -25,7 +25,7 @@ pnpm 12 blockiert Postinstall-Skripte, bis sie freigegeben sind. Freigaben in `p
 - Tokens aus Plan §6 in `app/assets/css/main.css`, Dark-only (`<html class="dark">` fest in `nuxt.config.ts`).
 - Kontofarben als Tailwind-Farben (`bg-konto-mint` …) plus dunkle Textfarbe je Farbton (`text-konto-mint-fg`, Plan §6: `oklch(0.22 0.03 <hue>)`).
 - Utility `schraffiert` für geplante Blöcke.
-- **Redesign** (Nachtrag): neues warmes Design für Farben, Schrift, Buttons und Logo.
+- **Redesign** (Nachtrag, inzwischen abgelöst durch [Phase 7](phase-7-cloudypanda.md)): neues warmes Design für Farben, Schrift, Buttons und Logo.
   - Farben: warme Neutraltöne `#121212`/`#1B1A18`/`#252422`, Primär Gold `#DFAB40`, eigene Grün-/Rottöne für Plus/Minus, Charts Orange → Lindgrün; Token-Tabelle in Plan §6. Hintergrund bewusst einfarbig (kein Verlauf).
   - Kontofarben bleiben die acht Pastelltöne: Die warme Akzentreihe ist zu ähnlich für acht Konten, und die Farbschlüssel stehen in der DB.
   - Schrift Montserrat; Headlines (`h1–h3` und `cn-font-heading` der shadcn-Titel) ExtraBold per Base-Layer, dafür in den shadcn-Titeln `font-medium` entfernt.

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { format, getISOWeek, startOfISOWeek } from 'date-fns'
 import { de } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight } from '@lucide/vue'
+import { ChevronLeft, ChevronRight, TriangleAlert } from '@lucide/vue'
 import DayTimeline from '~/components/timeline/DayTimeline.vue'
 import BlockDialog from '~/components/timeline/BlockDialog.vue'
 import AufgabenInArbeit from '~/components/widgets/AufgabenInArbeit.vue'
@@ -18,7 +18,7 @@ const sonntag = computed(() => plusTage(montag.value, 6))
 const kw = computed(() => getISOWeek(zuDate(montag.value)))
 const istDieseWoche = computed(() => montag.value === zuDatum(startOfISOWeek(new Date())))
 
-useHead({ title: () => `KW ${kw.value} · Daybreak` })
+useHead({ title: () => `KW ${kw.value} · daybreak` })
 
 const { data: einstellungen } = useEinstellungen()
 const von = computed(() => einstellungen.value?.timelineVon ?? 420)
@@ -91,82 +91,84 @@ function tagLabel(info?: { feiertag?: string, typ: string, istArbeitstag: boolea
 </script>
 
 <template>
-  <div class="grid gap-6 xl:grid-cols-[1fr_18rem]">
-    <div class="grid min-w-0 grid-cols-1 content-start gap-5">
+  <div class="grid items-start gap-8 xl:grid-cols-[1fr_18rem]">
+    <div class="grid min-w-0 grid-cols-1 content-start gap-6">
       <!-- Kopf -->
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-2">
-          <Button size="icon" variant="ghost" aria-label="Vorherige Woche" @click="wocheWechseln(-1)">
-            <ChevronLeft />
-          </Button>
-          <div class="w-60 shrink-0 text-center">
-            <h1 class="text-2xl">
-              KW {{ kw }}
-            </h1>
-            <p class="text-sm text-muted-foreground">
-              {{ format(zuDate(montag), 'd. MMM', { locale: de }) }} – {{ format(zuDate(sonntag), 'd. MMM yyyy', { locale: de }) }}
-            </p>
-          </div>
-          <Button size="icon" variant="ghost" aria-label="Nächste Woche" @click="wocheWechseln(1)">
-            <ChevronRight />
-          </Button>
-          <Button size="sm" variant="ghost" :class="{ invisible: istDieseWoche }" :tabindex="istDieseWoche ? -1 : 0" @click="navigateTo({ query: {} })">
-            Diese Woche
-          </Button>
+      <div class="flex flex-wrap items-center gap-3">
+        <Button size="icon" variant="ghost" aria-label="Vorherige Woche" @click="wocheWechseln(-1)">
+          <ChevronLeft />
+        </Button>
+        <div class="w-52 shrink-0">
+          <h1 class="text-2xl font-semibold tracking-tight">
+            KW {{ kw }}
+          </h1>
+          <p class="text-sm text-muted-foreground">
+            {{ format(zuDate(montag), 'd. MMM', { locale: de }) }} – {{ format(zuDate(sonntag), 'd. MMM yyyy', { locale: de }) }}
+          </p>
         </div>
-        <div class="flex items-center gap-4">
-          <div class="flex items-center gap-2">
-            <Switch id="wochenende" v-model="mitWochenende" :disabled="wochenendeHatInhalt" />
-            <Label for="wochenende" class="text-muted-foreground">Wochenende</Label>
-          </div>
-          <div class="rounded-lg border bg-card px-3 py-2 text-sm tabular-nums">
-            Woche <strong>{{ formatDauer(summe.ist) }}</strong> / {{ formatDauer(summe.soll) }}
-            <span :class="summe.ist - summe.soll >= 0 ? 'text-positiv' : 'text-negativ'">({{ formatSaldo(summe.ist - summe.soll) }})</span>
-            <span class="text-muted-foreground"> · geplant {{ formatDauer(summe.geplant) }}</span>
-          </div>
+        <Button size="icon" variant="ghost" aria-label="Nächste Woche" @click="wocheWechseln(1)">
+          <ChevronRight />
+        </Button>
+        <Button size="sm" variant="ghost" :class="{ invisible: istDieseWoche }" :tabindex="istDieseWoche ? -1 : 0" @click="navigateTo({ query: {} })">
+          Diese Woche
+        </Button>
+        <div class="grow" />
+        <div class="flex items-center gap-2">
+          <Switch id="wochenende" v-model="mitWochenende" :disabled="wochenendeHatInhalt" />
+          <Label for="wochenende" class="font-normal text-muted-foreground">Wochenende</Label>
+        </div>
+        <div class="flex h-8 items-center gap-2 rounded-full border px-3 font-mono text-[13px] text-muted-foreground">
+          <span>Woche <span class="text-foreground">{{ formatDauer(summe.ist) }}</span> / {{ formatDauer(summe.soll) }}</span>
+          <span :class="summe.ist - summe.soll >= 0 ? 'text-positiv' : 'text-negativ'">{{ formatSaldo(summe.ist - summe.soll) }}</span>
+          <span>· geplant {{ formatDauer(summe.geplant) }}</span>
         </div>
       </div>
 
       <!-- Tage -->
-      <div v-for="t in sichtbareTage" :key="t.datum" class="grid gap-1.5">
-        <div class="flex flex-wrap items-baseline justify-between gap-2 text-sm">
-          <div class="flex items-baseline gap-2">
+      <div class="grid gap-2">
+        <div v-for="t in sichtbareTage" :key="t.datum" class="flex items-stretch gap-3">
+          <div class="flex w-30 shrink-0 flex-col justify-end gap-0.5 pb-1">
             <NuxtLink
               :to="t.datum === heute() ? '/' : `/?datum=${t.datum}`"
-              class="font-medium hover:underline"
-              :class="{ 'text-primary': t.datum === heute() }"
+              class="text-sm font-semibold hover:underline"
+              :class="t.datum === heute() ? 'text-primary' : 'text-foreground'"
             >
-              {{ format(zuDate(t.datum), 'EEEE, d.M.', { locale: de }) }}
+              {{ format(zuDate(t.datum), 'EEE, d.M.', { locale: de }) }}
             </NuxtLink>
-            <Badge v-if="tagLabel(t.info)" variant="secondary">
+            <span class="font-mono text-xs text-muted-foreground">
+              <span class="text-foreground">{{ formatDauer(t.ist) }}</span> / {{ formatDauer(t.soll) }}
+            </span>
+            <span v-if="t.geplant" class="font-mono text-xs text-muted-foreground">geplant {{ formatDauer(t.geplant) }}</span>
+            <Badge v-if="tagLabel(t.info)" variant="secondary" class="w-fit">
               {{ tagLabel(t.info) }}
             </Badge>
-            <span v-if="t.konflikte" class="text-xs text-konto-butter">{{ t.konflikte }} Vorlage(n) nicht eingetragen – belegt</span>
+            <span v-if="t.konflikte" class="flex items-start gap-1 text-xs text-warnung">
+              <TriangleAlert class="mt-px size-3.5 shrink-0" />
+              {{ t.konflikte }} Vorlage(n) nicht eingetragen – belegt
+            </span>
           </div>
-          <span class="tabular-nums text-muted-foreground">
-            <span class="text-foreground">{{ formatDauer(t.ist) }}</span> / {{ formatDauer(t.soll) }}
-            <template v-if="t.geplant"> · geplant {{ formatDauer(t.geplant) }}</template>
-          </span>
+          <div class="min-w-0 flex-1">
+            <DayTimeline
+              :bloecke="t.bloecke"
+              :von="von"
+              :bis="bis"
+              :jetzt="t.datum === heute() ? jetzt : undefined"
+              kompakt
+              @anlegen="anlegen(t.datum, $event)"
+              @aendern="aendern"
+              @oeffnen="oeffnen"
+              @menue="menue"
+              @ablegen="(id, start) => ablegen(t.datum, id, start)"
+              @ablegen-merker="(id, start) => ablegenMerker(t.datum, id, start)"
+            />
+          </div>
         </div>
-        <DayTimeline
-          :bloecke="t.bloecke"
-          :von="von"
-          :bis="bis"
-          :jetzt="t.datum === heute() ? jetzt : undefined"
-          kompakt
-          @anlegen="anlegen(t.datum, $event)"
-          @aendern="aendern"
-          @oeffnen="oeffnen"
-          @menue="menue"
-          @ablegen="(id, start) => ablegen(t.datum, id, start)"
-          @ablegen-merker="(id, start) => ablegenMerker(t.datum, id, start)"
-        />
       </div>
     </div>
 
     <aside class="grid grid-cols-1 content-start gap-4">
       <AufgabenInArbeit :datum="heute()" />
-      <p class="text-xs text-muted-foreground">
+      <p class="text-[13px] text-muted-foreground">
         Aufgaben auf einen Tag ziehen, um sie einzuplanen (1 h). Blöcke lassen sich wie auf „Heute“ ziehen, verschieben und per Rechtsklick bearbeiten.
       </p>
     </aside>

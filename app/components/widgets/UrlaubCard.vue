@@ -12,45 +12,43 @@ const ART: Record<string, string> = { grund: 'Grund', zusatz: 'Zusatz', rest: 'R
 </script>
 
 <template>
-  <Card v-if="urlaub">
+  <Card v-if="urlaub" class="gap-0">
     <CardHeader>
-      <CardTitle class="flex items-baseline justify-between">
+      <CardTitle class="flex items-center justify-between">
         Urlaub {{ jahr }}
-        <NuxtLink to="/einstellungen#urlaub" class="text-xs font-normal text-muted-foreground hover:underline">bearbeiten</NuxtLink>
+        <NuxtLink to="/einstellungen#urlaub" class="text-[13px] font-medium text-primary hover:underline">Bearbeiten</NuxtLink>
       </CardTitle>
     </CardHeader>
-    <CardContent class="grid gap-3 tabular-nums">
-      <div class="text-center">
-        <div class="text-4xl font-semibold" :class="urlaub.rest < 0 ? 'text-negativ' : ''">
-          {{ zahl(urlaub.rest) }}
-        </div>
-        <div class="text-sm text-muted-foreground">
-          Tage übrig
-        </div>
+    <CardContent class="pt-5 pb-3 text-center">
+      <div class="font-mono text-4xl font-medium tabular-nums" :class="urlaub.rest < 0 ? 'text-negativ' : ''">
+        {{ zahl(urlaub.rest) }}
       </div>
+      <div class="text-[13px] text-muted-foreground">
+        Tage übrig
+      </div>
+    </CardContent>
 
-      <div class="grid gap-1 text-sm">
-        <button type="button" class="flex items-center justify-between rounded-md py-0.5 hover:bg-accent/50" @click="postenOffen = !postenOffen">
-          <span class="flex items-center gap-1">
-            <ChevronRight class="size-4 transition-transform" :class="{ 'rotate-90': postenOffen }" /> Anspruch
-          </span>
-          <span>{{ zahl(urlaub.anspruch) }}</span>
-        </button>
-        <div v-if="postenOffen" class="grid gap-0.5 pl-5 text-xs text-muted-foreground">
-          <p v-if="!urlaub.posten.length">
-            Keine Posten – in den Einstellungen anlegen.
-          </p>
-          <div v-for="p in urlaub.posten" :key="p.id" class="flex justify-between gap-2">
-            <span class="truncate">{{ p.bezeichnung }} <span class="opacity-70">({{ ART[p.art] }})</span></span>
-            <span>{{ p.tage > 0 ? '+' : '' }}{{ zahl(p.tage) }}</span>
-          </div>
+    <CardContent class="grid text-sm">
+      <button type="button" class="flex items-center justify-between border-b py-2 text-left hover:text-primary" :aria-expanded="postenOffen" @click="postenOffen = !postenOffen">
+        <span class="flex items-center gap-1">
+          <ChevronRight class="size-3.5 text-muted-foreground transition-transform" :class="{ 'rotate-90': postenOffen }" /> Anspruch
+        </span>
+        <span class="font-mono tabular-nums">{{ zahl(urlaub.anspruch) }}</span>
+      </button>
+      <template v-if="postenOffen">
+        <p v-if="!urlaub.posten.length" class="border-b py-2 pl-3 text-[13px] text-muted-foreground">
+          Keine Posten – in den Einstellungen anlegen.
+        </p>
+        <div v-for="p in urlaub.posten" :key="p.id" class="flex justify-between gap-2 border-b py-2 pl-3 text-[13px] text-muted-foreground">
+          <span class="truncate">{{ p.bezeichnung }} <span class="opacity-70">({{ ART[p.art] }})</span></span>
+          <span class="font-mono tabular-nums">{{ p.tage > 0 ? '+' : '' }}{{ zahl(p.tage) }}</span>
         </div>
-        <div class="flex justify-between">
-          <span class="pl-5">genommen</span><span>−{{ zahl(urlaub.genommen) }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="pl-5">geplant</span><span>−{{ zahl(urlaub.geplant) }}</span>
-        </div>
+      </template>
+      <div class="flex justify-between border-b py-2">
+        <span>genommen</span><span class="font-mono tabular-nums">−{{ zahl(urlaub.genommen) }}</span>
+      </div>
+      <div class="flex justify-between py-2">
+        <span>geplant</span><span class="font-mono tabular-nums">−{{ zahl(urlaub.geplant) }}</span>
       </div>
     </CardContent>
   </Card>

@@ -118,11 +118,11 @@ async function speichern() {
         <div class="flex gap-3">
           <div class="grid gap-2">
             <Label for="vorlage-ab">Gültig ab</Label>
-            <Input id="vorlage-ab" v-model="gueltigAb" type="date" required />
+            <Input id="vorlage-ab" v-model="gueltigAb" type="date" class="font-mono" required />
           </div>
           <div class="grid gap-2">
             <Label for="vorlage-bis">Gültig bis (optional)</Label>
-            <Input id="vorlage-bis" v-model="gueltigBis" type="date" />
+            <Input id="vorlage-bis" v-model="gueltigBis" type="date" class="font-mono" />
           </div>
         </div>
         <DialogFooter>

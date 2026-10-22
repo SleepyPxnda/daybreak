@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Minus, Plus, RotateCcw } from '@lucide/vue'
+import { cn } from '@/lib/utils'
 import type { Zeitraum } from '#shared/utils/bloecke'
 import { findeUeberlappung } from '#shared/utils/bloecke'
 import type { Sicht, TimelineBlock } from '~/utils/timeline'
@@ -195,11 +196,19 @@ function istAblegbar(e: DragEvent) {
 
 // --- Darstellung --------------------------------------------------------
 function blockKlassen(b: TimelineBlock) {
-  return [
-    b.kind === 'pause' ? 'bg-muted text-muted-foreground' : kontoFarbKlassen(b.kontoFarbe).flaeche,
-    b.status === 'geplant' && 'schraffiert',
+  return cn(
+    b.kind === 'pause' ? 'bg-muted text-muted-foreground ring-1 ring-inset ring-border' : kontoFarbKlassen(b.kontoFarbe).flaeche,
+    // Geplant: gestrichelter Rand (statt Ring) + Schraffur
+    b.status === 'geplant' && 'schraffiert border border-dashed ring-0',
     zug.value && 'block' in zug.value && zug.value.block.id === b.id && 'opacity-30',
-  ]
+  )
+}
+
+/** Randfarbe gestrichelter (geplanter) Blöcke in Kontofarbe, sonst Linienfarbe */
+function blockStil(b: TimelineBlock) {
+  if (b.status !== 'geplant') return position(b)
+  const farbe = b.kind === 'pause' || !b.kontoFarbe ? 'var(--color-border)' : `color-mix(in oklch, var(--color-konto-${b.kontoFarbe}) 55%, transparent)`
+  return { ...position(b), borderColor: farbe }
 }
 
 function position(z: Zeitraum) {
@@ -209,108 +218,120 @@ function position(z: Zeitraum) {
 </script>
 
 <template>
-  <div class="select-none">
-    <!-- Zoom-Leiste -->
-    <div v-if="!kompakt" class="mb-1 flex items-center justify-end gap-1 text-xs text-muted-foreground">
-      <span class="mr-1 tabular-nums">{{ formatUhrzeit(Math.round(sicht.von)) }}–{{ formatUhrzeit(Math.round(sicht.bis)) }}</span>
-      <Button size="icon" variant="ghost" class="size-7" aria-label="Herauszoomen" @click="zoomen(1.5)">
-        <Minus />
-      </Button>
-      <Button size="icon" variant="ghost" class="size-7" aria-label="Hineinzoomen" @click="zoomen(1 / 1.5)">
-        <Plus />
-      </Button>
-      <Button size="icon" variant="ghost" class="size-7" aria-label="Zoom zurücksetzen" :disabled="istStandardSicht" @click="sichtZuruecksetzen">
-        <RotateCcw />
-      </Button>
+  <section
+    class="select-none"
+    :class="!kompakt && 'overflow-hidden rounded-xl border bg-background'"
+    :aria-label="kompakt ? undefined : 'Zeitleiste'"
+  >
+    <!-- Kopfstreifen mit Zoom-Steuerung -->
+    <div v-if="!kompakt" class="flex min-h-11 items-center justify-between gap-2 border-b bg-card px-4">
+      <span class="text-sm font-semibold">Zeitleiste</span>
+      <div class="flex items-center gap-1">
+        <span class="mr-2 font-mono text-xs text-muted-foreground">{{ formatUhrzeit(Math.round(sicht.von)) }}–{{ formatUhrzeit(Math.round(sicht.bis)) }}</span>
+        <Button size="icon-sm" variant="ghost" class="size-7" aria-label="Herauszoomen" @click="zoomen(1.5)">
+          <Minus />
+        </Button>
+        <Button size="icon-sm" variant="ghost" class="size-7" aria-label="Hineinzoomen" @click="zoomen(1 / 1.5)">
+          <Plus />
+        </Button>
+        <Button size="icon-sm" variant="ghost" class="size-7" aria-label="Zoom zurücksetzen" :disabled="istStandardSicht" @click="sichtZuruecksetzen">
+          <RotateCcw />
+        </Button>
+      </div>
     </div>
 
-    <!-- Skala -->
-    <div class="relative mb-1 h-4 overflow-hidden text-xs text-muted-foreground tabular-nums">
-      <span
-        v-for="s in skala.filter(s => s.label)"
-        :key="s.minute"
-        class="absolute -translate-x-1/2"
-        :style="{ left: `${prozent(s.minute)}%` }"
-      >{{ s.label }}</span>
-    </div>
-
-    <div
-      ref="spur"
-      class="relative cursor-crosshair touch-none overflow-hidden rounded-lg border bg-card"
-      :class="kompakt ? 'h-14' : 'h-20'"
-      title="Strg + Mausrad: zoomen · Shift + Mausrad / mittlere Maustaste: verschieben"
-      @pointerdown="spurPointerDown"
-      @pointermove="pointerMove"
-      @pointerup="pointerUp"
-      @pointercancel="zug = null"
-      @wheel="rad"
-      @dragover="istAblegbar($event) && $event.preventDefault()"
-      @drop.prevent="drop"
-    >
-      <!-- Skalenlinien -->
-      <div
-        v-for="s in skala"
-        :key="s.minute"
-        class="pointer-events-none absolute inset-y-0 w-px"
-        :class="s.label ? 'bg-border/60' : 'bg-border/25'"
-        :style="{ left: `${prozent(s.minute)}%` }"
-      />
-
-      <!-- Blöcke -->
-      <ContextMenu v-for="b in sichtbareBloecke" :key="b.id">
-        <ContextMenuTrigger as-child>
-          <div
-            class="absolute inset-y-2 flex cursor-grab flex-col justify-center overflow-hidden rounded-md px-2 text-xs leading-tight shadow-sm active:cursor-grabbing"
-            :class="blockKlassen(b)"
-            :style="position(b)"
-            :title="`${blockTitel(b)}${b.vorlageName ? ` (${b.aufgabeTitel ?? b.kontoName})` : ''} · ${formatUhrzeit(b.start)}–${formatUhrzeit(b.ende)}${b.notiz ? ` · ${b.notiz}` : ''}`"
-            @pointerdown="blockPointerDown($event, b)"
-            @contextmenu="menueOeffnen"
-          >
-            <span class="absolute inset-y-0 left-0 w-2 cursor-ew-resize" />
-            <span class="truncate font-medium">{{ blockTitel(b) }}</span>
-            <span class="truncate tabular-nums opacity-80">{{ formatUhrzeit(b.start) }}–{{ formatUhrzeit(b.ende) }}</span>
-            <span class="absolute inset-y-0 right-0 w-2 cursor-ew-resize" />
-          </div>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          <ContextMenuItem @select="emit('menue', 'umschalten', b, menueMinute)">
-            {{ b.status === 'geplant' ? 'Buchen' : 'Als geplant markieren' }}
-          </ContextMenuItem>
-          <ContextMenuItem @select="emit('menue', 'teilen', b, menueMinute)">
-            Hier teilen
-          </ContextMenuItem>
-          <ContextMenuItem @select="emit('menue', 'bearbeiten', b, menueMinute)">
-            Aufgabe/Konto ändern …
-          </ContextMenuItem>
-          <ContextMenuItem v-if="b.kind === 'arbeit' && !b.vorlageId" @select="emit('menue', 'wiederkehrend', b, menueMinute)">
-            Als wiederkehrend speichern …
-          </ContextMenuItem>
-          <ContextMenuSeparator />
-          <ContextMenuItem variant="destructive" @select="emit('menue', 'loeschen', b, menueMinute)">
-            Löschen
-          </ContextMenuItem>
-        </ContextMenuContent>
-      </ContextMenu>
-
-      <!-- Vorschau beim Ziehen -->
-      <div
-        v-if="vorschau"
-        class="pointer-events-none absolute inset-y-1 rounded-md border-2 border-dashed"
-        :class="vorschauKollidiert ? 'border-destructive bg-destructive/15' : 'border-primary bg-primary/15'"
-        :style="position(vorschau)"
-      >
-        <span class="absolute -top-0.5 left-1 text-[10px] tabular-nums">
-          {{ formatUhrzeit(vorschau.start) }}–{{ formatUhrzeit(vorschau.ende) }}
-        </span>
+    <div :class="!kompakt && 'px-4 pt-3 pb-4'">
+      <!-- Skala -->
+      <div class="relative h-[18px] overflow-hidden font-mono text-[11px] text-muted-foreground">
+        <span
+          v-for="s in skala.filter(s => s.label)"
+          :key="s.minute"
+          class="absolute -translate-x-1/2"
+          :style="{ left: `${prozent(s.minute)}%` }"
+        >{{ s.label }}</span>
       </div>
 
-      <!-- Jetzt-Linie -->
       <div
-        v-if="jetzt !== undefined && jetzt >= sicht.von && jetzt <= sicht.bis"
-        class="pointer-events-none absolute inset-y-0 w-0.5 bg-primary"
-        :style="{ left: `${prozent(jetzt)}%` }"
-      />
+        ref="spur"
+        class="relative cursor-crosshair touch-none overflow-hidden rounded-md border bg-card"
+        :class="kompakt ? 'h-14' : 'h-22'"
+        title="Strg + Mausrad: zoomen · Shift + Mausrad / mittlere Maustaste: verschieben"
+        @pointerdown="spurPointerDown"
+        @pointermove="pointerMove"
+        @pointerup="pointerUp"
+        @pointercancel="zug = null"
+        @wheel="rad"
+        @dragover="istAblegbar($event) && $event.preventDefault()"
+        @drop.prevent="drop"
+      >
+        <!-- Stundenlinien -->
+        <div
+          v-for="s in skala"
+          :key="s.minute"
+          class="pointer-events-none absolute inset-y-0 w-px"
+          :class="s.label ? 'bg-border' : 'bg-border/40'"
+          :style="{ left: `${prozent(s.minute)}%` }"
+        />
+
+        <!-- Blöcke -->
+        <ContextMenu v-for="b in sichtbareBloecke" :key="b.id">
+          <ContextMenuTrigger as-child>
+            <div
+              class="absolute flex cursor-grab flex-col justify-center overflow-hidden rounded-[6px] px-2 active:cursor-grabbing"
+              :class="[kompakt ? 'inset-y-1.5' : 'inset-y-2', blockKlassen(b)]"
+              :style="blockStil(b)"
+              :title="`${blockTitel(b)}${b.vorlageName ? ` (${b.aufgabeTitel ?? b.kontoName})` : ''} · ${formatUhrzeit(b.start)}–${formatUhrzeit(b.ende)}${b.notiz ? ` · ${b.notiz}` : ''}`"
+              @pointerdown="blockPointerDown($event, b)"
+              @contextmenu="menueOeffnen"
+            >
+              <span class="absolute inset-y-0 left-0 w-2 cursor-ew-resize" />
+              <span class="truncate text-xs leading-4 font-semibold">{{ blockTitel(b) }}</span>
+              <span class="truncate font-mono text-[11px] leading-4 text-muted-foreground">{{ formatUhrzeit(b.start) }}–{{ formatUhrzeit(b.ende) }}</span>
+              <span class="absolute inset-y-0 right-0 w-2 cursor-ew-resize" />
+            </div>
+          </ContextMenuTrigger>
+          <ContextMenuContent>
+            <ContextMenuItem @select="emit('menue', 'umschalten', b, menueMinute)">
+              {{ b.status === 'geplant' ? 'Buchen' : 'Als geplant markieren' }}
+            </ContextMenuItem>
+            <ContextMenuItem @select="emit('menue', 'teilen', b, menueMinute)">
+              Hier teilen
+            </ContextMenuItem>
+            <ContextMenuItem @select="emit('menue', 'bearbeiten', b, menueMinute)">
+              Aufgabe/Konto ändern …
+            </ContextMenuItem>
+            <ContextMenuItem v-if="b.kind === 'arbeit' && !b.vorlageId" @select="emit('menue', 'wiederkehrend', b, menueMinute)">
+              Als wiederkehrend speichern …
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+            <ContextMenuItem variant="destructive" @select="emit('menue', 'loeschen', b, menueMinute)">
+              Löschen
+            </ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
+
+        <!-- Vorschau beim Ziehen -->
+        <div
+          v-if="vorschau"
+          class="pointer-events-none absolute inset-y-1 rounded-[6px] border-2 border-dashed"
+          :class="vorschauKollidiert ? 'border-destructive bg-destructive/15' : 'border-primary bg-primary/15'"
+          :style="position(vorschau)"
+        >
+          <span class="absolute -top-0.5 left-1 font-mono text-[10px]">
+            {{ formatUhrzeit(vorschau.start) }}–{{ formatUhrzeit(vorschau.ende) }}
+          </span>
+        </div>
+
+        <!-- Jetzt-Linie -->
+        <div
+          v-if="jetzt !== undefined && jetzt >= sicht.von && jetzt <= sicht.bis"
+          class="pointer-events-none absolute inset-y-0 w-0.5 bg-primary"
+          :style="{ left: `${prozent(jetzt)}%` }"
+        />
+      </div>
+
+      <!-- Inhalt unter der Spur (z. B. Fortschritt auf „Heute“) -->
+      <slot />
     </div>
-  </div>
+  </section>
 </template>

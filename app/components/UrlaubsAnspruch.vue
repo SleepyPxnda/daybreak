@@ -40,23 +40,26 @@ const hatRestPosten = computed(() => urlaub.value?.posten.some(p => p.art === 'r
 </script>
 
 <template>
-  <Card id="urlaub">
-    <CardHeader class="flex flex-row items-center justify-between">
+  <Card id="urlaub" class="gap-0 pb-0">
+    <CardHeader class="flex flex-row items-center justify-between py-1">
       <CardTitle>Urlaubsanspruch</CardTitle>
       <div class="flex items-center gap-1">
-        <Button size="icon" variant="ghost" class="size-8" aria-label="Vorheriges Jahr" @click="jahr--">
+        <Button size="icon-sm" variant="ghost" aria-label="Vorheriges Jahr" @click="jahr--">
           <ChevronLeft />
         </Button>
-        <span class="w-12 text-center font-medium tabular-nums">{{ jahr }}</span>
-        <Button size="icon" variant="ghost" class="size-8" aria-label="Nächstes Jahr" @click="jahr++">
+        <span class="w-12 text-center font-mono text-sm font-medium tabular-nums">{{ jahr }}</span>
+        <Button size="icon-sm" variant="ghost" aria-label="Nächstes Jahr" @click="jahr++">
           <ChevronRight />
         </Button>
       </div>
     </CardHeader>
-    <CardContent v-if="urlaub" class="grid gap-3">
-      <div v-for="p in urlaub.posten" :key="p.id" class="flex items-center gap-2">
+    <template v-if="urlaub">
+      <div class="grid min-h-9 grid-cols-[7rem_minmax(0,1fr)_8rem_2rem] items-center gap-2 border-b bg-card px-4 text-xs text-muted-foreground">
+        <span>Art</span><span>Bezeichnung</span><span class="text-right">Tage</span><span />
+      </div>
+      <div v-for="p in urlaub.posten" :key="p.id" class="grid min-h-12 grid-cols-[7rem_minmax(0,1fr)_8rem_2rem] items-center gap-2 border-b px-4 py-1.5">
         <Select :model-value="p.art" @update:model-value="aendern(p.id, 'art', String($event))">
-          <SelectTrigger class="w-28">
+          <SelectTrigger class="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -71,37 +74,36 @@ const hatRestPosten = computed(() => urlaub.value?.posten.some(p => p.art === 'r
             </SelectItem>
           </SelectContent>
         </Select>
-        <Input :model-value="p.bezeichnung" class="flex-1" aria-label="Bezeichnung" @change="aendern(p.id, 'bezeichnung', ($event.target as HTMLInputElement).value)" />
+        <Input :model-value="p.bezeichnung" aria-label="Bezeichnung" @change="aendern(p.id, 'bezeichnung', ($event.target as HTMLInputElement).value)" />
         <ZahlInput
           :model-value="p.tage"
           :step="0.5"
-          class="w-32"
           aria-label="Tage"
           @update:model-value="$event != null && $event !== p.tage && aendern(p.id, 'tage', $event)"
         />
-        <Button size="icon" variant="ghost" aria-label="Posten löschen" @click="loeschen(p.id)">
+        <Button size="icon-sm" variant="ghost" aria-label="Posten löschen" @click="loeschen(p.id)">
           <Trash2 />
         </Button>
       </div>
 
-      <form class="flex items-center gap-2" @submit.prevent="hinzufuegen">
-        <Plus class="mx-2 size-4 shrink-0 text-muted-foreground" />
-        <Input v-model="neu.bezeichnung" :placeholder="urlaub.posten.length ? 'z. B. Sonderurlaub SS 27' : 'Grundanspruch'" class="flex-1" />
-        <ZahlInput v-model="neu.tage" :step="0.5" class="w-32" aria-label="Tage" />
-        <Button type="submit" variant="secondary" :disabled="!neu.bezeichnung.trim() || neu.tage == null">
+      <form class="grid min-h-12 grid-cols-[7rem_minmax(0,1fr)_8rem_auto] items-center gap-2 border-b px-4 py-1.5" @submit.prevent="hinzufuegen">
+        <span class="flex items-center gap-1.5 text-[13px] text-muted-foreground"><Plus class="size-4 shrink-0" /> Neu</span>
+        <Input v-model="neu.bezeichnung" :placeholder="urlaub.posten.length ? 'z. B. Sonderurlaub SS 27' : 'Grundanspruch'" />
+        <ZahlInput v-model="neu.tage" :step="0.5" aria-label="Tage" />
+        <Button type="submit" size="sm" variant="outline" :disabled="!neu.bezeichnung.trim() || neu.tage == null">
           Hinzufügen
         </Button>
       </form>
 
-      <div class="flex flex-wrap items-center justify-between gap-3 border-t pt-3 text-sm">
-        <span class="tabular-nums">
-          Anspruch <strong>{{ zahl(urlaub.anspruch) }}</strong> · genommen {{ zahl(urlaub.genommen) }} · geplant {{ zahl(urlaub.geplant) }} ·
-          Rest <strong :class="urlaub.rest < 0 ? 'text-negativ' : ''">{{ zahl(urlaub.rest) }}</strong>
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-card px-4 py-2.5 text-sm">
+        <span class="font-mono text-[13px] text-muted-foreground tabular-nums">
+          Anspruch <span class="text-foreground">{{ zahl(urlaub.anspruch) }}</span> · genommen <span class="text-foreground">{{ zahl(urlaub.genommen) }}</span> · geplant <span class="text-foreground">{{ zahl(urlaub.geplant) }}</span> ·
+          Rest <span class="font-medium" :class="urlaub.rest < 0 ? 'text-negativ' : 'text-foreground'">{{ zahl(urlaub.rest) }}</span>
         </span>
-        <Button v-if="urlaub.vorjahrRest !== null" size="sm" variant="secondary" @click="restUebernehmen">
+        <Button v-if="urlaub.vorjahrRest !== null" size="sm" variant="outline" @click="restUebernehmen">
           {{ hatRestPosten ? 'Rest aktualisieren' : 'Rest aus Vorjahr übernehmen' }} ({{ zahl(urlaub.vorjahrRest) }})
         </Button>
       </div>
-    </CardContent>
+    </template>
   </Card>
 </template>

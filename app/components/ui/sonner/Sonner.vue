@@ -30,10 +30,22 @@ const delegatedProps = reactiveOmit(props, 'class', 'toastOptions')
       '--gray4': 'var(--border)',
       '--gray5': 'var(--border)',
       '--gray12': 'var(--popover-foreground)',
+      '--success-bg': 'var(--erfolg-subtle)',
+      '--success-border': 'var(--border)',
+      '--success-text': 'var(--positiv)',
+      '--error-bg': 'var(--fehler-subtle)',
+      '--error-border': 'var(--border)',
+      '--error-text': 'var(--negativ)',
+      '--warning-bg': 'var(--warnung-subtle)',
+      '--warning-border': 'var(--border)',
+      '--warning-text': 'var(--warnung)',
+      '--info-bg': 'var(--info-subtle)',
+      '--info-border': 'var(--border)',
+      '--info-text': 'var(--info)',
     }"
     :toast-options="props.toastOptions ?? {
       classes: {
-        toast: 'rounded-2xl',
+        toast: 'rounded-xl',
       },
     }"
     v-bind="delegatedProps"

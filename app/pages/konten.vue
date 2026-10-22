@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Pencil, Plus } from '@lucide/vue'
+import { Archive, Circle, CircleCheck, CircleDot, Pencil, Plus } from '@lucide/vue'
 
-useHead({ title: 'Konten & Aufgaben · Daybreak' })
+useHead({ title: 'Konten & Aufgaben · daybreak' })
 
 const route = useRoute()
 const router = useRouter()
@@ -35,78 +35,89 @@ function kontoAendern() {
   kontoDialog.value = true
 }
 
+// Anzeige-Status: „In Arbeit“ = offen und schon Zeit gebucht
+function statusAnzeige(a: { status: string, gebuchtMin: number }) {
+  if (a.status === 'abgeschlossen') return { text: 'Abgeschlossen', icon: CircleCheck, klasse: 'text-positiv' }
+  if (a.gebuchtMin > 0) return { text: 'In Arbeit', icon: CircleDot, klasse: 'text-info' }
+  return { text: 'Offen', icon: Circle, klasse: 'text-muted-foreground' }
+}
+
 function waehle(id: number) {
   router.replace({ query: { konto: id } })
 }
 </script>
 
 <template>
-  <div class="grid gap-6 lg:grid-cols-[18rem_1fr]">
-    <Card>
-      <CardHeader class="flex flex-row items-center justify-between">
+  <div class="flex flex-wrap items-start gap-6">
+    <Card class="max-w-[300px] flex-[1_1_260px] gap-0 py-0">
+      <CardHeader class="flex min-h-11 flex-row items-center justify-between py-0 pr-2">
         <CardTitle>Konten</CardTitle>
-        <Button size="sm" variant="secondary" @click="neuesKonto">
+        <Button size="sm" variant="outline" class="h-[30px] text-[13px]" @click="neuesKonto">
           <Plus /> Neu
         </Button>
       </CardHeader>
-      <CardContent class="grid gap-1">
+      <div class="grid gap-0.5 p-2">
         <button
           v-for="k in sichtbareKonten"
           :key="k.id"
           type="button"
-          class="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent"
-          :class="{ 'bg-accent': k.id === gewaehltId, 'text-muted-foreground': k.status === 'archiviert' }"
+          class="flex items-center gap-2.5 rounded-md px-3 py-2.5 text-left"
+          :class="[k.id === gewaehltId ? 'bg-muted' : 'hover:bg-raised', { 'text-muted-foreground': k.status === 'archiviert' }]"
+          :aria-current="k.id === gewaehltId ? 'true' : undefined"
           @click="waehle(k.id)"
         >
           <span class="size-2.5 shrink-0 rounded-full" :class="kontoFarbKlassen(k.farbe).punkt" />
-          <span class="flex-1 truncate">{{ k.name }}</span>
-          <span v-if="k.aliase.length" class="text-xs text-muted-foreground">{{ k.aliase.join(', ') }}</span>
+          <span class="min-w-0 flex-1">
+            <span class="block truncate text-sm font-semibold">{{ k.name }}</span>
+            <span v-if="k.aliase.length" class="block truncate font-mono text-[11px] text-muted-foreground">{{ k.aliase.join(' · ') }}</span>
+          </span>
         </button>
-        <p v-if="!sichtbareKonten.length" class="text-sm text-muted-foreground">
+        <p v-if="!sichtbareKonten.length" class="px-3 py-2.5 text-sm text-muted-foreground">
           Noch keine Konten.
         </p>
-        <div class="mt-3 flex items-center gap-2">
-          <Switch id="archivierte" v-model="zeigeArchivierte" />
-          <Label for="archivierte" class="text-muted-foreground">Archivierte zeigen</Label>
-        </div>
-      </CardContent>
+      </div>
+      <div class="flex items-center gap-2 border-t px-4 py-3">
+        <Switch id="archivierte" v-model="zeigeArchivierte" />
+        <Label for="archivierte" class="text-[13px] font-normal text-muted-foreground">Archivierte zeigen</Label>
+      </div>
     </Card>
 
-    <Card v-if="gewaehlt">
-      <CardHeader class="flex flex-row items-center justify-between gap-4">
-        <div class="flex min-w-0 items-center gap-2">
-          <span class="size-3 shrink-0 rounded-full" :class="kontoFarbKlassen(gewaehlt.farbe).punkt" />
-          <CardTitle class="truncate" :title="gewaehlt.name">
-            {{ gewaehlt.name }}
-          </CardTitle>
-          <Badge v-if="gewaehlt.status === 'archiviert'" variant="secondary">
-            archiviert
-          </Badge>
-        </div>
-        <div class="flex shrink-0 gap-2">
-          <Button size="sm" variant="ghost" @click="kontoAendern">
-            <Pencil /> Bearbeiten
-          </Button>
-          <Button size="sm" @click="aufgabeDialog = true">
-            <Plus /> Aufgabe
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
+    <section v-if="gewaehlt" class="grid min-w-0 flex-[999_1_560px] gap-4">
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="size-3 shrink-0 rounded-full" :class="kontoFarbKlassen(gewaehlt.farbe).punkt" />
+        <h1 class="min-w-0 truncate text-2xl font-semibold tracking-tight" :title="gewaehlt.name">
+          {{ gewaehlt.name }}
+        </h1>
+        <span v-if="gewaehlt.aliase.length" class="font-mono text-[13px] text-muted-foreground">{{ gewaehlt.aliase.join(' · ') }}</span>
+        <span v-if="gewaehlt.status === 'archiviert'" class="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <Archive class="size-3.5" /> archiviert
+        </span>
+        <div class="grow" />
+        <Button variant="outline" @click="kontoAendern">
+          <Pencil /> Bearbeiten
+        </Button>
+        <Button @click="aufgabeDialog = true">
+          <Plus /> Aufgabe
+        </Button>
+      </div>
+
+      <Card class="gap-0 py-0">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead class="w-32">
+            <TableRow class="bg-card hover:bg-card">
+              <TableHead class="h-9 w-32 px-4 text-xs font-normal text-muted-foreground">
                 Key
               </TableHead>
-              <TableHead>Titel</TableHead>
-              <TableHead class="w-32">
+              <TableHead class="h-9 px-4 text-xs font-normal text-muted-foreground">
+                Titel
+              </TableHead>
+              <TableHead class="h-9 w-36 px-4 text-xs font-normal text-muted-foreground">
                 Status
               </TableHead>
-              <TableHead class="w-28 text-right">
+              <TableHead class="h-9 w-28 px-4 text-right text-xs font-normal text-muted-foreground">
                 Schätzung
               </TableHead>
-              <TableHead class="w-28 text-right">
+              <TableHead class="h-9 w-28 px-4 text-right text-xs font-normal text-muted-foreground">
                 Gebucht
               </TableHead>
             </TableRow>
@@ -115,40 +126,40 @@ function waehle(id: number) {
             <TableRow
               v-for="a in aufgaben"
               :key="a.id"
-              class="cursor-pointer"
-              :class="{ 'text-muted-foreground': a.status === 'abgeschlossen' }"
+              class="h-11 cursor-pointer hover:bg-raised"
               @click="navigateTo(`/aufgaben/${a.id}`)"
             >
-              <TableCell>
+              <TableCell class="px-4">
                 <AufgabeKey v-if="a.key" :wert="a.key" :farbe="gewaehlt.farbe" :class="{ 'opacity-60': a.status === 'abgeschlossen' }" />
               </TableCell>
-              <TableCell class="whitespace-normal wrap-anywhere">
+              <TableCell class="px-4 whitespace-normal wrap-anywhere" :class="{ 'text-muted-foreground': a.status === 'abgeschlossen' }">
                 {{ a.titel }}
               </TableCell>
-              <TableCell>
-                <Badge :variant="a.status === 'offen' ? 'outline' : 'secondary'">
-                  {{ a.status }}
-                </Badge>
+              <TableCell class="px-4">
+                <span class="inline-flex items-center gap-1.5 text-xs font-medium" :class="statusAnzeige(a).klasse">
+                  <component :is="statusAnzeige(a).icon" class="size-3.5" />
+                  {{ statusAnzeige(a).text }}
+                </span>
               </TableCell>
-              <TableCell class="text-right tabular-nums">
+              <TableCell class="px-4 text-right text-muted-foreground tabular-nums">
                 {{ a.schaetzungMin ? formatDauer(a.schaetzungMin) : '–' }}
               </TableCell>
-              <TableCell class="text-right tabular-nums">
+              <TableCell class="px-4 text-right tabular-nums" :class="{ 'text-negativ': a.schaetzungMin && a.gebuchtMin > a.schaetzungMin }">
                 {{ formatDauer(a.gebuchtMin) }}
               </TableCell>
             </TableRow>
-            <TableRow v-if="!aufgaben.length">
-              <TableCell colspan="5" class="text-muted-foreground">
+            <TableRow v-if="!aufgaben.length" class="hover:bg-transparent">
+              <TableCell colspan="5" class="px-4 py-6 text-center whitespace-normal text-muted-foreground">
                 Keine Aufgaben – Zeit kann auch direkt aufs Konto gebucht werden.
               </TableCell>
             </TableRow>
           </TableBody>
         </Table>
-      </CardContent>
-    </Card>
-    <Card v-else>
-      <CardContent class="py-10 text-center text-muted-foreground">
-        Lege zuerst ein Konto an.
+      </Card>
+    </section>
+    <Card v-else class="min-w-0 flex-[999_1_560px]">
+      <CardContent class="py-10 text-center text-sm text-muted-foreground">
+        Lege zuerst ein Konto an – dann klart es hier auf.
       </CardContent>
     </Card>
 

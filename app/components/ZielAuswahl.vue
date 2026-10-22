@@ -25,7 +25,7 @@ const auswahl = computed(() => {
 <template>
   <Select v-model="wert">
     <!-- contain-inline-size: lange Aufgabentitel dürfen den Dialog nicht verbreitern, sondern laufen aus -->
-    <SelectTrigger class="w-full min-w-0" :title="auswahl?.aufgabe?.titel">
+    <SelectTrigger class="w-full min-w-0 rounded-md data-[size=default]:h-9" :title="auswahl?.aufgabe?.titel">
       <SelectValue placeholder="Aufgabe oder Konto wählen" class="min-w-0 flex-1 contain-inline-size !flex items-center gap-2">
         <template v-if="auswahl">
           <template v-if="auswahl.aufgabe">

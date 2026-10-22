@@ -12,7 +12,7 @@ const route = useRoute()
 const aktuellesJahr = Number(heute().slice(0, 4))
 const jahr = computed(() => Number(route.query.jahr) || aktuellesJahr)
 
-useHead({ title: () => `Kalender ${jahr.value} · Daybreak` })
+useHead({ title: () => `Kalender ${jahr.value} · daybreak` })
 
 const { data: tage } = useFetch('/api/tage', {
   key: 'kalender-tage',
@@ -94,14 +94,14 @@ async function setzen(typ: TagTyp) {
 </script>
 
 <template>
-  <div class="grid gap-6 xl:grid-cols-[1fr_18rem]">
-    <div class="grid min-w-0 grid-cols-1 content-start gap-4">
+  <div class="grid gap-8 xl:grid-cols-[1fr_18rem]">
+    <div class="grid min-w-0 grid-cols-1 content-start gap-5">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2">
           <Button size="icon" variant="ghost" aria-label="Vorheriges Jahr" @click="jahrWechseln(-1)">
             <ChevronLeft />
           </Button>
-          <h1 class="w-20 text-center text-2xl tabular-nums">
+          <h1 class="w-20 text-center font-mono text-2xl font-medium tracking-tight tabular-nums">
             {{ jahr }}
           </h1>
           <Button size="icon" variant="ghost" aria-label="Nächstes Jahr" @click="jahrWechseln(1)">
@@ -109,46 +109,52 @@ async function setzen(typ: TagTyp) {
           </Button>
         </div>
         <!-- Legende -->
-        <div class="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-          <span class="flex items-center gap-1"><span class="size-3 rounded-sm bg-konto-mint" /> Urlaub</span>
-          <span class="flex items-center gap-1"><span class="size-3 rounded-sm bg-konto-mint/45" /> ½ Urlaub</span>
-          <span class="flex items-center gap-1"><span class="size-3 rounded-sm border border-dashed border-konto-mint bg-konto-mint/25" /> Urlaub unbestätigt</span>
-          <span class="flex items-center gap-1"><span class="size-3 rounded-sm bg-konto-pfirsich" /> Krank</span>
-          <span class="flex items-center gap-1"><span class="size-3 rounded-sm bg-konto-himmel" /> Gleittag</span>
-          <span class="flex items-center gap-1"><span class="size-3 rounded-sm ring-1 ring-inset ring-konto-rose" /> Feiertag</span>
-          <span class="flex items-center gap-1"><span class="blocker-schraffur size-3 rounded-sm" /> Blocker</span>
-          <span class="flex items-center gap-1"><span class="size-1.5 rounded-full bg-primary" /> Soll abweichend</span>
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] text-muted-foreground">
+          <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm bg-konto-mint/35 ring-1 ring-konto-mint ring-inset" /> Urlaub</span>
+          <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm bg-[linear-gradient(135deg,color-mix(in_oklch,var(--konto-mint)_35%,transparent)_50%,transparent_50%)] ring-1 ring-konto-mint ring-inset" /> ½ Urlaub</span>
+          <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm border border-dashed border-konto-mint" /> unbestätigt</span>
+          <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm bg-konto-pfirsich/35 ring-1 ring-konto-pfirsich ring-inset" /> Krank</span>
+          <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm bg-konto-himmel/35 ring-1 ring-konto-himmel ring-inset" /> Gleittag</span>
+          <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm ring-1 ring-muted-foreground ring-inset" /> Feiertag</span>
+          <span class="flex items-center gap-1.5"><span class="blocker-schraffur size-3 rounded-sm" /> Blocker</span>
+          <span class="flex items-center gap-1.5"><span class="size-1.5 rounded-full bg-primary" /> Soll abweichend</span>
         </div>
       </div>
 
       <!-- Aktionsleiste für die Auswahl -->
-      <div class="sticky top-2 z-10 flex min-h-11 flex-wrap items-center gap-2 rounded-lg border bg-popover px-3 py-1.5 text-sm shadow-sm">
+      <div class="sticky top-2 z-10 flex min-h-12 flex-wrap items-center gap-2 rounded-xl border bg-popover py-2 pr-2 pl-4 text-sm">
         <template v-if="auswahl">
-          <span class="font-medium">{{ auswahlText }}</span>
-          <span class="text-muted-foreground">({{ arbeitstageInAuswahl }} Arbeitstag{{ arbeitstageInAuswahl === 1 ? '' : 'e' }})</span>
-          <span v-if="blockerInAuswahl" class="flex items-center gap-1 text-negativ">
+          <span class="font-semibold">{{ auswahlText }}</span>
+          <span class="font-mono text-[13px] text-muted-foreground">{{ arbeitstageInAuswahl }} Arbeitstag{{ arbeitstageInAuswahl === 1 ? '' : 'e' }}</span>
+          <span v-if="blockerInAuswahl" class="flex items-center gap-1.5 text-[13px] text-negativ">
             <span class="blocker-schraffur size-3 rounded-sm" />
             {{ blockerInAuswahl }} Blocker-Tag{{ blockerInAuswahl === 1 ? '' : 'e' }} – hier besser kein Urlaub
           </span>
           <span class="flex-1" />
-          <Button v-for="t in TYPEN" :key="t.typ" size="sm" :variant="t.typ === 'arbeit' ? 'ghost' : 'secondary'" @click="setzen(t.typ)">
+          <Button
+            v-for="t in TYPEN"
+            :key="t.typ"
+            size="sm"
+            :variant="t.typ === 'urlaub' ? 'default' : t.typ === 'arbeit' ? 'ghost' : 'outline'"
+            @click="setzen(t.typ)"
+          >
             {{ t.label }}
           </Button>
-          <Button size="sm" variant="secondary" :disabled="!arbeitstageInAuswahl" @click="blockerSetzen">
+          <Button size="sm" variant="outline" :disabled="!arbeitstageInAuswahl" @click="blockerSetzen">
             <span class="blocker-schraffur size-3 rounded-sm" />
             {{ alleBlockiert ? 'Blocker entfernen' : 'Blocker' }}
           </Button>
           <Button v-if="auswahl.von === auswahl.bis" size="sm" variant="ghost" @click="navigateTo(`/?datum=${auswahl.von}`)">
             Tag öffnen
           </Button>
-          <Button size="icon" variant="ghost" class="size-8" aria-label="Auswahl aufheben" @click="auswahl = null">
+          <Button size="icon-sm" variant="ghost" aria-label="Auswahl aufheben" @click="auswahl = null">
             <X />
           </Button>
         </template>
         <span v-else class="text-muted-foreground">Tag anklicken oder über mehrere Tage ziehen, um Urlaub, Krank, Gleittag oder einen Blocker zu setzen.</span>
       </div>
 
-      <div class="grid grid-cols-2 gap-x-6 gap-y-5 md:grid-cols-3 2xl:grid-cols-4">
+      <div class="grid grid-cols-2 gap-x-7 gap-y-6 md:grid-cols-3 2xl:grid-cols-4">
         <MiniMonat
           v-for="m in 12"
           :key="m"

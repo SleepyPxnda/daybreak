@@ -229,31 +229,39 @@ Layout: shadcn **Sidebar** links (einklappbar), Inhalt rechts, deutsches UI, Des
 
 ---
 
-## 6. Design: dunkles, warmes Theme
+## 6. Design: cloudypanda-Markensystem (Dunkel)
 
-Dark-only in v1 (`class="dark"` fest auf `<html>`): neutrale, leicht warme Graus, Gold als Primärfarbe, schlichter einfarbiger Hintergrund. Die Werte stehen in `app/assets/css/main.css` als shadcn-CSS-Variablen:
+daybreak gehört zur Tool-Familie **cloudypanda** und folgt deren Markensystem (Design-System-Artifact „cloudypanda“): ruhig, technisch, dunkel zuerst, genau **eine** Akzentfarbe pro Tool – für daybreak Bernstein. Dark-only in v1 (`class="dark"` fest auf `<html>`). Die Werte stehen in `app/assets/css/main.css` als shadcn-CSS-Variablen:
 
-| shadcn-Token | Rolle | Wert |
-|---|---|---|
-| `--background` | Hintergrund | `#121212` |
-| `--card`, `--sidebar` | Fläche | `#1B1A18` |
-| `--popover`, `--muted`, `--secondary`, `--sidebar-accent` | Fläche 2 | `#252422` |
-| `--accent` | Hover | `#2F2D2A` |
-| `--border`, `--input` | Rahmen | `#3B3935` |
-| `--foreground` | Text | `#F2F2F2` |
-| `--muted-foreground` | Nebentext | `#AAA7A1` |
-| `--primary`, `--ring` | Gold | `#DFAB40`, Text darauf `#2C2C2C` |
-| `--destructive` | Rot (aufgehellt für dunklen Grund) | `#E4626D` |
-| `--positiv` / `--negativ` | Grün / Rot als Textfarbe | `#85EAAF` / `#EA858D` |
-| `--chart-1…5` | warme Reihe Orange → Lindgrün | `#DE633F`, `#DE883F`, `#DEAC3F`, `#DED13F`, `#C7DE3F` |
+| shadcn-Token | Marken-Token | Rolle | Wert |
+|---|---|---|---|
+| `--background` | `surface` | Ebene 0: Seite, Karten-Körper | `#0f1115` |
+| `--card`, `--sidebar` (`bg-raised`) | `surface-raised` | Ebene 1: Sidebar, Kartenköpfe, Felder, Tracks | `#181b21` |
+| `--popover`, `--muted`, `--secondary`, `--accent` (`bg-overlay`) | `surface-overlay` | Ebene 2: Menüs, Dialoge, sekundäre Buttons, Hover | `#20242c` |
+| `--secondary-hover` | – | Hover auf Ebene 2 | `#2a2f39` |
+| `--border` | `line` | Haarlinien, Trenner, Kartenränder | `#2a2e37` |
+| `--input`, `--line-strong` | `line-strong` | Ränder von Feldern, Checkboxen (≥3:1) | `#6b7280` |
+| `--foreground` | `ink` | Text | `#eceef2` |
+| `--muted-foreground` | `ink-muted` | Nebentext, Labels | `#9aa1ad` |
+| `--primary`, `--ring` | `accent-daybreak` | Bernstein; Text darauf `on-accent` `#0f1115` | `#e8a042` |
+| `--destructive`, `--negativ` | `danger` | Fehler, Löschen, Minus-Stunden | `#ff6b6b` |
+| `--positiv` | `success` | Plus-Stunden, erledigt | `#4cc777` |
+| `--warnung` / `--warnung-subtle` | `warning` | fällig, nachfassen, Konflikte | `#f2c14e` / `#272010` |
+| `--info` / `--info-subtle` | `info` | Urlaubs-Hinweis, neutrale Hinweise | `#79b0f5` / `#121e2e` |
+| `--erfolg-subtle`, `--fehler-subtle` | `*-subtle` | Flächen von Meldungen | `#12241a`, `#2a1416` |
 
-Kontofarben sind acht Pastelltöne (`--konto-*`, OKLCH, siehe `main.css`): Die warme Akzentreihe ist zu ähnlich, um acht Konten zu unterscheiden; die Konto-Schlüssel stehen außerdem in der DB.
+Kontofarben bleiben acht Pastelltöne (`--konto-*`, OKLCH, Schlüssel stehen in der DB). Sie markieren nur Zugehörigkeit zu einem Konto: als Punkt, Balken oder getönte Fläche (`bg-konto-x/18` + Rand `konto-x/55`, Text in `ink`) über `kontoFarbKlassen()` – nie als Statusfarbe.
 
 Regeln:
-- Schrift **Montserrat** (self-hosted über `@fontsource-variable/montserrat`), Headlines (`h1–h3`, Karten-/Dialog-Titel) ExtraBold, Wortmarke „daybreak“ Black und kleingeschrieben. Zahlen mit `tabular-nums`.
-- Buttons als Pille (`rounded-full`), Eingaben 12 px (`--radius`), Karten 16 px (`rounded-xl`).
-- Akzentfarben nie für Fließtext; Pastellfarben nur als Flächen mit dunklem Text darauf (`oklch(0.22 0.03 <hue>)`). Plus/Minus nie nur über Farbe – immer mit Vorzeichen.
-- Logo: `AppLogo.vue` (Icon ohne Hintergrund, Striche `currentColor`, Sonne `--primary`); `public/favicon.svg` ist dasselbe Icon als App-Icon mit dunklem Hintergrund und festen Farben (Favicons erben kein CSS).
+- Schrift **Geist** für die Oberfläche, **Geist Mono** für Wortmarke, Zeiten, Zahlen und IDs (self-hosted über `@fontsource-variable/geist` und `…/geist-mono`). `.tabular-nums` setzt global Mono. Überschriften Semibold im Satzbau, nie Versalien.
+- Ebenen statt Schatten: keine Schlagschatten, keine Verläufe; Struktur über 1-px-Linien. Overlays immer mit `line`-Rand.
+- Radien 4 / 8 / 12 px (`rounded-sm` Chips, `rounded-md` Buttons und Felder, `rounded-xl` Karten), Pillen `rounded-full`.
+- Buttons im Standard-Stil von shadcn-vue (`rounded-md`, Fokus-Ring 3 px in `--ring`): primär = Akzentfläche (ein Primärbutton pro Bereich), sekundäre Aktionen = `outline` (Rand `line-strong` auf `surface-raised`), `ghost` für Icons und Nebenaktionen, Löschen = `destructive`. Abweichung von der Marke („Buttons ohne Rand“) bewusst gewählt; Schatten (`shadow-xs`) weggelassen, da die Marke keine Schatten nutzt.
+- Karten: Rand `line`, Körper `surface`, Kopfstreifen auf `surface-raised`.
+- Aktiver Zustand (Navigation, Segmente, Wochentage): Akzent-Text auf Akzent-Tönung (`bg-primary/12 text-primary`).
+- Status nie nur über Farbe: immer mit Symbol und Wort; Plus/Minus immer mit Vorzeichen.
+- Logo: `AppLogo.vue` = daybreak-Icon der Marke (Wolke in Akzentfarbe, Linien-Sonne), daneben „daybreak“ in Geist Mono 500 in Akzentfarbe. `public/favicon.svg` ist die Original-Icon-Datei der Marke. Tab-Titel `<Seite> · daybreak`, Standard `daybreak · cloudypanda`.
+- Tonfall: kurz, freundlich, sachlich; leere Zustände dürfen einen kleinen Wetterwitz machen, Fehlermeldungen nicht. Keine Emojis.
 
 ---
 

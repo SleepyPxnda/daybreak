@@ -59,10 +59,10 @@ async function speichern() {
         <DialogDescription>Eine Aufgabe gehört zu genau einem Konto.</DialogDescription>
       </DialogHeader>
       <form class="grid gap-4" @submit.prevent="speichern">
-        <div class="grid gap-2">
-          <Label>Konto</Label>
+        <div class="grid gap-1.5">
+          <Label class="text-xs font-normal text-muted-foreground">Konto</Label>
           <Select v-model="gewaehltesKonto" required>
-            <SelectTrigger class="w-full">
+            <SelectTrigger class="w-full rounded-md data-[size=default]:h-9">
               <SelectValue placeholder="Konto wählen" />
             </SelectTrigger>
             <SelectContent>
@@ -74,17 +74,17 @@ async function speichern() {
           </Select>
         </div>
         <div class="grid grid-cols-[8rem_1fr] gap-3">
-          <div class="grid gap-2">
-            <Label for="aufgabe-key">Key</Label>
-            <Input id="aufgabe-key" v-model="key" placeholder="PROJ-123" />
+          <div class="grid gap-1.5">
+            <Label for="aufgabe-key" class="text-xs font-normal text-muted-foreground">Key</Label>
+            <Input id="aufgabe-key" v-model="key" class="h-9 rounded-md" placeholder="PROJ-123" />
           </div>
-          <div class="grid gap-2">
-            <Label for="aufgabe-titel">Titel</Label>
-            <Input id="aufgabe-titel" v-model="titel" required autofocus />
+          <div class="grid gap-1.5">
+            <Label for="aufgabe-titel" class="text-xs font-normal text-muted-foreground">Titel</Label>
+            <Input id="aufgabe-titel" v-model="titel" class="h-9 rounded-md" required autofocus />
           </div>
         </div>
-        <div class="grid gap-2">
-          <Label for="aufgabe-schaetzung">Schätzung (Stunden, optional)</Label>
+        <div class="grid gap-1.5">
+          <Label for="aufgabe-schaetzung" class="text-xs font-normal text-muted-foreground">Schätzung (Stunden, optional)</Label>
           <ZahlInput id="aufgabe-schaetzung" v-model="schaetzungStunden" :min="0" :step="0.25" placeholder="–" class="w-36" />
         </div>
         <DialogFooter>

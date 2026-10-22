@@ -53,8 +53,8 @@ async function speichern() {
 <template>
   <Popover v-model:open="offen">
     <PopoverTrigger as-child>
-      <Button variant="secondary" size="sm">
-        {{ label }} · Soll {{ formatDauer(soll) }}
+      <Button variant="outline">
+        {{ label }} · Soll <span class="font-mono">{{ formatDauer(soll) }}</span>
         <ChevronDown />
       </Button>
     </PopoverTrigger>
@@ -84,7 +84,7 @@ async function speichern() {
           <Label for="tag-notiz">Notiz</Label>
           <Input id="tag-notiz" v-model="tagNotiz" />
         </div>
-        <Button type="submit" size="sm">
+        <Button type="submit">
           Übernehmen
         </Button>
       </form>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
-import { AlarmClockCheck, GripVertical, Plus } from '@lucide/vue'
+import { GripVertical, Plus } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { parseQuickInput } from '#shared/utils/quickInput'
 import type { TodoArt } from '#shared/utils/todos'
@@ -112,16 +112,17 @@ function stichtagText(t: TodoZeile): string | undefined {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 gap-1">
-    <p v-if="!liste.length && leerText" class="py-1 text-sm text-muted-foreground">
+  <div class="grid grid-cols-1">
+    <p v-if="!liste.length && leerText" class="border-b px-4 py-2.5 text-sm text-muted-foreground last:border-b-0">
       {{ leerText }}
     </p>
     <div
       v-for="t in liste"
       :key="t.id"
-      class="group flex items-start gap-2 rounded-md px-1 py-1.5 text-sm"
+      class="group flex min-h-10 items-start gap-2.5 border-b py-2.5 pr-3 text-sm last:border-b-0"
       :class="[
-        istFaellig(t, heuteDatum) ? 'bg-konto-butter/10 ring-1 ring-konto-butter/40' : 'hover:bg-accent/50',
+        kompakt && !aufTimelineZiehbar ? 'pl-4' : 'pl-2',
+        istFaellig(t, heuteDatum) ? 'bg-warnung-subtle' : 'hover:bg-raised',
         gezogen === t.id && 'opacity-40',
       ]"
       :draggable="!kompakt || aufTimelineZiehbar"
@@ -131,42 +132,51 @@ function stichtagText(t: TodoZeile): string | undefined {
       @dragend="dragEnd"
       @drop.prevent
     >
-      <GripVertical v-if="!kompakt || aufTimelineZiehbar" class="mt-0.5 size-4 shrink-0 cursor-grab text-muted-foreground opacity-0 group-hover:opacity-100" />
+      <GripVertical v-if="!kompakt || aufTimelineZiehbar" class="mt-0.5 size-4 shrink-0 cursor-grab text-line-strong group-hover:text-muted-foreground" />
       <Checkbox
-        class="mt-0.5"
+        class="mt-[3px]"
         :aria-label="art === 'daily' ? 'Besprochen' : 'Erledigt'"
         :title="art === 'daily' ? 'Besprochen' : 'Erledigt'"
         @update:model-value="erledigen(t)"
       />
       <button type="button" class="min-w-0 flex-1 text-left" @click="bearbeiten(t)">
         <div class="wrap-anywhere">
-          <span v-if="t.wer" class="font-medium">{{ t.wer }}: </span>{{ t.text }}
+          <span v-if="t.wer" class="text-muted-foreground">{{ t.wer }}: </span>{{ t.text }}
         </div>
-        <div class="flex flex-wrap gap-x-2 text-xs text-muted-foreground">
+        <div
+          v-if="art === 'warten' || stichtagText(t) || t.aufgabeTitel || t.kontoName"
+          class="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground"
+        >
+          <span v-if="stichtagText(t)" :class="{ 'font-medium text-warnung': istFaellig(t, heuteDatum) }">{{ stichtagText(t) }}</span>
           <span v-if="art === 'warten'">{{ alterText(tageSeit(t.erstelltAm, heuteDatum)) }}</span>
-          <span v-if="stichtagText(t)" :class="{ 'font-medium text-konto-butter': istFaellig(t, heuteDatum) }">{{ stichtagText(t) }}</span>
-          <span v-if="t.aufgabeTitel || t.kontoName" class="inline-flex max-w-full min-w-0 items-center gap-1" :title="t.aufgabeTitel ?? t.kontoName ?? undefined">
+          <span v-if="t.aufgabeTitel || t.kontoName" class="inline-flex max-w-full min-w-0 items-center gap-1.5" :title="t.aufgabeTitel ?? t.kontoName ?? undefined">
             <span class="size-2 shrink-0 rounded-full" :class="kontoFarbKlassen(t.kontoFarbe).punkt" />
+            <AufgabeKey v-if="t.aufgabeKey" :wert="t.aufgabeKey" :farbe="t.kontoFarbe" />
             <span class="truncate">{{ t.aufgabeTitel ?? t.kontoName }}</span>
           </span>
         </div>
       </button>
       <Button
         v-if="art === 'warten'"
-        size="icon"
-        variant="ghost"
-        class="size-7 shrink-0"
+        variant="outline"
+        size="sm"
+        class="h-7 shrink-0 px-2 text-xs"
         :aria-label="`Nachgefasst (+${NACHFASSEN_ARBEITSTAGE} Arbeitstage)`"
         :title="`Nachgefasst (+${NACHFASSEN_ARBEITSTAGE} Arbeitstage)`"
         @click="nachgefasst(t)"
       >
-        <AlarmClockCheck />
+        Nachgefasst
       </Button>
     </div>
 
-    <form v-if="!kompakt" class="mt-1 flex items-center gap-2" @submit.prevent="hinzufuegen">
-      <Plus class="size-4 shrink-0 text-muted-foreground" />
-      <Input v-model="neuText" :placeholder="PLATZHALTER[art]" class="h-8 border-transparent bg-transparent shadow-none focus-visible:border-input" />
+    <form v-if="!kompakt" class="flex h-11 items-center gap-2 px-4 focus-within:bg-raised" @submit.prevent="hinzufuegen">
+      <Plus class="size-3.5 shrink-0 text-muted-foreground" />
+      <input
+        v-model="neuText"
+        :placeholder="PLATZHALTER[art]"
+        :aria-label="PLATZHALTER[art]"
+        class="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+      >
     </form>
 
     <TodoDialog v-model:open="dialog" :todo="bearbeitet" />

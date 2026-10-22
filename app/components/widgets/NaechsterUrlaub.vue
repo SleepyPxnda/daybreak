@@ -39,25 +39,25 @@ const countdown = computed(() => {
   <!-- Banner: Erinnerung bzw. laufender Urlaub -->
   <div
     v-if="sichtbar && darstellung === 'banner' && urlaub"
-    class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-konto-mint/50 bg-konto-mint/10 px-4 py-3 text-sm"
+    class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border bg-info-subtle py-2.5 pr-3 pl-4 text-sm"
   >
-    <Palmtree class="size-5 shrink-0 text-konto-mint" />
-    <span class="font-semibold">{{ countdown }}</span>
-    <span class="text-muted-foreground tabular-nums">
+    <Palmtree class="size-[18px] shrink-0 text-info" />
+    <span class="font-semibold text-info">{{ countdown }}</span>
+    <span class="tabular-nums">
       {{ zeitraum }} · {{ zahl(urlaub.urlaubstage) }} Urlaubstag{{ urlaub.urlaubstage === 1 ? '' : 'e' }}
       <template v-if="!urlaub.laeuft"> · noch {{ urlaub.arbeitstageBis }} Arbeitstag{{ urlaub.arbeitstageBis === 1 ? '' : 'e' }} davor</template>
     </span>
-    <Button v-if="!urlaub.laeuft && !urlaub.bestaetigt" size="sm" variant="secondary" class="ml-auto" @click="bestaetigen">
-      <Check /> Bestätigt
+    <Button v-if="!urlaub.laeuft && !urlaub.bestaetigt" size="sm" variant="outline" class="ml-auto" @click="bestaetigen">
+      <Check /> Bestätigen
     </Button>
-    <span v-if="!urlaub.laeuft && !urlaub.bestaetigt && data?.erinnerungText" class="basis-full pl-8">{{ data.erinnerungText }}</span>
+    <span v-if="!urlaub.laeuft && !urlaub.bestaetigt && data?.erinnerungText" class="basis-full pl-[30px] text-muted-foreground">{{ data.erinnerungText }}</span>
   </div>
 
   <!-- Karte unter der Timeline -->
   <Card v-else-if="sichtbar && darstellung === 'karte'">
     <CardHeader>
-      <CardTitle class="flex items-center gap-2 text-base">
-        <Palmtree class="size-4 text-konto-mint" /> Nächster Urlaub
+      <CardTitle class="flex items-center gap-2">
+        <Palmtree class="size-4 text-info" /> Nächster Urlaub
       </CardTitle>
     </CardHeader>
     <CardContent class="grid gap-1 text-sm tabular-nums">
@@ -67,7 +67,7 @@ const countdown = computed(() => {
           {{ countdown.replace('Urlaub ', '') }} · {{ zahl(urlaub.urlaubstage) }} Urlaubstag{{ urlaub.urlaubstage === 1 ? '' : 'e' }}
         </span>
       </template>
-      <NuxtLink v-else to="/kalender" class="text-muted-foreground hover:underline">
+      <NuxtLink v-else to="/kalender" class="text-muted-foreground hover:text-foreground hover:underline">
         Kein Urlaub geplant – im Kalender eintragen
       </NuxtLink>
     </CardContent>

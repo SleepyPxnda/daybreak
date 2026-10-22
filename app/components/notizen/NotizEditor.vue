@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { format } from 'date-fns'
 import { useDebounceFn, useEventListener } from '@vueuse/core'
-import { Pin, PinOff, Trash2 } from '@lucide/vue'
+import { Check, CircleAlert, Pin, Trash2 } from '@lucide/vue'
 import { normalisiereTags } from '#shared/utils/notizen'
 
 interface Notiz {
@@ -127,59 +127,88 @@ const vorschau = computed(() => renderMarkdown(form.inhalt))
 </script>
 
 <template>
-  <div v-if="nichtGefunden" class="py-10 text-center text-muted-foreground">
+  <div v-if="nichtGefunden" class="py-10 text-center text-sm text-muted-foreground">
     Notiz nicht gefunden.
   </div>
   <div v-else-if="geladen" class="grid gap-4">
-    <div class="flex items-start gap-3">
-      <Input
+    <div class="flex items-center gap-2">
+      <input
         v-model="form.titel"
         aria-label="Titel"
         placeholder="Titel"
-        class="h-auto border-transparent bg-transparent px-0 text-2xl font-semibold shadow-none focus-visible:border-input focus-visible:px-2 md:text-2xl"
-      />
-      <span class="mt-2 shrink-0 text-xs text-muted-foreground tabular-nums" :class="{ 'text-destructive': status === 'fehler' }">{{ statusText }}</span>
+        class="min-w-0 flex-1 rounded-md bg-transparent text-2xl font-semibold tracking-tight outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+      <span
+        class="inline-flex shrink-0 items-center gap-1.5 text-[13px] tabular-nums"
+        :class="{
+          'text-positiv': status === 'gespeichert',
+          'text-destructive': status === 'fehler',
+          'text-muted-foreground': status === 'aenderung' || status === 'speichert',
+        }"
+        role="status"
+      >
+        <Check v-if="status === 'gespeichert'" class="size-3.5" />
+        <CircleAlert v-else-if="status === 'fehler'" class="size-3.5" />
+        {{ statusText }}
+      </span>
       <Button
         size="icon"
         variant="ghost"
+        :class="{ 'text-primary hover:text-primary': form.angepinnt }"
         :aria-label="form.angepinnt ? 'Lösen' : 'Anpinnen'"
+        :aria-pressed="form.angepinnt"
         :title="form.angepinnt ? 'Lösen' : 'Anpinnen (erscheint auf „Heute“)'"
         @click="form.angepinnt = !form.angepinnt"
       >
-        <PinOff v-if="form.angepinnt" />
-        <Pin v-else />
+        <Pin />
       </Button>
-      <Button size="icon" variant="ghost" aria-label="Löschen" title="Löschen" @click="loeschenFrage = true">
+      <Button size="icon" variant="ghost" aria-label="Notiz löschen" title="Löschen" @click="loeschenFrage = true">
         <Trash2 />
       </Button>
     </div>
 
-    <div class="flex flex-wrap items-center gap-3">
-      <Input v-model="form.tagsText" placeholder="Tags, durch Komma getrennt" class="w-72" aria-label="Tags" />
-      <div class="flex min-w-72 flex-1 gap-2">
-        <ZielAuswahl v-model="form.ziel" />
-        <Button v-if="form.ziel" variant="ghost" @click="form.ziel = ''">
-          Bezug entfernen
-        </Button>
+    <div class="flex flex-wrap gap-3">
+      <div class="grid flex-[1_1_240px] gap-1">
+        <label for="notiz-tags" class="text-xs text-muted-foreground">Tags</label>
+        <Input id="notiz-tags" v-model="form.tagsText" placeholder="durch Komma getrennt" class="h-9 rounded-md" />
+      </div>
+      <div class="grid min-w-0 flex-[1_1_240px] gap-1">
+        <span class="text-xs text-muted-foreground">Bezug</span>
+        <div class="flex min-w-0 gap-2">
+          <ZielAuswahl v-model="form.ziel" />
+          <Button v-if="form.ziel" variant="ghost" @click="form.ziel = ''">
+            Bezug entfernen
+          </Button>
+        </div>
       </div>
     </div>
 
-    <div class="grid gap-4 lg:grid-cols-2">
-      <Textarea
-        v-model="form.inhalt"
-        aria-label="Inhalt (Markdown)"
-        placeholder="Markdown …"
-        class="min-h-[60vh] resize-y font-mono text-sm"
-      />
-      <ClientOnly>
-        <div class="markdown min-h-[60vh] overflow-auto rounded-md border bg-card p-4">
-          <!-- eslint-disable-next-line vue/no-v-html -- mit DOMPurify bereinigt -->
-          <div v-if="form.inhalt.trim()" v-html="vorschau" />
-          <p v-else class="text-muted-foreground">
-            Vorschau
-          </p>
+    <div class="grid min-h-[60vh] overflow-hidden rounded-xl border lg:grid-cols-2">
+      <div class="flex flex-col bg-card max-lg:border-b lg:border-r">
+        <div class="border-b bg-card px-4 py-2 text-xs text-muted-foreground">
+          Markdown
         </div>
-      </ClientOnly>
+        <textarea
+          v-model="form.inhalt"
+          aria-label="Inhalt (Markdown)"
+          placeholder="Markdown …"
+          class="min-h-[40vh] flex-1 resize-y bg-transparent p-4 font-mono text-[13px] leading-5 outline-none placeholder:text-muted-foreground"
+        />
+      </div>
+      <div class="flex min-w-0 flex-col">
+        <div class="border-b bg-card px-4 py-2 text-xs text-muted-foreground">
+          Vorschau
+        </div>
+        <ClientOnly>
+          <div class="markdown flex-1 overflow-auto px-5 py-4">
+            <!-- eslint-disable-next-line vue/no-v-html -- mit DOMPurify bereinigt -->
+            <div v-if="form.inhalt.trim()" v-html="vorschau" />
+            <p v-else class="text-sm text-muted-foreground">
+              Noch leer – links schreiben, hier erscheint die Vorschau.
+            </p>
+          </div>
+        </ClientOnly>
+      </div>
     </div>
 
     <AlertDialog v-model:open="loeschenFrage">
@@ -190,7 +219,7 @@ const vorschau = computed(() => renderMarkdown(form.inhalt))
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-          <AlertDialogAction @click="loeschen">
+          <AlertDialogAction variant="destructive" @click="loeschen">
             Löschen
           </AlertDialogAction>
         </AlertDialogFooter>

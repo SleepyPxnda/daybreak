@@ -106,7 +106,7 @@ async function loeschen() {
           </div>
           <div class="grid gap-2">
             <Label>Dauer</Label>
-            <div class="flex h-9 items-center tabular-nums text-muted-foreground">
+            <div class="flex h-9 items-center font-mono text-sm text-muted-foreground">
               {{ start < ende ? formatDauer(ende - start) : '–' }}
             </div>
           </div>
@@ -116,7 +116,7 @@ async function loeschen() {
           <Textarea id="block-notiz" v-model="notiz" rows="2" />
         </div>
         <DialogFooter class="gap-2 sm:justify-between">
-          <Button v-if="block" type="button" variant="ghost" @click="loeschen">
+          <Button v-if="block" type="button" variant="ghost" class="hover:text-destructive" @click="loeschen">
             Löschen
           </Button>
           <Button type="submit" :disabled="!gueltig">
