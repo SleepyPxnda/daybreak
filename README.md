@@ -1,7 +1,23 @@
-# Daybreak
+<h1 align="center">☀️ daybreak</h1>
 
-Persönliches Arbeits-Dashboard für den Arbeitstag: Zeit planen und buchen, Stundenkonto und Urlaub im Blick behalten, Merker, Daily-Themen und Notizen an einem Ort.
-Single-User, läuft lokal oder selbst gehostet im Docker-Container – die Daten liegen in einer einzigen SQLite-Datei.
+<p align="center">
+  <strong>Persönliches Arbeits-Dashboard: Zeit planen und buchen, Stundenkonto, Urlaub, Merker und Notizen an einem Ort.</strong><br>
+  Single-User · selbst gehostet · eine SQLite-Datei
+</p>
+
+<p align="center">
+  <a href="https://github.com/SleepyPxnda/daybreak/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/SleepyPxnda/daybreak/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/SleepyPxnda/daybreak/releases"><img alt="Release" src="https://img.shields.io/github/v/release/SleepyPxnda/daybreak"></a>
+  <a href="https://github.com/SleepyPxnda/daybreak/pkgs/container/daybreak"><img alt="Docker" src="https://img.shields.io/badge/ghcr.io-daybreak-blue?logo=docker"></a>
+  <a href="LICENSE"><img alt="Lizenz: MIT" src="https://img.shields.io/badge/Lizenz-MIT-yellow"></a>
+</p>
+
+![Heute: Zeitleiste, Schnelleingabe, Merker und Daily-Themen](docs/screenshots/heute.jpg)
+
+Daybreak ersetzt Zettel, Excel-Stundenzettel und die drei Notiz-Apps, die man sonst nebeneinander offen hat. Morgens den Tag planen, tagsüber per Tastatur buchen, abends den Tag abschließen – und am Monatsende stehen die Stunden pro Konto fertig zum Übertragen ins Firmentool bereit.
+
+> [!NOTE]
+> Die Oberfläche ist auf Deutsch, Feiertage kommen aus [feiertagejs](https://github.com/sfakir/feiertagejs) (Bundesland wählbar).
 
 ## Funktionen
 
@@ -16,9 +32,13 @@ Single-User, läuft lokal oder selbst gehostet im Docker-Container – die Daten
 - **Merker, Daily-Themen, Warten auf** – kleine Listen mit Fälligkeit bzw. Nachfass-Datum, verknüpfbar mit Aufgaben oder Konten.
 - **Notizen** – Markdown-Editor mit Tags, Suche und angepinnten Notizen auf „Heute“.
 
-Nur ein dunkles, warmes Theme, Oberfläche auf Deutsch.
+Nur ein dunkles, warmes Theme.
 
-## Betrieb mit Docker
+| Woche | Übersicht |
+|---|---|
+| ![Woche](docs/screenshots/woche.jpg) | ![Übersicht](docs/screenshots/uebersicht.jpg) |
+
+## Schnellstart mit Docker
 
 Images für `linux/amd64` und `linux/arm64` werden bei jedem GitHub-Release nach `ghcr.io/sleepypxnda/daybreak` veröffentlicht.
 
@@ -38,6 +58,9 @@ services:
 ```bash
 docker compose up -d   # http://localhost:3000
 ```
+
+> [!WARNING]
+> Ohne `DAYBREAK_PASSWORD` hat jeder mit Netzwerkzugriff vollen Zugriff auf die Daten. Nicht ungeschützt ins Internet stellen.
 
 Datenbank-Migrationen laufen beim Start automatisch. Für ein Backup reicht eine Kopie von `data/daybreak.db`.
 
@@ -93,3 +116,7 @@ scripts/      Dev-Skripte (Seed)
 ## Release
 
 Ein GitHub-Release mit Tag `vX.Y.Z` baut und veröffentlicht das Docker-Image (`.github/workflows/docker.yml`). CI (Lint, Typecheck, Tests, Build) läuft bei jedem Push.
+
+## Lizenz
+
+[MIT](LICENSE) © 2026 SleepyPxnda

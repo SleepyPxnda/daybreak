@@ -2,6 +2,7 @@
   "name": "daybreak",
   "type": "module",
   "private": true,
+  "license": "MIT",
   "packageManager": "pnpm@12.6.0",
   "engines": {
     "node": ">=22"
