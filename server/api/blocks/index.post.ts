@@ -2,46 +2,46 @@ import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { block } from '../../db/schema'
 import { db } from '../../db/client'
-import { naechsterFreierSlot } from '#shared/utils/bloecke'
-import { datumSchema, uhrzeitSchema } from '#shared/utils/einstellungen'
-import { RASTER_MIN, TAG_MIN } from '#shared/utils/zeit'
+import { nextFreeSlot } from '#shared/utils/blocks'
+import { dateSchema, timeSchema } from '#shared/utils/settings'
+import { GRID_MIN, DAY_MIN } from '#shared/utils/time'
 
 const schema = z.object({
-  datum: datumSchema,
+  date: dateSchema,
   kind: z.enum(['arbeit', 'pause']),
   status: z.enum(['geplant', 'gebucht']),
-  // Entweder feste Zeit …
-  start: uhrzeitSchema.optional(),
-  ende: uhrzeitSchema.optional(),
-  // … oder Dauer → nächster freier Slot (Plan §3.8)
-  dauer: z.number().int().positive().max(TAG_MIN).multipleOf(RASTER_MIN).optional(),
-  aufgabeId: z.number().int().positive().nullish(),
-  kontoId: z.number().int().positive().nullish(),
-  notiz: z.string().trim().max(2000).nullish(),
-}).refine(b => (b.start !== undefined && b.ende !== undefined) !== (b.dauer !== undefined), 'Entweder start+ende oder dauer angeben')
+  // Either a fixed time ...
+  start: timeSchema.optional(),
+  end: timeSchema.optional(),
+  // ... or a duration: next free slot
+  duration: z.number().int().positive().max(DAY_MIN).multipleOf(GRID_MIN).optional(),
+  taskId: z.number().int().positive().nullish(),
+  accountId: z.number().int().positive().nullish(),
+  note: z.string().trim().max(2000).nullish(),
+}).refine(b => (b.start !== undefined && b.end !== undefined) !== (b.duration !== undefined), 'Entweder start+ende oder dauer angeben')
 
 export default defineEventHandler(async (event) => {
-  const daten = await readValidatedBody(event, schema.parse)
-  const ziel = await loeseZielAuf(daten)
+  const data = await readValidatedBody(event, schema.parse)
+  const assignment = await resolveAssignment(data)
 
-  let { start, ende } = daten
-  if (daten.dauer !== undefined) {
-    const { arbeitsbeginn } = await ladeEinstellungen()
-    const tagesBloecke = await db.select({ start: block.start, ende: block.ende }).from(block).where(eq(block.datum, daten.datum))
-    start = naechsterFreierSlot(tagesBloecke, arbeitsbeginn)
-    ende = start + daten.dauer
-    if (ende > TAG_MIN) throw createError({ statusCode: 409, statusMessage: 'Kein Platz mehr an diesem Tag' })
+  let { start, end } = data
+  if (data.duration !== undefined) {
+    const { arbeitsbeginn } = await loadSettings()
+    const dayBlocks = await db.select({ start: block.start, end: block.end }).from(block).where(eq(block.date, data.date))
+    start = nextFreeSlot(dayBlocks, arbeitsbeginn)
+    end = start + data.duration
+    if (end > DAY_MIN) throw createError({ statusCode: 409, statusMessage: 'Kein Platz mehr an diesem Tag' })
   }
 
-  await pruefeZeitraum(daten.datum, { start: start!, ende: ende! })
-  const [neu] = await db.insert(block).values({
-    datum: daten.datum,
-    kind: daten.kind,
-    status: daten.status,
+  await assertValidRange(data.date, { start: start!, end: end! })
+  const [created] = await db.insert(block).values({
+    date: data.date,
+    kind: data.kind,
+    status: data.status,
     start: start!,
-    ende: ende!,
-    ...ziel,
-    notiz: daten.notiz || null,
+    end: end!,
+    ...assignment,
+    note: data.note || null,
   }).returning()
-  return neu!
+  return created!
 })

@@ -1,125 +1,125 @@
 <script setup lang="ts">
-import type { BlockKind, BlockStatus } from '#shared/utils/bloecke'
+import type { BlockKind, BlockStatus } from '#shared/utils/blocks'
 import type { TimelineBlock } from '~/utils/timeline'
 
-export interface BlockEntwurf {
-  datum: string
+export interface BlockDraft {
+  date: string
   start: number
-  ende: number
+  end: number
   status: BlockStatus
   kind?: BlockKind
-  aufgabeId?: number | null
-  kontoId?: number | null
-  notiz?: string | null
+  taskId?: number | null
+  accountId?: number | null
+  note?: string | null
 }
 
 const props = defineProps<{
-  /** Bestehender Block (bearbeiten) … */
+  /** Existing block (edit) ... */
   block?: TimelineBlock | null
-  /** … oder Entwurf (anlegen) */
-  entwurf?: BlockEntwurf | null
+  /** ... or draft (create) */
+  draft?: BlockDraft | null
 }>()
-const offen = defineModel<boolean>('open', { default: false })
-const emit = defineEmits<{ gespeichert: [] }>()
+const open = defineModel<boolean>('open', { default: false })
+const emit = defineEmits<{ saved: [] }>()
 
-const pause = ref(false)
-const ziel = ref('')
+const isBreak = ref(false)
+const assignment = ref('')
 const start = ref(0)
-const ende = ref(0)
-const gebucht = ref(true)
-const notiz = ref('')
+const end = ref(0)
+const booked = ref(true)
+const note = ref('')
 
-watch(offen, (jetztOffen) => {
-  if (!jetztOffen) return
-  const quelle = props.block ?? props.entwurf
-  if (!quelle) return
-  pause.value = quelle.kind === 'pause'
-  ziel.value = zielWert(quelle)
-  start.value = quelle.start
-  ende.value = quelle.ende
-  gebucht.value = quelle.status === 'gebucht'
-  notiz.value = quelle.notiz ?? ''
+watch(open, (nowOpen) => {
+  if (!nowOpen) return
+  const source = props.block ?? props.draft
+  if (!source) return
+  isBreak.value = source.kind === 'pause'
+  assignment.value = assignmentValue(source)
+  start.value = source.start
+  end.value = source.end
+  booked.value = source.status === 'gebucht'
+  note.value = source.note ?? ''
 })
 
-const gueltig = computed(() => start.value < ende.value && (pause.value || !!ziel.value))
+const valid = computed(() => start.value < end.value && (isBreak.value || !!assignment.value))
 
-async function speichern() {
+async function save() {
   const body = {
-    kind: pause.value ? 'pause' : 'arbeit',
-    status: gebucht.value ? 'gebucht' : 'geplant',
+    kind: isBreak.value ? 'pause' : 'arbeit',
+    status: booked.value ? 'gebucht' : 'geplant',
     start: start.value,
-    ende: ende.value,
-    ...(pause.value ? { aufgabeId: null, kontoId: null } : zielAusWert(ziel.value)),
-    notiz: notiz.value || null,
+    end: end.value,
+    ...(isBreak.value ? { taskId: null, accountId: null } : assignmentFromValue(assignment.value)),
+    note: note.value || null,
   }
-  const ok = await aktion(
+  const ok = await runAction(
     () => props.block
       ? api(`/api/blocks/${props.block.id}`, { method: 'PATCH', body })
-      : api('/api/blocks', { method: 'POST', body: { ...body, datum: props.entwurf!.datum } }),
-    TAG_KEYS,
+      : api('/api/blocks', { method: 'POST', body: { ...body, date: props.draft!.date } }),
+    DAY_KEYS,
   )
   if (ok) {
-    offen.value = false
-    emit('gespeichert')
+    open.value = false
+    emit('saved')
   }
 }
 
-async function loeschen() {
+async function remove() {
   if (!props.block) return
-  const ok = await aktion(() => api(`/api/blocks/${props.block!.id}`, { method: 'DELETE' }), TAG_KEYS)
-  if (ok) offen.value = false
+  const ok = await runAction(() => api(`/api/blocks/${props.block!.id}`, { method: 'DELETE' }), DAY_KEYS)
+  if (ok) open.value = false
 }
 </script>
 
 <template>
-  <Dialog v-model:open="offen">
+  <Dialog v-model:open="open">
     <DialogContent class="sm:max-w-md">
       <DialogHeader>
         <DialogTitle>{{ block ? 'Block bearbeiten' : 'Neuer Block' }}</DialogTitle>
-        <DialogDescription v-if="block?.vorlageId">
+        <DialogDescription v-if="block?.templateId">
           Termin aus einem wiederkehrenden Block.
         </DialogDescription>
       </DialogHeader>
-      <form class="grid gap-4" @submit.prevent="speichern">
+      <form class="grid gap-4" @submit.prevent="save">
         <div class="flex items-center gap-6">
           <div class="flex items-center gap-2">
-            <Switch id="block-pause" v-model="pause" />
-            <Label for="block-pause">Pause</Label>
+            <Switch id="block-break" v-model="isBreak" />
+            <Label for="block-break">Pause</Label>
           </div>
           <div class="flex items-center gap-2">
-            <Switch id="block-gebucht" v-model="gebucht" />
-            <Label for="block-gebucht">{{ gebucht ? 'Gebucht' : 'Geplant' }}</Label>
+            <Switch id="block-booked" v-model="booked" />
+            <Label for="block-booked">{{ booked ? 'Gebucht' : 'Geplant' }}</Label>
           </div>
         </div>
-        <div v-if="!pause" class="grid gap-2">
+        <div v-if="!isBreak" class="grid gap-2">
           <Label>Aufgabe / Konto</Label>
-          <ZielAuswahl v-model="ziel" />
+          <AssignmentPicker v-model="assignment" />
         </div>
         <div class="flex gap-3">
           <div class="grid gap-2">
             <Label>Von</Label>
-            <UhrzeitInput v-model="start" />
+            <TimeInput v-model="start" />
           </div>
           <div class="grid gap-2">
             <Label>Bis</Label>
-            <UhrzeitInput v-model="ende" />
+            <TimeInput v-model="end" />
           </div>
           <div class="grid gap-2">
             <Label>Dauer</Label>
             <div class="flex h-9 items-center font-mono text-sm text-muted-foreground">
-              {{ start < ende ? formatDauer(ende - start) : '–' }}
+              {{ start < end ? formatDuration(end - start) : '–' }}
             </div>
           </div>
         </div>
         <div class="grid gap-2">
-          <Label for="block-notiz">Notiz</Label>
-          <Textarea id="block-notiz" v-model="notiz" rows="2" />
+          <Label for="block-note">Notiz</Label>
+          <Textarea id="block-note" v-model="note" rows="2" />
         </div>
         <DialogFooter class="gap-2 sm:justify-between">
-          <Button v-if="block" type="button" variant="ghost" class="hover:text-destructive" @click="loeschen">
+          <Button v-if="block" type="button" variant="ghost" class="hover:text-destructive" @click="remove">
             Löschen
           </Button>
-          <Button type="submit" :disabled="!gueltig">
+          <Button type="submit" :disabled="!valid">
             Speichern
           </Button>
         </DialogFooter>

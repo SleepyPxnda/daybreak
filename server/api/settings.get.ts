@@ -1,1 +1,1 @@
-export default defineEventHandler(() => ladeEinstellungen())
+export default defineEventHandler(() => loadSettings())

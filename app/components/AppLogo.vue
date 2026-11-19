@@ -1,5 +1,5 @@
-<!-- daybreak-Icon aus dem cloudypanda-Markensystem: Wolke in der Akzentfarbe, Linien-Symbol (aufgehende Sonne).
-     Geometrie 1:1 aus assets/Icons/daybreak.svg der Marke, Farben über Tokens. public/favicon.svg ist die Originaldatei. -->
+<!-- daybreak icon from the cloudypanda brand system: cloud in the accent color, line symbol (rising sun).
+     Geometry copied 1:1 from the brand's assets/Icons/daybreak.svg, colors via tokens. public/favicon.svg is the original file. -->
 <template>
   <svg viewBox="0 0 64 64" aria-hidden="true">
     <g class="fill-primary">

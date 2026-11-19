@@ -6,7 +6,7 @@ import * as schema from './schema'
 
 export const databaseUrl = process.env.DATABASE_URL || 'file:./data/daybreak.db'
 
-// libsql legt fehlende Verzeichnisse nicht selbst an
+// libsql does not create missing directories itself
 if (databaseUrl.startsWith('file:')) {
   mkdirSync(dirname(databaseUrl.slice('file:'.length)), { recursive: true })
 }

@@ -1,336 +1,336 @@
 <script setup lang="ts">
 import { Minus, Plus, RotateCcw } from '@lucide/vue'
 import { cn } from '@/lib/utils'
-import type { Zeitraum } from '#shared/utils/bloecke'
-import { findeUeberlappung } from '#shared/utils/bloecke'
-import type { Sicht, TimelineBlock } from '~/utils/timeline'
-import { skalenSchritt, verschiebeSicht, zoomeSicht } from '~/utils/timeline'
+import type { TimeRange } from '#shared/utils/blocks'
+import { findOverlap } from '#shared/utils/blocks'
+import type { View, TimelineBlock } from '~/utils/timeline'
+import { scaleStep, shiftView, zoomView } from '~/utils/timeline'
 
 const props = defineProps<{
-  bloecke: TimelineBlock[]
-  /** Standard-Sichtbereich in Minuten (Einstellungen) – Zoom/Verschieben startet hier */
-  von: number
-  bis: number
-  /** Aktuelle Minute, falls der Tag heute ist (Jetzt-Linie) */
-  jetzt?: number
-  /** Kompakt (Woche): flacher, ohne Zoom-Leiste – Zoomen per Strg+Mausrad geht weiterhin */
-  kompakt?: boolean
+  blocks: TimelineBlock[]
+  /** Default visible range in minutes (settings) - zoom/pan starts here */
+  from: number
+  to: number
+  /** Current minute if the day is today (now line) */
+  currentMinute?: number
+  /** Compact (week): flatter, no zoom bar - zooming with Ctrl+wheel still works */
+  compact?: boolean
 }>()
 
 const emit = defineEmits<{
-  anlegen: [zeitraum: Zeitraum]
-  aendern: [id: number, zeitraum: Zeitraum]
-  oeffnen: [block: TimelineBlock]
-  menue: [aktion: 'umschalten' | 'teilen' | 'loeschen' | 'bearbeiten' | 'wiederkehrend', block: TimelineBlock, minute: number]
-  ablegen: [aufgabeId: number, start: number]
-  ablegenMerker: [todoId: number, start: number]
+  create: [range: TimeRange]
+  change: [id: number, range: TimeRange]
+  open: [block: TimelineBlock]
+  menu: [runAction: 'toggle' | 'split' | 'delete' | 'edit' | 'recurring', block: TimelineBlock, minute: number]
+  drop: [taskId: number, start: number]
+  dropReminder: [todoId: number, start: number]
 }>()
 
-const spur = useTemplateRef<HTMLDivElement>('spur')
+const track = useTemplateRef<HTMLDivElement>('track')
 
-const RAND_PX = 8
+const EDGE_PX = 8
 
-// --- Sicht (Zoom & Verschieben) -----------------------------------------
-const sicht = ref<Sicht>({ von: props.von, bis: props.bis })
-const istStandardSicht = computed(() => sicht.value.von === props.von && sicht.value.bis === props.bis)
+// --- View (zoom and pan) -----------------------------------------
+const view = ref<View>({ from: props.from, to: props.to })
+const isDefaultView = computed(() => view.value.from === props.from && view.value.to === props.to)
 
-function sichtZuruecksetzen() {
-  sicht.value = { von: props.von, bis: props.bis }
+function resetView() {
+  view.value = { from: props.from, to: props.to }
 }
-watch(() => [props.von, props.bis], sichtZuruecksetzen)
+watch(() => [props.from, props.to], resetView)
 
-const spanne = computed(() => sicht.value.bis - sicht.value.von)
+const span = computed(() => view.value.to - view.value.from)
 
-function prozent(minute: number): number {
-  return ((Math.min(Math.max(minute, sicht.value.von), sicht.value.bis) - sicht.value.von) / spanne.value) * 100
-}
-
-/** Minute unter dem Mauszeiger, ungerundet */
-function rohMinute(clientX: number): number {
-  const rect = spur.value!.getBoundingClientRect()
-  return sicht.value.von + ((clientX - rect.left) / rect.width) * spanne.value
+function percent(minute: number): number {
+  return ((Math.min(Math.max(minute, view.value.from), view.value.to) - view.value.from) / span.value) * 100
 }
 
-function minuteBei(clientX: number): number {
-  return Math.min(Math.max(aufRaster(rohMinute(clientX)), 0), TAG_MIN)
+/** Minute under the mouse pointer, unrounded */
+function rawMinute(clientX: number): number {
+  const rect = track.value!.getBoundingClientRect()
+  return view.value.from + ((clientX - rect.left) / rect.width) * span.value
 }
 
-function zoomen(faktor: number, anker = (sicht.value.von + sicht.value.bis) / 2) {
-  sicht.value = zoomeSicht(sicht.value, faktor, anker)
+function minuteAt(clientX: number): number {
+  return Math.min(Math.max(snapToGrid(rawMinute(clientX)), 0), DAY_MIN)
 }
 
-/** Strg/⌘ + Rad bzw. Pinch = Zoom um den Mauszeiger; horizontales Scrollen/Shift + Rad = verschieben */
+function zoom(factor: number, anchor = (view.value.from + view.value.to) / 2) {
+  view.value = zoomView(view.value, factor, anchor)
+}
+
+/** Ctrl/Cmd + wheel or pinch = zoom around the pointer; horizontal scroll/Shift + wheel = pan */
 function rad(e: WheelEvent) {
   if (e.ctrlKey || e.metaKey) {
     e.preventDefault()
-    zoomen(Math.exp(e.deltaY * 0.002), rohMinute(e.clientX))
+    zoom(Math.exp(e.deltaY * 0.002), rawMinute(e.clientX))
     return
   }
   const dx = e.shiftKey ? e.deltaY || e.deltaX : e.deltaX
-  if (!dx) return // normales Scrollen bleibt der Seite
+  if (!dx) return // normal scrolling stays with the page
   e.preventDefault()
-  sicht.value = verschiebeSicht(sicht.value, (dx / spur.value!.clientWidth) * spanne.value)
+  view.value = shiftView(view.value, (dx / track.value!.clientWidth) * span.value)
 }
 
-const skala = computed(() => {
-  const schritt = skalenSchritt(spanne.value)
-  const beschriftung = schritt === 15 ? 30 : schritt
-  const liste: { minute: number, label?: string }[] = []
-  for (let m = Math.ceil(sicht.value.von / schritt) * schritt; m <= sicht.value.bis; m += schritt) {
-    liste.push({ minute: m, label: m % beschriftung === 0 ? (beschriftung === 60 ? formatUhrzeit(m).slice(0, 2) : formatUhrzeit(m)) : undefined })
+const scale = computed(() => {
+  const step = scaleStep(span.value)
+  const label = step === 15 ? 30 : step
+  const list: { minute: number, label?: string }[] = []
+  for (let m = Math.ceil(view.value.from / step) * step; m <= view.value.to; m += step) {
+    list.push({ minute: m, label: m % label === 0 ? (label === 60 ? formatTime(m).slice(0, 2) : formatTime(m)) : undefined })
   }
-  return liste
+  return list
 })
 
-const sichtbareBloecke = computed(() => props.bloecke.filter(b => b.ende > sicht.value.von && b.start < sicht.value.bis))
+const visibleBlocks = computed(() => props.blocks.filter(b => b.end > view.value.from && b.start < view.value.to))
 
-// --- Ziehen -------------------------------------------------------------
-type Zug
-  = | { art: 'neu', anker: number, aktuell: number }
-    | { art: 'verschieben' | 'links' | 'rechts', block: TimelineBlock, startMinute: number, aktuell: number, bewegt: boolean }
-    | { art: 'schwenken', startX: number, startSicht: Sicht }
+// --- Dragging -------------------------------------------------------------
+type Move
+  = | { kind: 'create', anchor: number, current: number }
+    | { kind: 'move' | 'left' | 'right', block: TimelineBlock, startMinute: number, current: number, moved: boolean }
+    | { kind: 'pan', startX: number, startView: View }
 
-const zug = ref<Zug | null>(null)
+const drag = ref<Move | null>(null)
 
-/** Vorschau-Zeitraum des laufenden Zugs */
-const vorschau = computed<(Zeitraum & { id?: number }) | null>(() => {
-  const z = zug.value
+/** Preview range of the current drag */
+const preview = computed<(TimeRange & { id?: number }) | null>(() => {
+  const z = drag.value
   if (!z) return null
-  if (z.art === 'schwenken') return null
-  if (z.art === 'neu') {
-    if (z.aktuell === z.anker) return null
-    return { start: Math.min(z.anker, z.aktuell), ende: Math.max(z.anker, z.aktuell) }
+  if (z.kind === 'pan') return null
+  if (z.kind === 'create') {
+    if (z.current === z.anchor) return null
+    return { start: Math.min(z.anchor, z.current), end: Math.max(z.anchor, z.current) }
   }
   const b = z.block
-  const delta = z.aktuell - z.startMinute
-  if (z.art === 'verschieben') {
-    const dauer = b.ende - b.start
-    const start = Math.min(Math.max(b.start + delta, 0), TAG_MIN - dauer)
-    return { id: b.id, start, ende: start + dauer }
+  const delta = z.current - z.startMinute
+  if (z.kind === 'move') {
+    const duration = b.end - b.start
+    const start = Math.min(Math.max(b.start + delta, 0), DAY_MIN - duration)
+    return { id: b.id, start, end: start + duration }
   }
-  if (z.art === 'links') return { id: b.id, start: Math.min(b.start + delta, b.ende - RASTER_MIN), ende: b.ende }
-  return { id: b.id, start: b.start, ende: Math.max(b.ende + delta, b.start + RASTER_MIN) }
+  if (z.kind === 'left') return { id: b.id, start: Math.min(b.start + delta, b.end - GRID_MIN), end: b.end }
+  return { id: b.id, start: b.start, end: Math.max(b.end + delta, b.start + GRID_MIN) }
 })
 
-const vorschauKollidiert = computed(() => {
-  const v = vorschau.value
-  return !!v && !!findeUeberlappung(props.bloecke, v, v.id)
+const previewCollides = computed(() => {
+  const v = preview.value
+  return !!v && !!findOverlap(props.blocks, v, v.id)
 })
 
-function spurPointerDown(e: PointerEvent) {
-  // Mittlere Maustaste: Sicht verschieben (auch über Blöcken)
+function trackPointerDown(e: PointerEvent) {
+  // Middle mouse button: pan the view (also over blocks)
   if (e.button === 1) {
-    e.preventDefault() // kein Autoscroll
-    zug.value = { art: 'schwenken', startX: e.clientX, startSicht: { ...sicht.value } }
-    spur.value!.setPointerCapture(e.pointerId)
+    e.preventDefault() // no autoscroll
+    drag.value = { kind: 'pan', startX: e.clientX, startView: { ...view.value } }
+    track.value!.setPointerCapture(e.pointerId)
     return
   }
-  if (e.button !== 0 || e.target !== spur.value) return
-  const m = minuteBei(e.clientX)
-  zug.value = { art: 'neu', anker: m, aktuell: m }
-  spur.value!.setPointerCapture(e.pointerId)
+  if (e.button !== 0 || e.target !== track.value) return
+  const m = minuteAt(e.clientX)
+  drag.value = { kind: 'create', anchor: m, current: m }
+  track.value!.setPointerCapture(e.pointerId)
 }
 
 function blockPointerDown(e: PointerEvent, block: TimelineBlock) {
-  if (e.button !== 0) return // mittlere Taste bubbelt zur Spur (schwenken)
+  if (e.button !== 0) return // middle button bubbles to the track (panning)
   e.stopPropagation()
   const el = e.currentTarget as HTMLElement
   const rect = el.getBoundingClientRect()
   const x = e.clientX - rect.left
-  const art = x < RAND_PX ? 'links' : x > rect.width - RAND_PX ? 'rechts' : 'verschieben'
-  const m = minuteBei(e.clientX)
-  zug.value = { art, block, startMinute: m, aktuell: m, bewegt: false }
-  spur.value!.setPointerCapture(e.pointerId)
+  const kind = x < EDGE_PX ? 'left' : x > rect.width - EDGE_PX ? 'right' : 'move'
+  const m = minuteAt(e.clientX)
+  drag.value = { kind, block, startMinute: m, current: m, moved: false }
+  track.value!.setPointerCapture(e.pointerId)
 }
 
 function pointerMove(e: PointerEvent) {
-  const z = zug.value
+  const z = drag.value
   if (!z) return
-  if (z.art === 'schwenken') {
-    const delta = ((z.startX - e.clientX) / spur.value!.clientWidth) * (z.startSicht.bis - z.startSicht.von)
-    sicht.value = verschiebeSicht(z.startSicht, delta)
+  if (z.kind === 'pan') {
+    const delta = ((z.startX - e.clientX) / track.value!.clientWidth) * (z.startView.to - z.startView.from)
+    view.value = shiftView(z.startView, delta)
     return
   }
-  const m = minuteBei(e.clientX)
-  if (m === z.aktuell) return
-  z.aktuell = m
-  if (z.art !== 'neu') z.bewegt = true
+  const m = minuteAt(e.clientX)
+  if (m === z.current) return
+  z.current = m
+  if (z.kind !== 'create') z.moved = true
 }
 
 function pointerUp() {
-  const z = zug.value
-  const v = vorschau.value
-  const kollidiert = vorschauKollidiert.value
-  zug.value = null
-  if (!z || z.art === 'schwenken') return
+  const z = drag.value
+  const v = preview.value
+  const collides = previewCollides.value
+  drag.value = null
+  if (!z || z.kind === 'pan') return
 
-  if (z.art !== 'neu' && !z.bewegt) {
-    emit('oeffnen', z.block)
+  if (z.kind !== 'create' && !z.moved) {
+    emit('open', z.block)
     return
   }
-  if (!v || kollidiert) return
-  if (z.art === 'neu') emit('anlegen', { start: v.start, ende: v.ende })
-  else if (v.start !== z.block.start || v.ende !== z.block.ende) emit('aendern', z.block.id, { start: v.start, ende: v.ende })
+  if (!v || collides) return
+  if (z.kind === 'create') emit('create', { start: v.start, end: v.end })
+  else if (v.start !== z.block.start || v.end !== z.block.end) emit('change', z.block.id, { start: v.start, end: v.end })
 }
 
-// --- Rechtsklick-Menü ---------------------------------------------------
-const menueMinute = ref(0)
+// --- Right-click menu ---------------------------------------------------
+const menuMinute = ref(0)
 
-function menueOeffnen(e: MouseEvent) {
-  menueMinute.value = minuteBei(e.clientX)
+function openMenu(e: MouseEvent) {
+  menuMinute.value = minuteAt(e.clientX)
 }
 
-// --- Drop aus „Aufgaben in Arbeit“ bzw. Merker-Liste -------------------
+// --- Drop from the tasks-in-progress widget or the reminder list -------------------
 function drop(e: DragEvent) {
-  const minute = minuteBei(e.clientX)
-  const aufgabeId = Number(e.dataTransfer?.getData(DRAG_AUFGABE))
-  if (aufgabeId) return emit('ablegen', aufgabeId, minute)
-  const todoId = Number(e.dataTransfer?.getData(DRAG_MERKER))
-  if (todoId) emit('ablegenMerker', todoId, minute)
+  const minute = minuteAt(e.clientX)
+  const taskId = Number(e.dataTransfer?.getData(DRAG_TASK))
+  if (taskId) return emit('drop', taskId, minute)
+  const todoId = Number(e.dataTransfer?.getData(DRAG_REMINDER))
+  if (todoId) emit('dropReminder', todoId, minute)
 }
 
-function istAblegbar(e: DragEvent) {
-  const typen = e.dataTransfer?.types ?? []
-  return typen.includes(DRAG_AUFGABE) || typen.includes(DRAG_MERKER)
+function isDroppable(e: DragEvent) {
+  const types = e.dataTransfer?.types ?? []
+  return types.includes(DRAG_TASK) || types.includes(DRAG_REMINDER)
 }
 
-// --- Darstellung --------------------------------------------------------
-function blockKlassen(b: TimelineBlock) {
+// --- Appearance --------------------------------------------------------
+function blockCssClasses(b: TimelineBlock) {
   return cn(
-    b.kind === 'pause' ? 'bg-muted text-muted-foreground ring-1 ring-inset ring-border' : kontoFarbKlassen(b.kontoFarbe).flaeche,
-    // Geplant: gestrichelter Rand (statt Ring) + Schraffur
-    b.status === 'geplant' && 'schraffiert border border-dashed ring-0',
-    zug.value && 'block' in zug.value && zug.value.block.id === b.id && 'opacity-30',
+    b.kind === 'pause' ? 'bg-muted text-muted-foreground ring-1 ring-inset ring-border' : accountColorClasses(b.accountColor).surface,
+    // Planned: dashed border (instead of ring) + hatching
+    b.status === 'geplant' && 'hatched border border-dashed ring-0',
+    drag.value && 'block' in drag.value && drag.value.block.id === b.id && 'opacity-30',
   )
 }
 
-/** Randfarbe gestrichelter (geplanter) Blöcke in Kontofarbe, sonst Linienfarbe */
-function blockStil(b: TimelineBlock) {
+/** Border color of dashed (planned) blocks in the account color, otherwise line color */
+function blockStyle(b: TimelineBlock) {
   if (b.status !== 'geplant') return position(b)
-  const farbe = b.kind === 'pause' || !b.kontoFarbe ? 'var(--color-border)' : `color-mix(in oklch, var(--color-konto-${b.kontoFarbe}) 55%, transparent)`
-  return { ...position(b), borderColor: farbe }
+  const color = b.kind === 'pause' || !b.accountColor ? 'var(--color-border)' : `color-mix(in oklch, var(--color-konto-${b.accountColor}) 55%, transparent)`
+  return { ...position(b), borderColor: color }
 }
 
-function position(z: Zeitraum) {
-  const links = prozent(z.start)
-  return { left: `${links}%`, width: `${Math.max(prozent(z.ende) - links, 0)}%` }
+function position(z: TimeRange) {
+  const links = percent(z.start)
+  return { left: `${links}%`, width: `${Math.max(percent(z.end) - links, 0)}%` }
 }
 </script>
 
 <template>
   <section
     class="select-none"
-    :class="!kompakt && 'overflow-hidden rounded-xl border bg-background'"
-    :aria-label="kompakt ? undefined : 'Zeitleiste'"
+    :class="!compact && 'overflow-hidden rounded-xl border bg-background'"
+    :aria-label="compact ? undefined : 'Zeitleiste'"
   >
-    <!-- Kopfstreifen mit Zoom-Steuerung -->
-    <div v-if="!kompakt" class="flex min-h-11 items-center justify-between gap-2 border-b bg-card px-4">
+    <!-- Header strip with zoom controls -->
+    <div v-if="!compact" class="flex min-h-11 items-center justify-between gap-2 border-b bg-card px-4">
       <span class="text-sm font-semibold">Zeitleiste</span>
       <div class="flex items-center gap-1">
-        <span class="mr-2 font-mono text-xs text-muted-foreground">{{ formatUhrzeit(Math.round(sicht.von)) }}–{{ formatUhrzeit(Math.round(sicht.bis)) }}</span>
-        <Button size="icon-sm" variant="ghost" class="size-7" aria-label="Herauszoomen" @click="zoomen(1.5)">
+        <span class="mr-2 font-mono text-xs text-muted-foreground">{{ formatTime(Math.round(view.from)) }}–{{ formatTime(Math.round(view.to)) }}</span>
+        <Button size="icon-sm" variant="ghost" class="size-7" aria-label="Herauszoomen" @click="zoom(1.5)">
           <Minus />
         </Button>
-        <Button size="icon-sm" variant="ghost" class="size-7" aria-label="Hineinzoomen" @click="zoomen(1 / 1.5)">
+        <Button size="icon-sm" variant="ghost" class="size-7" aria-label="Hineinzoomen" @click="zoom(1 / 1.5)">
           <Plus />
         </Button>
-        <Button size="icon-sm" variant="ghost" class="size-7" aria-label="Zoom zurücksetzen" :disabled="istStandardSicht" @click="sichtZuruecksetzen">
+        <Button size="icon-sm" variant="ghost" class="size-7" aria-label="Zoom zurücksetzen" :disabled="isDefaultView" @click="resetView">
           <RotateCcw />
         </Button>
       </div>
     </div>
 
-    <div :class="!kompakt && 'px-4 pt-3 pb-4'">
-      <!-- Skala -->
+    <div :class="!compact && 'px-4 pt-3 pb-4'">
+      <!-- Scale -->
       <div class="relative h-[18px] overflow-hidden font-mono text-[11px] text-muted-foreground">
         <span
-          v-for="s in skala.filter(s => s.label)"
+          v-for="s in scale.filter(s => s.label)"
           :key="s.minute"
           class="absolute -translate-x-1/2"
-          :style="{ left: `${prozent(s.minute)}%` }"
+          :style="{ left: `${percent(s.minute)}%` }"
         >{{ s.label }}</span>
       </div>
 
       <div
-        ref="spur"
+        ref="track"
         class="relative cursor-crosshair touch-none overflow-hidden rounded-md border bg-card"
-        :class="kompakt ? 'h-14' : 'h-22'"
+        :class="compact ? 'h-14' : 'h-22'"
         title="Strg + Mausrad: zoomen · Shift + Mausrad / mittlere Maustaste: verschieben"
-        @pointerdown="spurPointerDown"
+        @pointerdown="trackPointerDown"
         @pointermove="pointerMove"
         @pointerup="pointerUp"
-        @pointercancel="zug = null"
+        @pointercancel="drag = null"
         @wheel="rad"
-        @dragover="istAblegbar($event) && $event.preventDefault()"
+        @dragover="isDroppable($event) && $event.preventDefault()"
         @drop.prevent="drop"
       >
-        <!-- Stundenlinien -->
+        <!-- Hour lines -->
         <div
-          v-for="s in skala"
+          v-for="s in scale"
           :key="s.minute"
           class="pointer-events-none absolute inset-y-0 w-px"
           :class="s.label ? 'bg-border' : 'bg-border/40'"
-          :style="{ left: `${prozent(s.minute)}%` }"
+          :style="{ left: `${percent(s.minute)}%` }"
         />
 
-        <!-- Blöcke -->
-        <ContextMenu v-for="b in sichtbareBloecke" :key="b.id">
+        <!-- Blocks -->
+        <ContextMenu v-for="b in visibleBlocks" :key="b.id">
           <ContextMenuTrigger as-child>
             <div
               class="absolute flex cursor-grab flex-col justify-center overflow-hidden rounded-[6px] px-2 active:cursor-grabbing"
-              :class="[kompakt ? 'inset-y-1.5' : 'inset-y-2', blockKlassen(b)]"
-              :style="blockStil(b)"
-              :title="`${blockTitel(b)}${b.vorlageName ? ` (${b.aufgabeTitel ?? b.kontoName})` : ''} · ${formatUhrzeit(b.start)}–${formatUhrzeit(b.ende)}${b.notiz ? ` · ${b.notiz}` : ''}`"
+              :class="[compact ? 'inset-y-1.5' : 'inset-y-2', blockCssClasses(b)]"
+              :style="blockStyle(b)"
+              :title="`${blockTitle(b)}${b.templateName ? ` (${b.taskTitle ?? b.accountName})` : ''} · ${formatTime(b.start)}–${formatTime(b.end)}${b.note ? ` · ${b.note}` : ''}`"
               @pointerdown="blockPointerDown($event, b)"
-              @contextmenu="menueOeffnen"
+              @contextmenu="openMenu"
             >
               <span class="absolute inset-y-0 left-0 w-2 cursor-ew-resize" />
-              <span class="truncate text-xs leading-4 font-semibold">{{ blockTitel(b) }}</span>
-              <span class="truncate font-mono text-[11px] leading-4 text-muted-foreground">{{ formatUhrzeit(b.start) }}–{{ formatUhrzeit(b.ende) }}</span>
+              <span class="truncate text-xs leading-4 font-semibold">{{ blockTitle(b) }}</span>
+              <span class="truncate font-mono text-[11px] leading-4 text-muted-foreground">{{ formatTime(b.start) }}–{{ formatTime(b.end) }}</span>
               <span class="absolute inset-y-0 right-0 w-2 cursor-ew-resize" />
             </div>
           </ContextMenuTrigger>
           <ContextMenuContent>
-            <ContextMenuItem @select="emit('menue', 'umschalten', b, menueMinute)">
+            <ContextMenuItem @select="emit('menu', 'toggle', b, menuMinute)">
               {{ b.status === 'geplant' ? 'Buchen' : 'Als geplant markieren' }}
             </ContextMenuItem>
-            <ContextMenuItem @select="emit('menue', 'teilen', b, menueMinute)">
+            <ContextMenuItem @select="emit('menu', 'split', b, menuMinute)">
               Hier teilen
             </ContextMenuItem>
-            <ContextMenuItem @select="emit('menue', 'bearbeiten', b, menueMinute)">
+            <ContextMenuItem @select="emit('menu', 'edit', b, menuMinute)">
               Aufgabe/Konto ändern …
             </ContextMenuItem>
-            <ContextMenuItem v-if="b.kind === 'arbeit' && !b.vorlageId" @select="emit('menue', 'wiederkehrend', b, menueMinute)">
+            <ContextMenuItem v-if="b.kind === 'arbeit' && !b.templateId" @select="emit('menu', 'recurring', b, menuMinute)">
               Als wiederkehrend speichern …
             </ContextMenuItem>
             <ContextMenuSeparator />
-            <ContextMenuItem variant="destructive" @select="emit('menue', 'loeschen', b, menueMinute)">
+            <ContextMenuItem variant="destructive" @select="emit('menu', 'delete', b, menuMinute)">
               Löschen
             </ContextMenuItem>
           </ContextMenuContent>
         </ContextMenu>
 
-        <!-- Vorschau beim Ziehen -->
+        <!-- Preview while dragging -->
         <div
-          v-if="vorschau"
+          v-if="preview"
           class="pointer-events-none absolute inset-y-1 rounded-[6px] border-2 border-dashed"
-          :class="vorschauKollidiert ? 'border-destructive bg-destructive/15' : 'border-primary bg-primary/15'"
-          :style="position(vorschau)"
+          :class="previewCollides ? 'border-destructive bg-destructive/15' : 'border-primary bg-primary/15'"
+          :style="position(preview)"
         >
           <span class="absolute -top-0.5 left-1 font-mono text-[10px]">
-            {{ formatUhrzeit(vorschau.start) }}–{{ formatUhrzeit(vorschau.ende) }}
+            {{ formatTime(preview.start) }}–{{ formatTime(preview.end) }}
           </span>
         </div>
 
-        <!-- Jetzt-Linie -->
+        <!-- Now line -->
         <div
-          v-if="jetzt !== undefined && jetzt >= sicht.von && jetzt <= sicht.bis"
+          v-if="currentMinute !== undefined && currentMinute >= view.from && currentMinute <= view.to"
           class="pointer-events-none absolute inset-y-0 w-0.5 bg-primary"
-          :style="{ left: `${prozent(jetzt)}%` }"
+          :style="{ left: `${percent(currentMinute)}%` }"
         />
       </div>
 
-      <!-- Inhalt unter der Spur (z. B. Fortschritt auf „Heute“) -->
+      <!-- Content below the track (e.g. progress on the today page) -->
       <slot />
     </div>
   </section>

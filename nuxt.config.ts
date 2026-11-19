@@ -4,9 +4,9 @@ import { dirname, join } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 
 /**
- * libsql lädt sein natives Binary dynamisch (`require(`@libsql/${target}`)`), das erkennt
- * Nitros Dependency-Tracing nicht. Wir geben das installierte Plattform-Paket explizit mit –
- * installiert ist jeweils nur das passende (win32-x64-msvc lokal, linux-x64-gnu im Container).
+ * libsql loads its native binary dynamically (`require(`@libsql/${target}`)`), which
+ * Nitro's dependency tracing does not detect. We pass the installed platform package explicitly -
+ * only the matching one is installed (win32-x64-msvc locally, linux-x64-gnu in the container).
  */
 function libsqlNativeBinaries(): string[] {
   const requireFromClient = createRequire(createRequire(import.meta.url).resolve('@libsql/client'))

@@ -1,71 +1,71 @@
-import type { BlockKind, BlockStatus } from '#shared/utils/bloecke'
+import type { BlockKind, BlockStatus } from '#shared/utils/blocks'
 
-/** Block wie ihn GET /api/blocks liefert (inkl. Anzeige-Infos). */
+/** Block as returned by GET /api/blocks (incl. display info). */
 export interface TimelineBlock {
   id: number
-  datum: string
+  date: string
   start: number
-  ende: number
+  end: number
   kind: BlockKind
   status: BlockStatus
-  aufgabeId: number | null
-  kontoId: number | null
-  notiz: string | null
-  vorlageId: number | null
-  aufgabeKey: string | null
-  aufgabeTitel: string | null
-  kontoName: string | null
-  kontoFarbe: string | null
-  vorlageName: string | null
+  taskId: number | null
+  accountId: number | null
+  note: string | null
+  templateId: number | null
+  taskKey: string | null
+  taskTitle: string | null
+  accountName: string | null
+  accountColor: string | null
+  templateName: string | null
 }
 
 /**
- * Plan §3.2: Aufgaben-Titel (bzw. Key + Titel), sonst Konto-Name; Pausen heißen „Pause“.
- * Termine benannter wiederkehrender Blöcke zeigen den Vorlagen-Namen (z. B. „Daily“).
+ * Task title (or key + title), otherwise account name; breaks are titled "Pause".
+ * Appointments of named recurring blocks show the template name (e.g. "Daily").
  */
-export function blockTitel(b: Pick<TimelineBlock, 'kind' | 'aufgabeKey' | 'aufgabeTitel' | 'kontoName' | 'vorlageName'>): string {
+export function blockTitle(b: Pick<TimelineBlock, 'kind' | 'taskKey' | 'taskTitle' | 'accountName' | 'templateName'>): string {
   if (b.kind === 'pause') return 'Pause'
-  if (b.vorlageName) return b.vorlageName
-  if (b.aufgabeTitel) return b.aufgabeKey ? `${b.aufgabeKey} ${b.aufgabeTitel}` : b.aufgabeTitel
-  return b.kontoName ?? '–'
+  if (b.templateName) return b.templateName
+  if (b.taskTitle) return b.taskKey ? `${b.taskKey} ${b.taskTitle}` : b.taskTitle
+  return b.accountName ?? '–'
 }
 
-/** MIME-Typen für Drag & Drop auf die Timeline */
-export const DRAG_AUFGABE = 'application/x-daybreak-aufgabe'
-export const DRAG_MERKER = 'application/x-daybreak-merker'
+/** MIME types for drag & drop onto the timeline */
+export const DRAG_TASK = 'application/x-daybreak-task'
+export const DRAG_REMINDER = 'application/x-daybreak-reminder'
 
-// --- Zoom & Verschieben ---------------------------------------------------
+// --- Zoom & shift ---------------------------------------------------
 
-/** Sichtbarer Ausschnitt der Timeline in Minuten seit Mitternacht */
-export interface Sicht {
-  von: number
-  bis: number
+/** Visible range of the timeline in minutes since midnight */
+export interface View {
+  from: number
+  to: number
 }
 
-export const SICHT_MIN_SPANNE = 60
-export const SICHT_MAX_SPANNE = 24 * 60
+export const VIEW_MIN_SPAN = 60
+export const VIEW_MAX_SPAN = 24 * 60
 
-/** Verschiebt die Sicht um `delta` Minuten, ohne den Tag (0–24 Uhr) zu verlassen. */
-export function verschiebeSicht(sicht: Sicht, delta: number): Sicht {
-  const spanne = sicht.bis - sicht.von
-  const von = Math.min(Math.max(sicht.von + delta, 0), SICHT_MAX_SPANNE - spanne)
-  return { von, bis: von + spanne }
+/** Shifts the view by `delta` minutes without leaving the day (0-24 h). */
+export function shiftView(view: View, delta: number): View {
+  const span = view.to - view.from
+  const from = Math.min(Math.max(view.from + delta, 0), VIEW_MAX_SPAN - span)
+  return { from, to: from + span }
 }
 
 /**
- * Zoomt um `faktor` (< 1 rein, > 1 raus) so, dass die Minute `anker` an derselben Bildschirmstelle bleibt.
- * Spanne wird auf 1 h … 24 h begrenzt.
+ * Zooms by `factor` (< 1 in, > 1 out) so that the minute `anchor` stays at the same screen position.
+ * The span is limited to 1 h ... 24 h.
  */
-export function zoomeSicht(sicht: Sicht, faktor: number, anker: number): Sicht {
-  const spanne = sicht.bis - sicht.von
-  const neueSpanne = Math.min(Math.max(spanne * faktor, SICHT_MIN_SPANNE), SICHT_MAX_SPANNE)
-  const anteil = (anker - sicht.von) / spanne
-  return verschiebeSicht({ von: anker - anteil * neueSpanne, bis: anker - anteil * neueSpanne + neueSpanne }, 0)
+export function zoomView(view: View, factor: number, anchor: number): View {
+  const span = view.to - view.from
+  const newSpan = Math.min(Math.max(span * factor, VIEW_MIN_SPAN), VIEW_MAX_SPAN)
+  const share = (anchor - view.from) / span
+  return shiftView({ from: anchor - share * newSpan, to: anchor - share * newSpan + newSpan }, 0)
 }
 
-/** Abstand der Skalenlinien je nach Zoomstufe */
-export function skalenSchritt(spanne: number): number {
-  if (spanne <= 180) return 15
-  if (spanne <= 480) return 30
+/** Spacing of the scale lines depending on the zoom level */
+export function scaleStep(span: number): number {
+  if (span <= 180) return 15
+  if (span <= 480) return 30
   return 60
 }

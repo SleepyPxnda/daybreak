@@ -1,52 +1,52 @@
 <script setup lang="ts">
-import type { TodoArt } from '#shared/utils/todos'
-import { TODO_ARTEN } from '#shared/utils/todos'
-import type { TodoZeile } from '~/composables/useTodos'
+import type { TodoKind } from '#shared/utils/todos'
+import { TODO_KINDS } from '#shared/utils/todos'
+import type { TodoRow } from '~/composables/useTodos'
 
-const props = defineProps<{ todo: TodoZeile | null }>()
-const offen = defineModel<boolean>('open', { default: false })
+const props = defineProps<{ todo: TodoRow | null }>()
+const open = defineModel<boolean>('open', { default: false })
 
-const art = ref<TodoArt>('merker')
+const kind = ref<TodoKind>('merker')
 const text = ref('')
-const wer = ref('')
-const stichtag = ref('')
-const ziel = ref('')
+const person = ref('')
+const cutoffDate = ref('')
+const assignment = ref('')
 
-watch(offen, (jetztOffen) => {
+watch(open, (nowOpen) => {
   const t = props.todo
-  if (!jetztOffen || !t) return
-  art.value = t.art
+  if (!nowOpen || !t) return
+  kind.value = t.kind
   text.value = t.text
-  wer.value = t.wer ?? ''
-  stichtag.value = (t.art === 'warten' ? t.nachfassenAm : t.faelligAm) ?? ''
-  ziel.value = zielWert(t)
+  person.value = t.person ?? ''
+  cutoffDate.value = (t.kind === 'warten' ? t.followUpDate : t.dueDate) ?? ''
+  assignment.value = assignmentValue(t)
 })
 
-async function speichern() {
+async function save() {
   if (!props.todo) return
-  const ok = await aktion(() => api(`/api/todos/${props.todo!.id}`, {
+  const ok = await runAction(() => api(`/api/todos/${props.todo!.id}`, {
     method: 'PATCH',
     body: {
-      art: art.value,
+      kind: kind.value,
       text: text.value,
-      wer: art.value === 'warten' ? wer.value : null,
-      nachfassenAm: art.value === 'warten' ? stichtag.value || null : null,
-      faelligAm: art.value === 'merker' ? stichtag.value || null : null,
-      ...zielAusWert(ziel.value),
+      person: kind.value === 'warten' ? person.value : null,
+      followUpDate: kind.value === 'warten' ? cutoffDate.value || null : null,
+      dueDate: kind.value === 'merker' ? cutoffDate.value || null : null,
+      ...assignmentFromValue(assignment.value),
     },
   }), TODO_KEYS)
-  if (ok) offen.value = false
+  if (ok) open.value = false
 }
 
-async function loeschen() {
+async function remove() {
   if (!props.todo) return
-  const ok = await aktion(() => api(`/api/todos/${props.todo!.id}`, { method: 'DELETE' }), TODO_KEYS)
-  if (ok) offen.value = false
+  const ok = await runAction(() => api(`/api/todos/${props.todo!.id}`, { method: 'DELETE' }), TODO_KEYS)
+  if (ok) open.value = false
 }
 </script>
 
 <template>
-  <Dialog v-model:open="offen">
+  <Dialog v-model:open="open">
     <DialogContent class="sm:max-w-md">
       <DialogHeader>
         <DialogTitle>Eintrag bearbeiten</DialogTitle>
@@ -54,43 +54,43 @@ async function loeschen() {
           Merker, Warten auf oder Daily-Thema bearbeiten
         </DialogDescription>
       </DialogHeader>
-      <form class="grid gap-4" @submit.prevent="speichern">
+      <form class="grid gap-4" @submit.prevent="save">
         <div class="grid gap-1.5">
           <Label class="text-xs font-normal text-muted-foreground">Art</Label>
-          <Select v-model="art">
+          <Select v-model="kind">
             <SelectTrigger class="w-full rounded-md data-[size=default]:h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="a in TODO_ARTEN" :key="a.art" :value="a.art">
-                {{ a.einzahl }}
+              <SelectItem v-for="a in TODO_KINDS" :key="a.kind" :value="a.kind">
+                {{ a.singular }}
               </SelectItem>
             </SelectContent>
           </Select>
         </div>
-        <div v-if="art === 'warten'" class="grid gap-2">
-          <Label for="todo-wer" class="text-xs font-normal text-muted-foreground">Auf wen</Label>
-          <Input id="todo-wer" v-model="wer" class="h-9 rounded-md" placeholder="z. B. Tim" />
+        <div v-if="kind === 'warten'" class="grid gap-2">
+          <Label for="todo-person" class="text-xs font-normal text-muted-foreground">Auf wen</Label>
+          <Input id="todo-person" v-model="person" class="h-9 rounded-md" placeholder="z. B. Tim" />
         </div>
         <div class="grid gap-1.5">
           <Label for="todo-text" class="text-xs font-normal text-muted-foreground">Text</Label>
           <Textarea id="todo-text" v-model="text" rows="2" required class="rounded-md" />
         </div>
-        <div v-if="art !== 'daily'" class="grid gap-2">
-          <Label for="todo-stichtag" class="text-xs font-normal text-muted-foreground">{{ art === 'warten' ? 'Nachfassen am' : 'Fällig am' }} (optional)</Label>
-          <Input id="todo-stichtag" v-model="stichtag" type="date" class="h-9 w-44 rounded-md font-mono" />
+        <div v-if="kind !== 'daily'" class="grid gap-2">
+          <Label for="todo-cutoff-date" class="text-xs font-normal text-muted-foreground">{{ kind === 'warten' ? 'Nachfassen am' : 'Fällig am' }} (optional)</Label>
+          <Input id="todo-cutoff-date" v-model="cutoffDate" type="date" class="h-9 w-44 rounded-md font-mono" />
         </div>
         <div class="grid gap-1.5">
           <Label class="text-xs font-normal text-muted-foreground">Bezug (optional)</Label>
           <div class="flex gap-2">
-            <ZielAuswahl v-model="ziel" />
-            <Button v-if="ziel" type="button" variant="ghost" @click="ziel = ''">
+            <AssignmentPicker v-model="assignment" />
+            <Button v-if="assignment" type="button" variant="ghost" @click="assignment = ''">
               Entfernen
             </Button>
           </div>
         </div>
         <DialogFooter class="gap-2 sm:justify-between">
-          <Button type="button" variant="ghost" @click="loeschen">
+          <Button type="button" variant="ghost" @click="remove">
             Löschen
           </Button>
           <Button type="submit" :disabled="!text.trim()">

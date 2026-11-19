@@ -1,27 +1,27 @@
 import type { SQL } from 'drizzle-orm'
 import { and, asc, desc, eq, isNotNull, isNull } from 'drizzle-orm'
 import { z } from 'zod'
-import { aufgabe, konto, todo } from '../../db/schema'
+import { task, account, todo } from '../../db/schema'
 import { db } from '../../db/client'
 
 const querySchema = z.object({
-  art: z.enum(['merker', 'daily', 'warten']).optional(),
-  /** offen (Default) oder erledigt (Archiv) */
-  status: z.enum(['offen', 'erledigt']).default('offen'),
-  aufgabeId: z.coerce.number().int().positive().optional(),
+  kind: z.enum(['merker', 'daily', 'warten']).optional(),
+  /** open (default) or done (archive) */
+  status: z.enum(['open', 'done']).default('open'),
+  taskId: z.coerce.number().int().positive().optional(),
 })
 
 export default defineEventHandler(async (event) => {
   const query = await getValidatedQuery(event, querySchema.parse)
-  const filter: SQL[] = [query.status === 'offen' ? isNull(todo.erledigtAm) : isNotNull(todo.erledigtAm)]
-  if (query.art) filter.push(eq(todo.art, query.art))
-  if (query.aufgabeId) filter.push(eq(todo.aufgabeId, query.aufgabeId))
+  const filter: SQL[] = [query.status === 'open' ? isNull(todo.doneAt) : isNotNull(todo.doneAt)]
+  if (query.kind) filter.push(eq(todo.kind, query.kind))
+  if (query.taskId) filter.push(eq(todo.taskId, query.taskId))
 
-  return db.select(todoMitBezug)
+  return db.select(todoWithReference)
     .from(todo)
-    .leftJoin(aufgabe, eq(aufgabe.id, todo.aufgabeId))
-    .leftJoin(konto, eq(konto.id, todo.kontoId))
+    .leftJoin(task, eq(task.id, todo.taskId))
+    .leftJoin(account, eq(account.id, todo.accountId))
     .where(and(...filter))
-    .orderBy(...(query.status === 'offen' ? [asc(todo.sortierung), asc(todo.id)] : [desc(todo.erledigtAm)]))
-    .limit(query.status === 'offen' ? 500 : 200)
+    .orderBy(...(query.status === 'open' ? [asc(todo.sortOrder), asc(todo.id)] : [desc(todo.doneAt)]))
+    .limit(query.status === 'open' ? 500 : 200)
 })

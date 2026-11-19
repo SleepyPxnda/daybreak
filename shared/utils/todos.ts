@@ -1,76 +1,76 @@
-import type { SollEinstellungen } from './soll'
-import { tagesInfo } from './soll'
-import type { Datum } from './zeit'
-import { plusTage, tageZwischen, zuDatum } from './zeit'
+import type { TargetSettings } from './target'
+import { dayInfo } from './target'
+import type { IsoDate } from './time'
+import { addDays, daysBetween, toIsoDate } from './time'
 
-export type TodoArt = 'merker' | 'daily' | 'warten'
+export type TodoKind = 'merker' | 'daily' | 'warten'
 
-export const TODO_ARTEN: { art: TodoArt, titel: string, einzahl: string }[] = [
-  { art: 'merker', titel: 'Merker', einzahl: 'Merker' },
-  { art: 'warten', titel: 'Warten auf', einzahl: 'Warten auf' },
-  { art: 'daily', titel: 'Daily-Themen', einzahl: 'Daily-Thema' },
+export const TODO_KINDS: { kind: TodoKind, title: string, singular: string }[] = [
+  { kind: 'merker', title: 'Merker', singular: 'Merker' },
+  { kind: 'warten', title: 'Warten auf', singular: 'Warten auf' },
+  { kind: 'daily', title: 'Daily-Themen', singular: 'Daily-Thema' },
 ]
 
-/** Standard-Abstand für „nachgefasst“ (Plan §3.6) */
-export const NACHFASSEN_ARBEITSTAGE = 3
+/** Default interval for "followed up" */
+export const FOLLOW_UP_WORKDAYS = 3
 
 export interface TodoBasis {
   id: number
-  art: TodoArt
-  sortierung: number
-  nachfassenAm?: Datum | null
-  faelligAm?: Datum | null
-  erledigtAm?: string | null
-  erstelltAm: string
+  kind: TodoKind
+  sortOrder: number
+  followUpDate?: IsoDate | null
+  dueDate?: IsoDate | null
+  doneAt?: string | null
+  createdAt: string
 }
 
-/** Nächster Tag, der `n` reguläre Arbeitstage (ohne Wochenende/Feiertag) nach `datum` liegt. */
-export function plusArbeitstage(datum: Datum, n: number, einstellungen: SollEinstellungen): Datum {
-  let d = datum
-  let rest = n
-  while (rest > 0) {
-    d = plusTage(d, 1)
-    if (tagesInfo(d, undefined, einstellungen).istArbeitstag) rest--
+/** Next day that lies `n` regular workdays (excluding weekends/holidays) after the given date. */
+export function addWorkdays(date: IsoDate, n: number, settings: TargetSettings): IsoDate {
+  let d = date
+  let carryover = n
+  while (carryover > 0) {
+    d = addDays(d, 1)
+    if (dayInfo(d, undefined, settings).isWorkday) carryover--
   }
   return d
 }
 
-/** Das für die Hervorhebung relevante Datum: Nachfassen (warten) bzw. Fälligkeit (merker). */
-export function stichtag(todo: Pick<TodoBasis, 'art' | 'nachfassenAm' | 'faelligAm'>): Datum | null {
-  if (todo.art === 'warten') return todo.nachfassenAm ?? null
-  if (todo.art === 'merker') return todo.faelligAm ?? null
+/** The date relevant for highlighting: follow-up (waiting-for) or due date (reminder). */
+export function cutoffDate(todo: Pick<TodoBasis, 'kind' | 'followUpDate' | 'dueDate'>): IsoDate | null {
+  if (todo.kind === 'warten') return todo.followUpDate ?? null
+  if (todo.kind === 'merker') return todo.dueDate ?? null
   return null
 }
 
-export function istFaellig(todo: Pick<TodoBasis, 'art' | 'nachfassenAm' | 'faelligAm'>, heute: Datum): boolean {
-  const tag = stichtag(todo)
-  return tag !== null && tag <= heute
+export function isDue(todo: Pick<TodoBasis, 'kind' | 'followUpDate' | 'dueDate'>, today: IsoDate): boolean {
+  const day = cutoffDate(todo)
+  return day !== null && day <= today
 }
 
-/** Alter in ganzen Tagen seit dem Anlegen („seit 5 Tagen“). erstelltAm ist ein ISO-Timestamp (UTC). */
-export function tageSeit(erstelltAm: string, heute: Datum): number {
-  return Math.max(0, tageZwischen(zuDatum(new Date(erstelltAm)), heute))
+/** Age in whole days since creation ("for 5 days"). The creation timestamp is an ISO timestamp (UTC). */
+export function daysSince(createdAt: string, today: IsoDate): number {
+  return Math.max(0, daysBetween(toIsoDate(new Date(createdAt)), today))
 }
 
-export function alterText(tage: number): string {
-  if (tage === 0) return 'seit heute'
-  if (tage === 1) return 'seit gestern'
-  return `seit ${tage} Tagen`
+export function alterText(days: number): string {
+  if (days === 0) return 'seit heute'
+  if (days === 1) return 'seit gestern'
+  return `seit ${days} Tagen`
 }
 
 /**
- * Anzeige-Reihenfolge: fällige/überfällige zuerst (ältester Stichtag oben), dann manuelle Sortierung.
- * Plan §3.6: „Warten auf“ ab dem Nachfass-Datum hervorgehoben und oben in der Liste.
+ * Display order: due/overdue first (oldest cutoff on top), then manual ordering.
+ * Waiting-for items are highlighted and listed on top from the follow-up date.
  */
-export function sortiereTodos<T extends TodoBasis>(todos: T[], heute: Datum): T[] {
+export function sortTodos<T extends TodoBasis>(todos: T[], today: IsoDate): T[] {
   return [...todos].sort((a, b) => {
-    const fa = istFaellig(a, heute)
-    const fb = istFaellig(b, heute)
+    const fa = isDue(a, today)
+    const fb = isDue(b, today)
     if (fa !== fb) return fa ? -1 : 1
     if (fa && fb) {
-      const diff = stichtag(a)!.localeCompare(stichtag(b)!)
+      const diff = cutoffDate(a)!.localeCompare(cutoffDate(b)!)
       if (diff) return diff
     }
-    return a.sortierung - b.sortierung || a.id - b.id
+    return a.sortOrder - b.sortOrder || a.id - b.id
   })
 }

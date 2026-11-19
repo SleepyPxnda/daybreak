@@ -3,31 +3,31 @@ import { z } from 'zod'
 import { todo } from '../../db/schema'
 import { db } from '../../db/client'
 
-const schema = todoFelder.partial().extend({
-  /** erledigt / besprochen (true) bzw. wieder öffnen (false) */
-  erledigt: z.boolean().optional(),
+const schema = todoFields.partial().extend({
+  /** done / discussed (true) or reopen (false) */
+  done: z.boolean().optional(),
 })
 
 export default defineEventHandler(async (event) => {
-  const id = await idAusRoute(event)
-  const { erledigt, ...daten } = await readValidatedBody(event, schema.parse)
-  const [alt] = await db.select().from(todo).where(eq(todo.id, id))
-  if (!alt) nichtGefunden('Eintrag')
+  const id = await idFromRoute(event)
+  const { done, ...data } = await readValidatedBody(event, schema.parse)
+  const [previous] = await db.select().from(todo).where(eq(todo.id, id))
+  if (!previous) notFound('Eintrag')
 
-  const art = daten.art ?? alt.art
-  const werte: Record<string, unknown> = bereinigeTodo(art, daten)
-  // Beim Wechsel der Art unpassende Felder leeren
-  if (daten.art && daten.art !== alt.art) Object.assign(werte, bereinigeTodo(art, { wer: alt.wer, nachfassenAm: alt.nachfassenAm, faelligAm: alt.faelligAm }))
+  const kind = data.kind ?? previous.kind
+  const values: Record<string, unknown> = cleanTodo(kind, data)
+  // On a change of kind, clear fields that no longer fit
+  if (data.kind && data.kind !== previous.kind) Object.assign(values, cleanTodo(kind, { person: previous.person, followUpDate: previous.followUpDate, dueDate: previous.dueDate }))
 
-  if (daten.aufgabeId !== undefined || daten.kontoId !== undefined) {
-    const aufgabeId = daten.aufgabeId !== undefined ? daten.aufgabeId : alt.aufgabeId
-    const kontoId = daten.aufgabeId ? null : (daten.kontoId !== undefined ? daten.kontoId : alt.kontoId)
-    Object.assign(werte, aufgabeId == null && kontoId == null
-      ? { aufgabeId: null, kontoId: null }
-      : await loeseZielAuf({ kind: 'arbeit', aufgabeId, kontoId }))
+  if (data.taskId !== undefined || data.accountId !== undefined) {
+    const taskId = data.taskId !== undefined ? data.taskId : previous.taskId
+    const accountId = data.taskId ? null : (data.accountId !== undefined ? data.accountId : previous.accountId)
+    Object.assign(values, taskId == null && accountId == null
+      ? { taskId: null, accountId: null }
+      : await resolveAssignment({ kind: 'arbeit', taskId, accountId }))
   }
-  if (erledigt !== undefined) werte.erledigtAm = erledigt ? new Date().toISOString() : null
+  if (done !== undefined) values.doneAt = done ? new Date().toISOString() : null
 
-  const [geaendert] = await db.update(todo).set(werte).where(eq(todo.id, id)).returning()
-  return geaendert!
+  const [changed] = await db.update(todo).set(values).where(eq(todo.id, id)).returning()
+  return changed!
 })

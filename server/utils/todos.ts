@@ -1,37 +1,37 @@
 import { getTableColumns } from 'drizzle-orm'
 import { z } from 'zod'
-import { aufgabe, konto, todo } from '../db/schema'
-import { datumSchema } from '#shared/utils/einstellungen'
+import { task, account, todo } from '../db/schema'
+import { dateSchema } from '#shared/utils/settings'
 
-/** Felder ohne Defaults – Basis für PATCH. */
-export const todoFelder = z.object({
-  art: z.enum(['merker', 'daily', 'warten']),
+/** Fields without defaults - basis for PATCH. */
+export const todoFields = z.object({
+  kind: z.enum(['merker', 'daily', 'warten']),
   text: z.string().trim().min(1).max(1000),
-  wer: z.string().trim().max(100).transform(w => w || null).nullable(),
-  nachfassenAm: datumSchema.nullable(),
-  faelligAm: datumSchema.nullable(),
-  aufgabeId: z.number().int().positive().nullable(),
-  kontoId: z.number().int().positive().nullable(),
+  person: z.string().trim().max(100).transform(w => w || null).nullable(),
+  followUpDate: dateSchema.nullable(),
+  dueDate: dateSchema.nullable(),
+  taskId: z.number().int().positive().nullable(),
+  accountId: z.number().int().positive().nullable(),
 })
 
-export const todoAnlegenSchema = todoFelder.partial().required({ art: true, text: true })
+export const todoCreateSchema = todoFields.partial().required({ kind: true, text: true })
 
-/** Felder, die zur Art nicht passen, verwerfen (wer/nachfassen nur bei warten, fällig nur bei merker). */
-export function bereinigeTodo<T extends Partial<z.infer<typeof todoFelder>>>(art: string, daten: T): T {
-  const sauber = { ...daten }
-  if (art !== 'warten') {
-    if ('wer' in sauber) sauber.wer = null
-    if ('nachfassenAm' in sauber) sauber.nachfassenAm = null
+/** Discard fields that do not fit the kind (who/follow-up only for waiting-for, due only for reminder). */
+export function cleanTodo<T extends Partial<z.infer<typeof todoFields>>>(kind: string, data: T): T {
+  const clean = { ...data }
+  if (kind !== 'warten') {
+    if ('wer' in clean) clean.person = null
+    if ('followUpDate' in clean) clean.followUpDate = null
   }
-  if (art !== 'merker' && 'faelligAm' in sauber) sauber.faelligAm = null
-  return sauber
+  if (kind !== 'merker' && 'dueDate' in clean) clean.dueDate = null
+  return clean
 }
 
-/** Todo + Bezug (Aufgabe/Konto) für die Anzeige – für Queries mit LEFT JOIN aufgabe/konto. */
-export const todoMitBezug = {
+/** Todo + reference (task/account) for display - for queries with LEFT JOIN on task/account. */
+export const todoWithReference = {
   ...getTableColumns(todo),
-  aufgabeKey: aufgabe.key,
-  aufgabeTitel: aufgabe.titel,
-  kontoName: konto.name,
-  kontoFarbe: konto.farbe,
+  taskKey: task.key,
+  taskTitle: task.title,
+  accountName: account.name,
+  accountColor: account.color,
 }

@@ -1,7 +1,7 @@
 import { runMigrations } from '../db/migrate'
 
-// Migrationen beim Serverstart (lokal wie im Container). Nitro-Plugins laufen synchron,
-// daher wartet zusätzlich server/middleware/00.migrations.ts vor jedem Request.
+// Migrations on server start (locally and in the container). Nitro plugins run synchronously,
+// so server/middleware/00.migrations.ts additionally waits before every request.
 export default defineNitroPlugin(() => {
   runMigrations()
     .then(() => console.info('[daybreak] Migrationen angewendet'))
