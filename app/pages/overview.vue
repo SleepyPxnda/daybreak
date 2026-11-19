@@ -103,7 +103,7 @@ function browse(direction: number) {
         </div>
       </div>
 
-      <p v-if="rangeError" class="text-sm text-negativ">
+      <p v-if="rangeError" class="text-sm text-negative">
         {{ rangeError }}
       </p>
       <MonthClosing v-else-if="mode === 'month-closing'" :from="range.from" :to="range.to" />

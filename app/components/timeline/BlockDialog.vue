@@ -33,11 +33,11 @@ watch(open, (nowOpen) => {
   if (!nowOpen) return
   const source = props.block ?? props.draft
   if (!source) return
-  isBreak.value = source.kind === 'pause'
+  isBreak.value = source.kind === 'break'
   assignment.value = assignmentValue(source)
   start.value = source.start
   end.value = source.end
-  booked.value = source.status === 'gebucht'
+  booked.value = source.status === 'booked'
   note.value = source.note ?? ''
 })
 
@@ -45,8 +45,8 @@ const valid = computed(() => start.value < end.value && (isBreak.value || !!assi
 
 async function save() {
   const body = {
-    kind: isBreak.value ? 'pause' : 'arbeit',
-    status: booked.value ? 'gebucht' : 'geplant',
+    kind: isBreak.value ? 'break' : 'work',
+    status: booked.value ? 'booked' : 'planned',
     start: start.value,
     end: end.value,
     ...(isBreak.value ? { taskId: null, accountId: null } : assignmentFromValue(assignment.value)),

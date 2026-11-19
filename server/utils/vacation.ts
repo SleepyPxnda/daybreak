@@ -11,7 +11,7 @@ const daysSchema = z.number().min(-366).max(366).refine(t => Number.isInteger(t 
 
 export const entitlementFields = z.object({
   year: z.number().int().min(2000).max(2100),
-  kind: z.enum(['grund', 'zusatz', 'rest']),
+  kind: z.enum(['base', 'extra', 'carryover']),
   label: z.string().trim().min(1).max(100),
   days: daysSchema,
 })

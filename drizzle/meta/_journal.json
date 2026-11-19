@@ -29,6 +29,20 @@
       "when": 1792408246702,
       "tag": "0003_tag_bestaetigt",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1795082622304,
+      "tag": "0004_english_names",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1795082648925,
+      "tag": "0005_english_values",
+      "breakpoints": true
     }
   ]
 }

@@ -54,7 +54,7 @@ export function templateAppliesOn(template: TemplateRule, date: IsoDate): boolea
 
 /** Templates only generate on regular workdays without a full-day absence. */
 export function templatesAllowedOn(info: DayInfo): boolean {
-  return info.isWorkday && (info.type === 'arbeit' || info.type === 'halb_urlaub')
+  return info.isWorkday && (info.type === 'work' || info.type === 'half_vacation')
 }
 
 /** Which planned blocks are missing in the range? Pure - writes nothing. */

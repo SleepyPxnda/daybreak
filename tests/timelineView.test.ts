@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { blockTitle, scaleStep, shiftView, zoomView } from '../app/utils/timeline'
 
 describe('blockTitle', () => {
-  const basis = { kind: 'arbeit' as const, taskKey: null, taskTitle: null, accountName: 'Firmenmeeting', templateName: null }
+  const basis = { kind: 'work' as const, taskKey: null, taskTitle: null, accountName: 'Firmenmeeting', templateName: null }
 
   it('template name takes precedence over task/account, break stays a break', () => {
     expect(blockTitle({ ...basis, templateName: 'Daily' })).toBe('Daily')
     expect(blockTitle({ ...basis, taskKey: 'P-1', taskTitle: 'Login' })).toBe('P-1 Login')
     expect(blockTitle(basis)).toBe('Firmenmeeting')
-    expect(blockTitle({ ...basis, kind: 'pause', templateName: 'Mittag' })).toBe('Pause')
+    expect(blockTitle({ ...basis, kind: 'break', templateName: 'Mittag' })).toBe('Pause')
   })
 })
 

@@ -19,7 +19,7 @@ export interface AssignmentInput {
  * Breaks have neither task nor account.
  */
 export async function resolveAssignment(input: AssignmentInput, tx: Executor = db): Promise<{ taskId: number | null, accountId: number | null }> {
-  if (input.kind === 'pause') return { taskId: null, accountId: null }
+  if (input.kind === 'break') return { taskId: null, accountId: null }
 
   if (input.taskId != null) {
     const [a] = await tx.select({ accountId: task.accountId }).from(task).where(eq(task.id, input.taskId))

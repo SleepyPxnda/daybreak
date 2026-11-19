@@ -6,9 +6,9 @@ import TodoList from '~/components/todos/TodoList.vue'
 // Today cards: open reminders, waiting-for items, daily topics.
 // Shows all open waiting-for items, with due ones highlighted and on top.
 const { byKind } = useOpenTodos()
-const reminder = byKind('merker')
-const waitingFor = byKind('warten')
-const daily = byKind('daily')
+const reminder = byKind('reminder')
+const waitingFor = byKind('waiting_for')
+const daily = byKind('daily_topic')
 const countDue = computed(() => waitingFor.value.filter(t => isDue(t, today())).length)
 </script>
 
@@ -23,20 +23,20 @@ const countDue = computed(() => waitingFor.value.filter(t => isDue(t, today())).
         </span>
       </CardTitle>
     </CardHeader>
-    <TodoList kind="merker" :todos="reminder" compact empty-text="Keine – „t …“ in der Schnelleingabe." />
+    <TodoList kind="reminder" :todos="reminder" compact empty-text="Keine – „t …“ in der Schnelleingabe." />
   </Card>
 
   <Card class="gap-0 py-0">
     <CardHeader>
       <CardTitle class="flex items-center justify-between gap-2">
         Warten auf
-        <span v-if="countDue" class="flex items-center gap-1 text-xs font-medium text-warnung">
+        <span v-if="countDue" class="flex items-center gap-1 text-xs font-medium text-warning">
           <BellRing class="size-3.5" /> {{ countDue }} nachfassen
         </span>
         <span v-else class="font-mono text-xs font-normal text-muted-foreground">{{ waitingFor.length }}</span>
       </CardTitle>
     </CardHeader>
-    <TodoList kind="warten" :todos="waitingFor" compact empty-text="Keine – „w Wer: …“ in der Schnelleingabe." />
+    <TodoList kind="waiting_for" :todos="waitingFor" compact empty-text="Keine – „w Wer: …“ in der Schnelleingabe." />
   </Card>
 
   <Card class="gap-0 py-0">
@@ -46,6 +46,6 @@ const countDue = computed(() => waitingFor.value.filter(t => isDue(t, today())).
         <span class="font-mono text-xs font-normal text-muted-foreground">{{ daily.length }}</span>
       </CardTitle>
     </CardHeader>
-    <TodoList kind="daily" :todos="daily" compact empty-text="Keine – „d …“ in der Schnelleingabe." />
+    <TodoList kind="daily_topic" :todos="daily" compact empty-text="Keine – „d …“ in der Schnelleingabe." />
   </Card>
 </template>

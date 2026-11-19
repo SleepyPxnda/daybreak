@@ -33,7 +33,7 @@ export function useBookingNotifications() {
 
   async function check() {
     const e = settings.value
-    if (!e?.erinnerungenAktiv || !('Notification' in window) || Notification.permission !== 'granted') return
+    if (!e?.bookingNotificationsEnabled || !('Notification' in window) || Notification.permission !== 'granted') return
 
     const date = today()
     const [{ blocks }, days] = await Promise.all([
@@ -47,9 +47,9 @@ export function useBookingNotifications() {
       currentMinute,
       targetMin: days[0]?.target ?? 0,
       blocks,
-      workStart: e.arbeitsbeginn,
-      gapMin: e.erinnerungLueckeMin,
-      endOfDay: e.erinnerungFeierabend,
+      workStart: e.workStart,
+      gapMin: e.bookingNotificationGapMin,
+      endOfDay: e.bookingNotificationEndOfDay,
       lastNotifiedMinute,
     })
     if (!bookingNotification) return

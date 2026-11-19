@@ -45,7 +45,7 @@ export function checkBookingNotification(e: BookingNotificationInput): BookingNo
     }
   }
 
-  const bookedEnds = e.blocks.filter(b => b.status === 'gebucht').map(b => b.end)
+  const bookedEnds = e.blocks.filter(b => b.status === 'booked').map(b => b.end)
   const since = Math.max(e.workStart, ...bookedEnds)
   if (e.currentMinute - since < e.gapMin) return null
   const lastNotified = e.lastNotifiedMinute.gap

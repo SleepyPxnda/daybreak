@@ -24,7 +24,7 @@ export interface TimelineBlock {
  * Appointments of named recurring blocks show the template name (e.g. "Daily").
  */
 export function blockTitle(b: Pick<TimelineBlock, 'kind' | 'taskKey' | 'taskTitle' | 'accountName' | 'templateName'>): string {
-  if (b.kind === 'pause') return 'Pause'
+  if (b.kind === 'break') return 'Pause'
   if (b.templateName) return b.templateName
   if (b.taskTitle) return b.taskKey ? `${b.taskKey} ${b.taskTitle}` : b.taskTitle
   return b.accountName ?? '–'

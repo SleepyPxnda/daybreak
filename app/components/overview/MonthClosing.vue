@@ -11,10 +11,10 @@ const { data: days } = useFetch('/api/overview/month-closing', {
   default: () => [],
 })
 
-const TYPE_LABELS: Record<string, string> = { urlaub: 'Urlaub', halb_urlaub: '½ Urlaub', krank: 'Krank', gleittag: 'Gleittag' }
+const TYPE_LABELS: Record<string, string> = { vacation: 'Urlaub', half_vacation: '½ Urlaub', sick: 'Krank', flex_day: 'Gleittag' }
 function dayLabel(t: { holiday?: string, type: string, isWorkday: boolean }) {
   if (t.holiday) return t.holiday
-  if (t.isWorkday && t.type !== 'arbeit') return TYPE_LABELS[t.type]
+  if (t.isWorkday && t.type !== 'work') return TYPE_LABELS[t.type]
   return undefined
 }
 
@@ -67,7 +67,7 @@ const duration = (min: number) => (decimal.value ? formatDecimal(min) : formatDu
       <div class="text-sm text-muted-foreground">
         Differenz
       </div>
-      <div class="font-mono text-2xl font-medium tabular-nums" :class="sum.actual - sum.target >= 0 ? 'text-positiv' : 'text-negativ'">
+      <div class="font-mono text-2xl font-medium tabular-nums" :class="sum.actual - sum.target >= 0 ? 'text-positive' : 'text-negative'">
         {{ formatBalance(sum.actual - sum.target, duration) }}
       </div>
     </div>
@@ -116,7 +116,7 @@ const duration = (min: number) => (decimal.value ? formatDecimal(min) : formatDu
         <span class="text-right font-mono tabular-nums">{{ t.start == null ? '–' : duration(t.isBreak) }}</span>
         <span class="flex min-w-0 flex-wrap items-baseline gap-2">
           <Badge v-if="dayLabel(t)" variant="secondary">{{ dayLabel(t) }}</Badge>
-          <span v-if="!t.actual && t.target && t.date < todayDate" class="text-xs text-negativ">keine Buchung</span>
+          <span v-if="!t.actual && t.target && t.date < todayDate" class="text-xs text-negative">keine Buchung</span>
           <span v-if="t.note" class="truncate text-xs text-muted-foreground">{{ t.note }}</span>
         </span>
         <span class="text-right font-mono tabular-nums">

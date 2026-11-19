@@ -62,7 +62,7 @@ export function groupOverview(blocks: OverviewBlock[]): Overview {
   const accounts = new Map<number, { account: OverviewAccount, tasks: Map<number | null, OverviewTask & { dayMap: Map<IsoDate, OverviewDay> }> }>()
 
   for (const b of blocks) {
-    if (b.kind !== 'arbeit' || b.status !== 'gebucht' || b.accountId == null) continue
+    if (b.kind !== 'work' || b.status !== 'booked' || b.accountId == null) continue
     const minutes = duration(b)
 
     let k = accounts.get(b.accountId)
@@ -138,7 +138,7 @@ function blockLabel(b: OverviewBlock): string | undefined {
  * Returns all given days (also without bookings), accounts by hours descending.
  */
 export function monthClosing(blocks: OverviewBlock[], days: { date: IsoDate, target: number }[]): ClosingDay[] {
-  const booked = blocks.filter(b => b.kind === 'arbeit' && b.status === 'gebucht' && b.accountId != null)
+  const booked = blocks.filter(b => b.kind === 'work' && b.status === 'booked' && b.accountId != null)
 
   return days.map(({ date, target }) => {
     const amDay = booked.filter(b => b.date === date)

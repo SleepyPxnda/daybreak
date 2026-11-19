@@ -8,7 +8,7 @@ const { data: vacation } = useFetch('/api/vacation', { key: 'vacation', query: {
 const entitlementsOpen = ref(false)
 
 const number = (t: number) => t.toLocaleString('de-DE', { maximumFractionDigits: 1 })
-const KIND_LABELS: Record<string, string> = { grund: 'Grund', zusatz: 'Zusatz', rest: 'Rest' }
+const KIND_LABELS: Record<string, string> = { base: 'Grund', extra: 'Zusatz', carryover: 'Rest' }
 </script>
 
 <template>
@@ -20,7 +20,7 @@ const KIND_LABELS: Record<string, string> = { grund: 'Grund', zusatz: 'Zusatz', 
       </CardTitle>
     </CardHeader>
     <CardContent class="pt-5 pb-3 text-center">
-      <div class="font-mono text-4xl font-medium tabular-nums" :class="vacation.carryover < 0 ? 'text-negativ' : ''">
+      <div class="font-mono text-4xl font-medium tabular-nums" :class="vacation.carryover < 0 ? 'text-negative' : ''">
         {{ number(vacation.carryover) }}
       </div>
       <div class="text-[13px] text-muted-foreground">

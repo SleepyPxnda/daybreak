@@ -8,12 +8,12 @@ export const accountFields = z.object({
   name: z.string().trim().min(1).max(100),
   color: z.enum(ACCOUNT_COLORS),
   aliases: z.array(z.string().trim().toLowerCase().min(1).max(30).regex(/^\S+$/, 'Alias ohne Leerzeichen')),
-  status: z.enum(['aktiv', 'archiviert']),
+  status: z.enum(['active', 'archived']),
 })
 
 export const accountCreateSchema = accountFields.extend({
   aliases: accountFields.shape.aliases.default([]),
-  status: accountFields.shape.status.default('aktiv'),
+  status: accountFields.shape.status.default('active'),
 })
 
 /** Aliases must be unique across all accounts (otherwise quick input is ambiguous). */

@@ -78,11 +78,11 @@ async function setBlocker() {
 }
 
 const TYPES: { type: DayType, label: string }[] = [
-  { type: 'urlaub', label: 'Urlaub' },
-  { type: 'halb_urlaub', label: '½ Urlaub' },
-  { type: 'krank', label: 'Krank' },
-  { type: 'gleittag', label: 'Gleittag' },
-  { type: 'arbeit', label: 'Zurücksetzen' },
+  { type: 'vacation', label: 'Urlaub' },
+  { type: 'half_vacation', label: '½ Urlaub' },
+  { type: 'sick', label: 'Krank' },
+  { type: 'flex_day', label: 'Gleittag' },
+  { type: 'work', label: 'Zurücksetzen' },
 ]
 
 async function set(type: DayType) {
@@ -110,11 +110,11 @@ async function set(type: DayType) {
         </div>
         <!-- Legend -->
         <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] text-muted-foreground">
-          <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm bg-konto-mint/35 ring-1 ring-konto-mint ring-inset" /> Urlaub</span>
-          <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm bg-[linear-gradient(135deg,color-mix(in_oklch,var(--konto-mint)_35%,transparent)_50%,transparent_50%)] ring-1 ring-konto-mint ring-inset" /> ½ Urlaub</span>
-          <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm border border-dashed border-konto-mint" /> unbestätigt</span>
-          <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm bg-konto-pfirsich/35 ring-1 ring-konto-pfirsich ring-inset" /> Krank</span>
-          <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm bg-konto-himmel/35 ring-1 ring-konto-himmel ring-inset" /> Gleittag</span>
+          <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm bg-account-mint/35 ring-1 ring-account-mint ring-inset" /> Urlaub</span>
+          <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm bg-[linear-gradient(135deg,color-mix(in_oklch,var(--account-mint)_35%,transparent)_50%,transparent_50%)] ring-1 ring-account-mint ring-inset" /> ½ Urlaub</span>
+          <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm border border-dashed border-account-mint" /> unbestätigt</span>
+          <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm bg-account-peach/35 ring-1 ring-account-peach ring-inset" /> Krank</span>
+          <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm bg-account-sky/35 ring-1 ring-account-sky ring-inset" /> Gleittag</span>
           <span class="flex items-center gap-1.5"><span class="size-3 rounded-sm ring-1 ring-muted-foreground ring-inset" /> Feiertag</span>
           <span class="flex items-center gap-1.5"><span class="blocker-hatched size-3 rounded-sm" /> Blocker</span>
           <span class="flex items-center gap-1.5"><span class="size-1.5 rounded-full bg-primary" /> Soll abweichend</span>
@@ -126,7 +126,7 @@ async function set(type: DayType) {
         <template v-if="selection">
           <span class="font-semibold">{{ selectionText }}</span>
           <span class="font-mono text-[13px] text-muted-foreground">{{ workdaysInSelection }} Arbeitstag{{ workdaysInSelection === 1 ? '' : 'e' }}</span>
-          <span v-if="blockerInSelection" class="flex items-center gap-1.5 text-[13px] text-negativ">
+          <span v-if="blockerInSelection" class="flex items-center gap-1.5 text-[13px] text-negative">
             <span class="blocker-hatched size-3 rounded-sm" />
             {{ blockerInSelection }} Blocker-Tag{{ blockerInSelection === 1 ? '' : 'e' }} – hier besser kein Urlaub
           </span>
@@ -135,7 +135,7 @@ async function set(type: DayType) {
             v-for="t in TYPES"
             :key="t.type"
             size="sm"
-            :variant="t.type === 'urlaub' ? 'default' : t.type === 'arbeit' ? 'ghost' : 'outline'"
+            :variant="t.type === 'vacation' ? 'default' : t.type === 'work' ? 'ghost' : 'outline'"
             @click="set(t.type)"
           >
             {{ t.label }}

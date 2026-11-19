@@ -26,12 +26,12 @@ const days = computed(() => {
 const todayDate = today()
 
 // Categories as tinted area + border in the category color (tokens), text always ink
-const HALF_VACATION = 'bg-[linear-gradient(135deg,color-mix(in_oklch,var(--konto-mint)_35%,transparent)_50%,transparent_50%)] ring-1 ring-inset ring-konto-mint'
+const HALF_VACATION = 'bg-[linear-gradient(135deg,color-mix(in_oklch,var(--account-mint)_35%,transparent)_50%,transparent_50%)] ring-1 ring-inset ring-account-mint'
 const TYPE_CLASSES: Record<string, string> = {
-  urlaub: 'bg-konto-mint/35 ring-1 ring-inset ring-konto-mint',
-  halb_urlaub: HALF_VACATION,
-  krank: 'bg-konto-pfirsich/35 ring-1 ring-inset ring-konto-pfirsich',
-  gleittag: 'bg-konto-himmel/35 ring-1 ring-inset ring-konto-himmel',
+  vacation: 'bg-account-mint/35 ring-1 ring-inset ring-account-mint',
+  half_vacation: HALF_VACATION,
+  sick: 'bg-account-peach/35 ring-1 ring-inset ring-account-peach',
+  flex_day: 'bg-account-sky/35 ring-1 ring-inset ring-account-sky',
 }
 
 /** Color by day type (stored on workdays only), holidays outlined, weekend dimmed; today and selection override the category */
@@ -46,8 +46,8 @@ function cssClasses(date: string) {
   else list.push(info?.isWorkday ? 'text-foreground' : 'text-line-strong')
   if (info?.isWorkday) {
     // Unconfirmed vacation: dashed border only, confirmed: tinted area
-    const open = (info.type === 'urlaub' || info.type === 'halb_urlaub') && !info.confirmed
-    const type = open ? 'border border-dashed border-konto-mint' : TYPE_CLASSES[info.type]
+    const open = (info.type === 'vacation' || info.type === 'half_vacation') && !info.confirmed
+    const type = open ? 'border border-dashed border-account-mint' : TYPE_CLASSES[info.type]
     if (type) list.push(type)
     if (info.blocker) list.push('blocker-hatched')
   }
@@ -55,14 +55,14 @@ function cssClasses(date: string) {
   return list
 }
 
-const TYPE: Record<string, string> = { urlaub: 'Urlaub', halb_urlaub: '½ Urlaub', krank: 'Krank', gleittag: 'Gleittag' }
+const TYPE: Record<string, string> = { vacation: 'Urlaub', half_vacation: '½ Urlaub', sick: 'Krank', flex_day: 'Gleittag' }
 
 function title(date: string) {
   const info = props.infos.get(date)
   const split = [format(toDate(date), 'EEEE, d. MMMM', { locale: de })]
   if (info?.holiday) split.push(info.holiday)
-  if (info?.isWorkday && info.type !== 'arbeit') {
-    const unconfirmed = (info.type === 'urlaub' || info.type === 'halb_urlaub') && !info.confirmed
+  if (info?.isWorkday && info.type !== 'work') {
+    const unconfirmed = (info.type === 'vacation' || info.type === 'half_vacation') && !info.confirmed
     split.push(`${TYPE[info.type] ?? info.type}${unconfirmed ? ' (unbestätigt)' : ''}`)
   }
   if (info?.isWorkday && info.blocker) split.push('Blocker – kein Urlaub')

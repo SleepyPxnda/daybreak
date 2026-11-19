@@ -9,14 +9,14 @@ interface ColorClasses {
 
 // Full class names so Tailwind finds them when scanning
 const CLASSES: Record<AccountColor, ColorClasses> = {
-  lavendel: { surface: 'bg-konto-lavendel/18 text-foreground ring-1 ring-inset ring-konto-lavendel/55', dot: 'bg-konto-lavendel' },
-  pfirsich: { surface: 'bg-konto-pfirsich/18 text-foreground ring-1 ring-inset ring-konto-pfirsich/55', dot: 'bg-konto-pfirsich' },
-  mint: { surface: 'bg-konto-mint/18 text-foreground ring-1 ring-inset ring-konto-mint/55', dot: 'bg-konto-mint' },
-  himmel: { surface: 'bg-konto-himmel/18 text-foreground ring-1 ring-inset ring-konto-himmel/55', dot: 'bg-konto-himmel' },
-  rose: { surface: 'bg-konto-rose/18 text-foreground ring-1 ring-inset ring-konto-rose/55', dot: 'bg-konto-rose' },
-  butter: { surface: 'bg-konto-butter/18 text-foreground ring-1 ring-inset ring-konto-butter/55', dot: 'bg-konto-butter' },
-  salbei: { surface: 'bg-konto-salbei/18 text-foreground ring-1 ring-inset ring-konto-salbei/55', dot: 'bg-konto-salbei' },
-  flieder: { surface: 'bg-konto-flieder/18 text-foreground ring-1 ring-inset ring-konto-flieder/55', dot: 'bg-konto-flieder' },
+  lavender: { surface: 'bg-account-lavender/18 text-foreground ring-1 ring-inset ring-account-lavender/55', dot: 'bg-account-lavender' },
+  peach: { surface: 'bg-account-peach/18 text-foreground ring-1 ring-inset ring-account-peach/55', dot: 'bg-account-peach' },
+  mint: { surface: 'bg-account-mint/18 text-foreground ring-1 ring-inset ring-account-mint/55', dot: 'bg-account-mint' },
+  sky: { surface: 'bg-account-sky/18 text-foreground ring-1 ring-inset ring-account-sky/55', dot: 'bg-account-sky' },
+  rose: { surface: 'bg-account-rose/18 text-foreground ring-1 ring-inset ring-account-rose/55', dot: 'bg-account-rose' },
+  butter: { surface: 'bg-account-butter/18 text-foreground ring-1 ring-inset ring-account-butter/55', dot: 'bg-account-butter' },
+  sage: { surface: 'bg-account-sage/18 text-foreground ring-1 ring-inset ring-account-sage/55', dot: 'bg-account-sage' },
+  lilac: { surface: 'bg-account-lilac/18 text-foreground ring-1 ring-inset ring-account-lilac/55', dot: 'bg-account-lilac' },
 }
 
 const NEUTRAL: ColorClasses = { surface: 'bg-muted text-muted-foreground ring-1 ring-inset ring-border', dot: 'bg-muted-foreground' }

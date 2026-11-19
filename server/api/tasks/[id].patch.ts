@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
 
   const closedAt = data.status === undefined || data.status === previous.status
     ? undefined
-    : data.status === 'abgeschlossen' ? new Date().toISOString() : null
+    : data.status === 'closed' ? new Date().toISOString() : null
 
   try {
     return await db.transaction(async (tx) => {

@@ -56,7 +56,7 @@ const width = (share: number) => ({ width: `${Math.round(share * 100)}%` })
         <div class="text-sm text-muted-foreground">
           Differenz
         </div>
-        <div class="font-mono text-2xl font-medium tabular-nums" :class="overview.total - overview.target >= 0 ? 'text-positiv' : 'text-negativ'">
+        <div class="font-mono text-2xl font-medium tabular-nums" :class="overview.total - overview.target >= 0 ? 'text-positive' : 'text-negative'">
           {{ formatBalance(overview.total - overview.target) }}
         </div>
       </div>

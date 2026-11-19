@@ -8,7 +8,7 @@ import { DAY_MIN } from '#shared/utils/time'
 
 const paramsSchema = z.object({ date: dateSchema })
 const schema = z.object({
-  type: z.enum(['arbeit', 'urlaub', 'halb_urlaub', 'krank', 'gleittag']),
+  type: z.enum(['work', 'vacation', 'half_vacation', 'sick', 'flex_day']),
   targetOverride: z.number().int().min(0).max(DAY_MIN).nullable().default(null),
   note: z.string().trim().max(500).nullable().default(null),
 })
@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   const note = data.note || null
   const [before] = await db.select({ blocker: day.blocker }).from(day).where(eq(day.date, date))
 
-  if (data.type === 'arbeit' && data.targetOverride === null && !note && !before?.blocker) {
+  if (data.type === 'work' && data.targetOverride === null && !note && !before?.blocker) {
     await db.delete(day).where(eq(day.date, date))
   }
   else {

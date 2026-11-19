@@ -40,13 +40,13 @@ const progress = computed(() => {
 
 // Display status as on the account page: "in progress" = open and time already booked
 const statusDisplay = computed(() => {
-  if (task.value?.status === 'abgeschlossen') return { text: 'Abgeschlossen', icon: CircleCheck, cssClass: 'text-positiv' }
+  if (task.value?.status === 'closed') return { text: 'Abgeschlossen', icon: CircleCheck, cssClass: 'text-positive' }
   if (task.value?.bookedMin) return { text: 'In Arbeit', icon: CircleDot, cssClass: 'text-info' }
   return { text: 'Offen', icon: Circle, cssClass: 'text-muted-foreground' }
 })
 
 async function statusToggle() {
-  const status = task.value?.status === 'offen' ? 'abgeschlossen' : 'offen'
+  const status = task.value?.status === 'open' ? 'closed' : 'open'
   await runAction(() => api(`/api/tasks/${id.value}`, { method: 'PATCH', body: { status } }), ['task-detail', ...MASTER_DATA_KEYS])
 }
 
@@ -90,7 +90,7 @@ const formatDay = (date: string) => format(toDate(date), 'EEEE, d. MMMM yyyy', {
         <Button variant="outline" @click="edit = true">
           <Pencil /> Bearbeiten
         </Button>
-        <Button v-if="task.status === 'offen'" @click="statusToggle">
+        <Button v-if="task.status === 'open'" @click="statusToggle">
           <CheckCircle2 /> Abschließen
         </Button>
         <Button v-else variant="outline" @click="statusToggle">
@@ -105,7 +105,7 @@ const formatDay = (date: string) => format(toDate(date), 'EEEE, d. MMMM yyyy', {
           <div class="text-[13px] text-muted-foreground">
             Gebucht
           </div>
-          <div class="font-mono text-2xl font-medium" :class="{ 'text-negativ': task.estimateMin && task.bookedMin > task.estimateMin }">
+          <div class="font-mono text-2xl font-medium" :class="{ 'text-negative': task.estimateMin && task.bookedMin > task.estimateMin }">
             {{ formatDuration(task.bookedMin) }}
           </div>
         </div>
@@ -199,7 +199,7 @@ const formatDay = (date: string) => format(toDate(date), 'EEEE, d. MMMM yyyy', {
         </div>
         <div v-for="b in t.blocks" :key="b.id" class="flex gap-3 text-sm text-muted-foreground">
           <span class="font-mono text-[13px]">{{ formatTime(b.start) }}–{{ formatTime(b.end) }}</span>
-          <span v-if="b.status === 'geplant'" class="italic">geplant</span>
+          <span v-if="b.status === 'planned'" class="italic">geplant</span>
           <span v-if="b.note" class="text-foreground">{{ b.note }}</span>
         </div>
       </div>

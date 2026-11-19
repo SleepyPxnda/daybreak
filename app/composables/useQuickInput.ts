@@ -44,17 +44,17 @@ export function useQuickInput(date: MaybeRefOrGetter<string>) {
   function blockPreview(b: QuickInputBlock): string {
     const time = 'duration' in b.time ? formatDuration(b.time.duration) : `${formatTime(b.time.start)}–${formatTime(b.time.end)}`
     return [
-      b.status === 'geplant' ? 'Planen' : 'Buchen',
+      b.status === 'planned' ? 'Planen' : 'Buchen',
       dayText(b.date),
       time,
-      b.kind === 'pause' ? 'Pause' : b.assignment ? assignmentText(b.assignment) : undefined,
+      b.kind === 'break' ? 'Pause' : b.assignment ? assignmentText(b.assignment) : undefined,
     ].filter(Boolean).join(' · ')
   }
 
   function todoPreview(t: QuickInputTodo): string {
     const kind = TODO_KINDS.find(a => a.kind === t.todoKind)!.singular
     const split = [kind, t.person ? `${t.person}: ${t.text}` : t.text]
-    if (t.cutoffDate) split.push(`${t.todoKind === 'warten' ? 'nachfassen' : 'fällig'} ${dayText(t.cutoffDate)}`)
+    if (t.cutoffDate) split.push(`${t.todoKind === 'waiting_for' ? 'nachfassen' : 'fällig'} ${dayText(t.cutoffDate)}`)
     return split.join(' · ')
   }
 
@@ -94,8 +94,8 @@ export function useQuickInput(date: MaybeRefOrGetter<string>) {
         kind: t.todoKind,
         text: t.text,
         person: t.person ?? null,
-        ...(t.todoKind === 'warten' ? { followUpDate: t.cutoffDate ?? null } : {}),
-        ...(t.todoKind === 'merker' ? { dueDate: t.cutoffDate ?? null } : {}),
+        ...(t.todoKind === 'waiting_for' ? { followUpDate: t.cutoffDate ?? null } : {}),
+        ...(t.todoKind === 'reminder' ? { dueDate: t.cutoffDate ?? null } : {}),
       },
     }), TODO_KEYS)
     if (ok) toast.success(`${todoPreview(t)} – gespeichert`)
@@ -114,7 +114,7 @@ export function useQuickInput(date: MaybeRefOrGetter<string>) {
     }
     if (r.type !== 'block' && r.type !== 'todo' && r.type !== 'note') return false
     const assignment = r.type === 'block' ? selected ?? r.assignment : undefined
-    if (r.type === 'block' && r.kind === 'arbeit' && !assignment) return false // candidates are shown
+    if (r.type === 'block' && r.kind === 'work' && !assignment) return false // candidates are shown
 
     running.value = true
     try {

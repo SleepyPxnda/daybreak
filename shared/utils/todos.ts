@@ -3,12 +3,12 @@ import { dayInfo } from './target'
 import type { IsoDate } from './time'
 import { addDays, daysBetween, toIsoDate } from './time'
 
-export type TodoKind = 'merker' | 'daily' | 'warten'
+export type TodoKind = 'reminder' | 'daily_topic' | 'waiting_for'
 
 export const TODO_KINDS: { kind: TodoKind, title: string, singular: string }[] = [
-  { kind: 'merker', title: 'Merker', singular: 'Merker' },
-  { kind: 'warten', title: 'Warten auf', singular: 'Warten auf' },
-  { kind: 'daily', title: 'Daily-Themen', singular: 'Daily-Thema' },
+  { kind: 'reminder', title: 'Merker', singular: 'Merker' },
+  { kind: 'waiting_for', title: 'Warten auf', singular: 'Warten auf' },
+  { kind: 'daily_topic', title: 'Daily-Themen', singular: 'Daily-Thema' },
 ]
 
 /** Default interval for "followed up" */
@@ -37,8 +37,8 @@ export function addWorkdays(date: IsoDate, n: number, settings: TargetSettings):
 
 /** The date relevant for highlighting: follow-up (waiting-for) or due date (reminder). */
 export function cutoffDate(todo: Pick<TodoBasis, 'kind' | 'followUpDate' | 'dueDate'>): IsoDate | null {
-  if (todo.kind === 'warten') return todo.followUpDate ?? null
-  if (todo.kind === 'merker') return todo.dueDate ?? null
+  if (todo.kind === 'waiting_for') return todo.followUpDate ?? null
+  if (todo.kind === 'reminder') return todo.dueDate ?? null
   return null
 }
 

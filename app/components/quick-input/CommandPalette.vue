@@ -87,7 +87,7 @@ const pages = computed(() => {
   return PAGES.filter(s => s.title.toLocaleLowerCase('de').includes(q))
 })
 
-const TODO_ICONS: Record<TodoKind, typeof StickyNote> = { merker: StickyNote, warten: Hourglass, daily: MessageSquare }
+const TODO_ICONS: Record<TodoKind, typeof StickyNote> = { reminder: StickyNote, waiting_for: Hourglass, daily_topic: MessageSquare }
 
 async function openPage(to: string) {
   open.value = false
@@ -155,13 +155,13 @@ function interceptEnter(e: KeyboardEvent) {
           <CommandItem v-for="a in hit.tasks" :key="`a${a.id}`" :value="`task-${a.id}`" @select="openPage(`/tasks/${a.id}`)">
             <span class="size-2.5 shrink-0 rounded-full" :class="accountColorClasses(a.accountColor).dot" />
             <TaskKey v-if="a.key" :value="a.key" :color="a.accountColor" />
-            <span class="min-w-0 truncate" :class="{ 'text-muted-foreground': a.status !== 'offen' }">{{ a.title }}</span>
+            <span class="min-w-0 truncate" :class="{ 'text-muted-foreground': a.status !== 'open' }">{{ a.title }}</span>
           </CommandItem>
         </CommandGroup>
         <CommandGroup v-if="hit.accounts.length" heading="Konten">
           <CommandItem v-for="k in hit.accounts" :key="`k${k.id}`" :value="`account-${k.id}`" @select="openPage(`/accounts?accountId=${k.id}`)">
             <span class="size-2.5 shrink-0 rounded-full" :class="accountColorClasses(k.color).dot" />
-            <span class="min-w-0 truncate" :class="{ 'text-muted-foreground': k.status !== 'aktiv' }">{{ k.name }}</span>
+            <span class="min-w-0 truncate" :class="{ 'text-muted-foreground': k.status !== 'active' }">{{ k.name }}</span>
           </CommandItem>
         </CommandGroup>
         <CommandGroup v-if="hit.notes.length" heading="Notizen">

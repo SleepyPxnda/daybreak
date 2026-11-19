@@ -20,6 +20,6 @@ export function loadBookedWork(from: IsoDate, to: IsoDate) {
     .leftJoin(task, eq(task.id, block.taskId))
     .leftJoin(account, eq(account.id, block.accountId))
     .leftJoin(template, eq(template.id, block.templateId))
-    .where(and(gte(block.date, from), lte(block.date, to), eq(block.kind, 'arbeit'), eq(block.status, 'gebucht')))
+    .where(and(gte(block.date, from), lte(block.date, to), eq(block.kind, 'work'), eq(block.status, 'booked')))
     .orderBy(asc(block.date), asc(block.start))
 }

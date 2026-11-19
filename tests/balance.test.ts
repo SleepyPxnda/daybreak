@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { currentBalance, balanceHistory } from '../shared/utils/balance'
 import type { BalanceInput } from '../shared/utils/balance'
 
-const settings = { sollProTagMin: 480, arbeitstage: [1, 2, 3, 4, 5], bundesland: 'BW' }
+const settings = { targetPerDayMin: 480, workdays: [1, 2, 3, 4, 5], federalState: 'BW' }
 
 function input(part: Partial<BalanceInput>): BalanceInput {
   return {
@@ -41,24 +41,24 @@ describe('balance', () => {
   })
 
   it('flex day: -8h', () => {
-    const days = { '2026-06-05': { date: '2026-06-05', type: 'gleittag' as const } }
+    const days = { '2026-06-05': { date: '2026-06-05', type: 'flex_day' as const } }
     const { '2026-06-05': _, ...withoutFriday } = fullWeek
     expect(currentBalance(input({ actualPerDay: withoutFriday, days }))).toBe(-480)
   })
 
   it('half vacation day: 4h target', () => {
-    const days = { '2026-06-05': { date: '2026-06-05', type: 'halb_urlaub' as const } }
+    const days = { '2026-06-05': { date: '2026-06-05', type: 'half_vacation' as const } }
     expect(currentBalance(input({ actualPerDay: { ...fullWeek, '2026-06-05': 300 }, days }))).toBe(60)
   })
 
   it('vacation: 0 target, no booking needed', () => {
-    const days = { '2026-06-05': { date: '2026-06-05', type: 'urlaub' as const } }
+    const days = { '2026-06-05': { date: '2026-06-05', type: 'vacation' as const } }
     const { '2026-06-05': _, ...withoutFriday } = fullWeek
     expect(currentBalance(input({ actualPerDay: withoutFriday, days }))).toBe(0)
   })
 
   it('target override', () => {
-    const days = { '2026-06-05': { date: '2026-06-05', type: 'arbeit' as const, targetOverride: 240 } }
+    const days = { '2026-06-05': { date: '2026-06-05', type: 'work' as const, targetOverride: 240 } }
     expect(currentBalance(input({ actualPerDay: fullWeek, days }))).toBe(240)
   })
 

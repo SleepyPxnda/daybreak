@@ -1,8 +1,8 @@
 import type { IsoDate } from './time'
 import { isOnGrid, DAY_MIN } from './time'
 
-export type BlockKind = 'arbeit' | 'pause'
-export type BlockStatus = 'geplant' | 'gebucht'
+export type BlockKind = 'work' | 'break'
+export type BlockStatus = 'planned' | 'booked'
 
 export interface TimeRange {
   start: number
@@ -48,14 +48,14 @@ export function nextFreeSlot(blocks: TimeRange[], workStart: number): number {
 /** Actual time = sum of booked work blocks (breaks and planned never count). */
 export function actualMinutes(blocks: Pick<BlockBasis, 'start' | 'end' | 'kind' | 'status'>[]): number {
   return blocks
-    .filter(b => b.kind === 'arbeit' && b.status === 'gebucht')
+    .filter(b => b.kind === 'work' && b.status === 'booked')
     .reduce((sum, b) => sum + duration(b), 0)
 }
 
 /** Planned work time (for "planned alongside"). */
 export function plannedMinutes(blocks: Pick<BlockBasis, 'start' | 'end' | 'kind' | 'status'>[]): number {
   return blocks
-    .filter(b => b.kind === 'arbeit' && b.status === 'geplant')
+    .filter(b => b.kind === 'work' && b.status === 'planned')
     .reduce((sum, b) => sum + duration(b), 0)
 }
 

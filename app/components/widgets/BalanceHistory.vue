@@ -52,7 +52,7 @@ const todayState = computed(() => history.value.at(-1)?.state ?? 0)
         <div class="text-[13px] text-muted-foreground">
           Stand heute
         </div>
-        <div class="font-mono text-[32px] leading-10 font-medium tabular-nums" :class="todayState < 0 ? 'text-negativ' : todayState > 0 ? 'text-positiv' : ''">
+        <div class="font-mono text-[32px] leading-10 font-medium tabular-nums" :class="todayState < 0 ? 'text-negative' : todayState > 0 ? 'text-positive' : ''">
           {{ formatBalance(todayState) }}
         </div>
         <ClientOnly>
@@ -80,7 +80,7 @@ const todayState = computed(() => history.value.at(-1)?.state ?? 0)
       </div>
       <div v-for="m in monthsDescending" :key="m.month" class="grid grid-cols-[minmax(0,1fr)_4.5rem_4.5rem] gap-2 border-t px-4 py-2">
         <span>{{ monthLabel(m.month, 'MMMM yyyy') }}<span v-if="m.ongoing" class="text-muted-foreground"> · laufend</span></span>
-        <span class="text-right font-mono tabular-nums" :class="m.delta < 0 ? 'text-negativ' : m.delta > 0 ? 'text-positiv' : 'text-muted-foreground'">{{ formatBalance(m.delta) }}</span>
+        <span class="text-right font-mono tabular-nums" :class="m.delta < 0 ? 'text-negative' : m.delta > 0 ? 'text-positive' : 'text-muted-foreground'">{{ formatBalance(m.delta) }}</span>
         <span class="text-right font-mono tabular-nums">{{ formatBalance(m.state) }}</span>
       </div>
     </div>

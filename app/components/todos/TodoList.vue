@@ -17,11 +17,11 @@ const props = defineProps<{
   emptyText?: string
 }>()
 
-const PREFIX: Record<TodoKind, string> = { merker: 't', daily: 'd', warten: 'w' }
+const PREFIX: Record<TodoKind, string> = { reminder: 't', daily_topic: 'd', waiting_for: 'w' }
 const PLACEHOLDERS: Record<TodoKind, string> = {
-  merker: 'Merker hinzufügen … (bis fr)',
-  warten: 'Tim: PR-Review … (bis fr)',
-  daily: 'Daily-Thema hinzufügen …',
+  reminder: 'Merker hinzufügen … (bis fr)',
+  waiting_for: 'Tim: PR-Review … (bis fr)',
+  daily_topic: 'Daily-Thema hinzufügen …',
 }
 
 const todayDate = today()
@@ -32,7 +32,7 @@ watch(() => props.todos, (next) => { list.value = [...next] }, { immediate: true
 const dragged = ref<number | null>(null)
 
 /** Today page: reminders can be dragged onto the timeline (-> planned 30-minute block) */
-const draggableOnTimeline = computed(() => props.compact && props.kind === 'merker')
+const draggableOnTimeline = computed(() => props.compact && props.kind === 'reminder')
 
 function dragStart(e: DragEvent, id: number) {
   if (!e.dataTransfer) return
@@ -68,7 +68,7 @@ async function dragEnd() {
 // --- Actions --------------------------------------------------------------
 async function complete(t: TodoRow) {
   const ok = await runAction(() => api(`/api/todos/${t.id}`, { method: 'PATCH', body: { done: true } }), TODO_KEYS)
-  if (ok) toast.success(t.kind === 'daily' ? 'Besprochen' : 'Erledigt', {
+  if (ok) toast.success(t.kind === 'daily_topic' ? 'Besprochen' : 'Erledigt', {
     action: { label: 'Rückgängig', onClick: () => runAction(() => api(`/api/todos/${t.id}`, { method: 'PATCH', body: { done: false } }), TODO_KEYS) },
   })
 }
@@ -89,8 +89,8 @@ async function add() {
       kind: r.todoKind,
       text: r.text,
       person: r.person ?? null,
-      ...(r.todoKind === 'warten' ? { followUpDate: r.cutoffDate ?? null } : {}),
-      ...(r.todoKind === 'merker' ? { dueDate: r.cutoffDate ?? null } : {}),
+      ...(r.todoKind === 'waiting_for' ? { followUpDate: r.cutoffDate ?? null } : {}),
+      ...(r.todoKind === 'reminder' ? { dueDate: r.cutoffDate ?? null } : {}),
     },
   }), TODO_KEYS)
   if (ok) newText.value = ''
@@ -107,7 +107,7 @@ function cutoffDateText(t: TodoRow): string | undefined {
   const day = cutoffDate(t)
   if (!day) return undefined
   const text = day === todayDate ? 'heute' : format(toDate(day), 'EEE d.M.', { locale: de })
-  return t.kind === 'warten' ? `nachfassen ${text}` : `fällig ${text}`
+  return t.kind === 'waiting_for' ? `nachfassen ${text}` : `fällig ${text}`
 }
 </script>
 
@@ -122,7 +122,7 @@ function cutoffDateText(t: TodoRow): string | undefined {
       class="group flex min-h-10 items-start gap-2.5 border-b py-2.5 pr-3 text-sm last:border-b-0"
       :class="[
         compact && !draggableOnTimeline ? 'pl-4' : 'pl-2',
-        isDue(t, todayDate) ? 'bg-warnung-subtle' : 'hover:bg-raised',
+        isDue(t, todayDate) ? 'bg-warning-subtle' : 'hover:bg-raised',
         dragged === t.id && 'opacity-40',
       ]"
       :draggable="!compact || draggableOnTimeline"
@@ -135,8 +135,8 @@ function cutoffDateText(t: TodoRow): string | undefined {
       <GripVertical v-if="!compact || draggableOnTimeline" class="mt-0.5 size-4 shrink-0 cursor-grab text-line-strong group-hover:text-muted-foreground" />
       <Checkbox
         class="mt-[3px]"
-        :aria-label="kind === 'daily' ? 'Besprochen' : 'Erledigt'"
-        :title="kind === 'daily' ? 'Besprochen' : 'Erledigt'"
+        :aria-label="kind === 'daily_topic' ? 'Besprochen' : 'Erledigt'"
+        :title="kind === 'daily_topic' ? 'Besprochen' : 'Erledigt'"
         @update:model-value="complete(t)"
       />
       <button type="button" class="min-w-0 flex-1 text-left" @click="edit(t)">
@@ -144,11 +144,11 @@ function cutoffDateText(t: TodoRow): string | undefined {
           <span v-if="t.person" class="text-muted-foreground">{{ t.person }}: </span>{{ t.text }}
         </div>
         <div
-          v-if="kind === 'warten' || cutoffDateText(t) || t.taskTitle || t.accountName"
+          v-if="kind === 'waiting_for' || cutoffDateText(t) || t.taskTitle || t.accountName"
           class="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground"
         >
-          <span v-if="cutoffDateText(t)" :class="{ 'font-medium text-warnung': isDue(t, todayDate) }">{{ cutoffDateText(t) }}</span>
-          <span v-if="kind === 'warten'">{{ alterText(daysSince(t.createdAt, todayDate)) }}</span>
+          <span v-if="cutoffDateText(t)" :class="{ 'font-medium text-warning': isDue(t, todayDate) }">{{ cutoffDateText(t) }}</span>
+          <span v-if="kind === 'waiting_for'">{{ alterText(daysSince(t.createdAt, todayDate)) }}</span>
           <span v-if="t.taskTitle || t.accountName" class="inline-flex max-w-full min-w-0 items-center gap-1.5" :title="t.taskTitle ?? t.accountName ?? undefined">
             <span class="size-2 shrink-0 rounded-full" :class="accountColorClasses(t.accountColor).dot" />
             <TaskKey v-if="t.taskKey" :value="t.taskKey" :color="t.accountColor" />
@@ -157,7 +157,7 @@ function cutoffDateText(t: TodoRow): string | undefined {
         </div>
       </button>
       <Button
-        v-if="kind === 'warten'"
+        v-if="kind === 'waiting_for'"
         variant="outline"
         size="sm"
         class="h-7 shrink-0 px-2 text-xs"

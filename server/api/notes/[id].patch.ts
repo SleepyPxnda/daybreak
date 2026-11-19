@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
     const accountId = data.taskId ? null : (data.accountId !== undefined ? data.accountId : previous.accountId)
     Object.assign(values, taskId == null && accountId == null
       ? { taskId: null, accountId: null }
-      : await resolveAssignment({ kind: 'arbeit', taskId, accountId }))
+      : await resolveAssignment({ kind: 'work', taskId, accountId }))
   }
   // Pinning alone does not count as a content change
   const content = Object.keys(data).some(k => k !== 'pinned')

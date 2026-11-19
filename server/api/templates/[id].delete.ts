@@ -7,7 +7,7 @@ import { today } from '#shared/utils/time'
 export default defineEventHandler(async (event) => {
   const id = await idFromRoute(event)
   return db.transaction(async (tx) => {
-    await tx.delete(block).where(and(eq(block.templateId, id), eq(block.status, 'geplant'), gt(block.date, today())))
+    await tx.delete(block).where(and(eq(block.templateId, id), eq(block.status, 'planned'), gt(block.date, today())))
     await tx.update(block).set({ templateId: null }).where(eq(block.templateId, id))
     await tx.delete(templateException).where(eq(templateException.templateId, id))
     const [deleted] = await tx.delete(template).where(eq(template.id, id)).returning()

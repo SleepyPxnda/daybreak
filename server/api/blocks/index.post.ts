@@ -8,8 +8,8 @@ import { GRID_MIN, DAY_MIN } from '#shared/utils/time'
 
 const schema = z.object({
   date: dateSchema,
-  kind: z.enum(['arbeit', 'pause']),
-  status: z.enum(['geplant', 'gebucht']),
+  kind: z.enum(['work', 'break']),
+  status: z.enum(['planned', 'booked']),
   // Either a fixed time ...
   start: timeSchema.optional(),
   end: timeSchema.optional(),
@@ -26,9 +26,9 @@ export default defineEventHandler(async (event) => {
 
   let { start, end } = data
   if (data.duration !== undefined) {
-    const { arbeitsbeginn } = await loadSettings()
+    const { workStart } = await loadSettings()
     const dayBlocks = await db.select({ start: block.start, end: block.end }).from(block).where(eq(block.date, data.date))
-    start = nextFreeSlot(dayBlocks, arbeitsbeginn)
+    start = nextFreeSlot(dayBlocks, workStart)
     end = start + data.duration
     if (end > DAY_MIN) throw createError({ statusCode: 409, statusMessage: 'Kein Platz mehr an diesem Tag' })
   }

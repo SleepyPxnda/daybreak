@@ -13,8 +13,8 @@ export default defineEventHandler(async (event) => {
 
   const days = Math.round(previousYear.account.carryover * 2) / 2
   return db.transaction(async (tx) => {
-    await tx.delete(vacationEntitlement).where(and(eq(vacationEntitlement.year, year), eq(vacationEntitlement.kind, 'rest')))
-    const [created] = await tx.insert(vacationEntitlement).values({ year, kind: 'rest', label: `Resturlaub ${year - 1}`, days }).returning()
+    await tx.delete(vacationEntitlement).where(and(eq(vacationEntitlement.year, year), eq(vacationEntitlement.kind, 'carryover')))
+    const [created] = await tx.insert(vacationEntitlement).values({ year, kind: 'carryover', label: `Resturlaub ${year - 1}`, days }).returning()
     return created!
   })
 })

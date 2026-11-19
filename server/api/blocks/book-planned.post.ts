@@ -12,7 +12,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const { date, ids } = await readValidatedBody(event, schema.parse)
-  const filter = [eq(block.date, date), eq(block.status, 'geplant')]
+  const filter = [eq(block.date, date), eq(block.status, 'planned')]
   if (ids) filter.push(inArray(block.id, ids))
-  return db.update(block).set({ status: 'gebucht' }).where(and(...filter)).returning()
+  return db.update(block).set({ status: 'booked' }).where(and(...filter)).returning()
 })

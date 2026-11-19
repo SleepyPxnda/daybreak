@@ -24,11 +24,11 @@ export default defineEventHandler(async (event) => {
     .from(block)
     .leftJoin(task, eq(task.id, block.taskId))
     .innerJoin(account, eq(account.id, block.accountId))
-    .where(and(eq(block.kind, 'arbeit'), eq(block.status, 'gebucht'), gte(block.date, addDays(date, -14)), lte(block.date, date)))
+    .where(and(eq(block.kind, 'work'), eq(block.status, 'booked'), gte(block.date, addDays(date, -14)), lte(block.date, date)))
     .groupBy(block.taskId, block.accountId)
     .orderBy(desc(sql`max(${block.date})`), desc(sql`max(${block.id})`))
 
   return rows
-    .filter(z => z.accountStatus === 'aktiv' && (z.taskId === null || z.taskStatus === 'offen'))
+    .filter(z => z.accountStatus === 'active' && (z.taskId === null || z.taskStatus === 'open'))
     .slice(0, 8)
 })

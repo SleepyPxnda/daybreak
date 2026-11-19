@@ -32,25 +32,25 @@ const monday = d => addDays(d, 1 - weekday(d))
 
 // --- Days (vacation, sick, ...) relative to today ---
 const dayRows = []
-const setDay = (date, type, extra = {}) => dayRows.push({ datum: date, typ: type, soll_override: null, notiz: null, blocker: 0, ...extra })
+const setDay = (date, type, extra = {}) => dayRows.push({ date, type, target_override: null, note: null, blocker: 0, ...extra })
 const vacationFrom = monday(addDays(today, -35))
-for (let i = 0; i < 5; i++) setDay(addDays(vacationFrom, i), 'urlaub', i === 0 ? { notiz: 'Ostsee' } : {})
-setDay(addDays(monday(today), -12), 'krank', { notiz: 'Erkältung' })
-setDay(addDays(monday(today), -3), 'gleittag')
-setDay(addDays(monday(today), -10), 'halb_urlaub', { notiz: 'Arzttermin' })
-setDay(addDays(monday(today), -6), 'arbeit', { soll_override: 360, notiz: 'Teamevent ab 15 Uhr' })
+for (let i = 0; i < 5; i++) setDay(addDays(vacationFrom, i), 'vacation', i === 0 ? { note: 'Ostsee' } : {})
+setDay(addDays(monday(today), -12), 'sick', { note: 'Erkältung' })
+setDay(addDays(monday(today), -3), 'flex_day')
+setDay(addDays(monday(today), -10), 'half_vacation', { note: 'Arzttermin' })
+setDay(addDays(monday(today), -6), 'work', { target_override: 360, note: 'Teamevent ab 15 Uhr' })
 const nextVacation = addDays(monday(today), 14)
-for (let i = 0; i < 5; i++) setDay(addDays(nextVacation, i), 'urlaub', i === 0 ? { notiz: 'Herbsturlaub' } : {})
+for (let i = 0; i < 5; i++) setDay(addDays(nextVacation, i), 'vacation', i === 0 ? { note: 'Herbsturlaub' } : {})
 const release = addDays(monday(today), 28)
-for (let i = 0; i < 5; i++) setDay(addDays(release, i), 'arbeit', { blocker: 1, notiz: i === 0 ? 'Release-Woche' : null })
+for (let i = 0; i < 5; i++) setDay(addDays(release, i), 'work', { blocker: 1, note: i === 0 ? 'Release-Woche' : null })
 const year = today.slice(0, 4)
-for (const d of ['12-28', '12-29', '12-30']) setDay(`${year}-${d}`, 'urlaub')
-const dayType = Object.fromEntries(dayRows.map(t => [t.datum, t]))
+for (const d of ['12-28', '12-29', '12-30']) setDay(`${year}-${d}`, 'vacation')
+const dayType = Object.fromEntries(dayRows.map(t => [t.date, t]))
 
 // --- Wipe ---
 // Order respects foreign keys
 await client.batch([
-  ...['block', 'vorlage_ausnahme', 'vorlage', 'todo', 'notiz', 'aufgabe', 'konto', 'tag', 'urlaubsanspruch', 'settings']
+  ...['block', 'template_exception', 'template', 'todo', 'note', 'task', 'account', 'day', 'vacation_entitlement', 'settings']
     .map(t => `DELETE FROM ${t}`),
   'DELETE FROM sqlite_sequence',
 ], 'write')
@@ -59,41 +59,41 @@ const insert = async (table, rows) => {
   if (!rows.length) return
   const columns = Object.keys(rows[0])
   await client.batch(rows.map(z => ({
-    sql: `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(() => '?').join(', ')})`,
+    sql: `INSERT INTO ${table} (${columns.map(c => `"${c}"`).join(', ')}) VALUES (${columns.map(() => '?').join(', ')})`,
     args: columns.map(s => z[s] ?? null),
   })), 'write')
 }
 
 // --- Accounts (ids 1...) ---
 const accounts = [
-  { name: 'GALAXYBOT', farbe: 'lavendel', aliase: '["gb","galaxy"]', status: 'aktiv' },
-  { name: 'Kundenportal', farbe: 'himmel', aliase: '["kp","portal"]', status: 'aktiv' },
-  { name: 'Firmenmeeting', farbe: 'butter', aliase: '["meeting","fm"]', status: 'aktiv' },
-  { name: 'Weiterbildung', farbe: 'mint', aliase: '["wb"]', status: 'aktiv' },
-  { name: 'Support', farbe: 'pfirsich', aliase: '["sup"]', status: 'aktiv' },
-  { name: 'Altprojekt Lager', farbe: 'salbei', aliase: '[]', status: 'archiviert' },
+  { name: 'GALAXYBOT', color: 'lavender', aliases: '["gb","galaxy"]', status: 'active' },
+  { name: 'Kundenportal', color: 'sky', aliases: '["kp","portal"]', status: 'active' },
+  { name: 'Firmenmeeting', color: 'butter', aliases: '["meeting","fm"]', status: 'active' },
+  { name: 'Weiterbildung', color: 'mint', aliases: '["wb"]', status: 'active' },
+  { name: 'Support', color: 'peach', aliases: '["sup"]', status: 'active' },
+  { name: 'Altprojekt Lager', color: 'sage', aliases: '[]', status: 'archived' },
 ]
-await insert('konto', accounts.map(k => ({ ...k, erstellt_am: iso(start) })))
+await insert('account', accounts.map(k => ({ ...k, created_at: iso(start) })))
 const K = { gb: 1, kp: 2, fm: 3, wb: 4, sup: 5, alt: 6 }
 
 // --- Tasks (ids 1...) with an activity window for the block distribution ---
 const tasks = [
-  { konto_id: K.gb, key: 'GB-101', titel: 'Intent-Erkennung überarbeiten', schaetzung_min: 1200, from: -56, to: -30 },
-  { konto_id: K.gb, key: 'GB-114', titel: 'Antwort-Caching mit Redis', schaetzung_min: 900, from: -40, to: 5 },
-  { konto_id: K.gb, key: 'GB-120', titel: 'Monitoring-Dashboard', schaetzung_min: 600, from: -20, to: 20 },
-  { konto_id: K.gb, key: 'GB-127', titel: 'Tokenlimit pro Mandant', schaetzung_min: 480, from: -3, to: 30 },
-  { konto_id: K.kp, key: 'KP-42', titel: 'Login mit SSO', schaetzung_min: 960, from: -56, to: -25 },
-  { konto_id: K.kp, key: 'KP-57', titel: 'Rechnungsübersicht als PDF', schaetzung_min: 720, from: -28, to: 10 },
-  { konto_id: K.kp, key: 'KP-61', titel: 'Barrierefreiheit Formulare', schaetzung_min: null, from: -10, to: 30 },
-  { konto_id: K.wb, key: null, titel: 'Rust-Grundlagen', schaetzung_min: 1200, from: -56, to: 30 },
-  { konto_id: K.sup, key: 'SUP-8', titel: 'Tickets 3rd Level', schaetzung_min: null, from: -56, to: 30 },
-  { konto_id: K.alt, key: 'LAG-3', titel: 'Datenmigration Altsystem', schaetzung_min: 300, from: -56, to: -45 },
+  { account_id: K.gb, key: 'GB-101', title: 'Intent-Erkennung überarbeiten', estimate_min: 1200, from: -56, to: -30 },
+  { account_id: K.gb, key: 'GB-114', title: 'Antwort-Caching mit Redis', estimate_min: 900, from: -40, to: 5 },
+  { account_id: K.gb, key: 'GB-120', title: 'Monitoring-Dashboard', estimate_min: 600, from: -20, to: 20 },
+  { account_id: K.gb, key: 'GB-127', title: 'Tokenlimit pro Mandant', estimate_min: 480, from: -3, to: 30 },
+  { account_id: K.kp, key: 'KP-42', title: 'Login mit SSO', estimate_min: 960, from: -56, to: -25 },
+  { account_id: K.kp, key: 'KP-57', title: 'Rechnungsübersicht als PDF', estimate_min: 720, from: -28, to: 10 },
+  { account_id: K.kp, key: 'KP-61', title: 'Barrierefreiheit Formulare', estimate_min: null, from: -10, to: 30 },
+  { account_id: K.wb, key: null, title: 'Rust-Grundlagen', estimate_min: 1200, from: -56, to: 30 },
+  { account_id: K.sup, key: 'SUP-8', title: 'Tickets 3rd Level', estimate_min: null, from: -56, to: 30 },
+  { account_id: K.alt, key: 'LAG-3', title: 'Datenmigration Altsystem', estimate_min: 300, from: -56, to: -45 },
 ]
-await insert('aufgabe', tasks.map(({ from, to, ...a }) => ({
+await insert('task', tasks.map(({ from, to, ...a }) => ({
   ...a,
-  status: to < 0 ? 'abgeschlossen' : 'offen',
-  erstellt_am: iso(addDays(today, from - 3)),
-  abgeschlossen_am: to < 0 ? iso(addDays(today, to), 960) : null,
+  status: to < 0 ? 'closed' : 'open',
+  created_at: iso(addDays(today, from - 3)),
+  closed_at: to < 0 ? iso(addDays(today, to), 960) : null,
 })))
 const weights = [3, 4, 3, 2, 3, 3, 2, 1, 1, 2] // frequency per task
 const tasksOn = (d) => {
@@ -102,30 +102,30 @@ const tasksOn = (d) => {
 }
 
 // --- Templates ---
-await insert('vorlage', [
-  { name: 'Daily', aufgabe_id: null, konto_id: K.gb, start: 570, ende: 585, wochentage: '[1,2,3,4,5]', intervall_wochen: 1, gueltig_ab: start, gueltig_bis: null, aktiv: 1 },
-  { name: 'Jour fixe', aufgabe_id: null, konto_id: K.fm, start: 840, ende: 900, wochentage: '[1]', intervall_wochen: 2, gueltig_ab: monday(start), gueltig_bis: null, aktiv: 1 },
-  { name: 'Lernzeit', aufgabe_id: 8, konto_id: K.wb, start: 900, ende: 960, wochentage: '[5]', intervall_wochen: 1, gueltig_ab: start, gueltig_bis: null, aktiv: 1 },
+await insert('template', [
+  { name: 'Daily', task_id: null, account_id: K.gb, start: 570, end: 585, weekdays: '[1,2,3,4,5]', interval_weeks: 1, valid_from: start, valid_until: null, active: 1 },
+  { name: 'Jour fixe', task_id: null, account_id: K.fm, start: 840, end: 900, weekdays: '[1]', interval_weeks: 2, valid_from: monday(start), valid_until: null, active: 1 },
+  { name: 'Lernzeit', task_id: 8, account_id: K.wb, start: 900, end: 960, weekdays: '[5]', interval_weeks: 1, valid_from: start, valid_until: null, active: 1 },
 ])
-await insert('vorlage_ausnahme', [{ vorlage_id: 1, datum: addDays(monday(today), -7) }])
+await insert('template_exception', [{ template_id: 1, date: addDays(monday(today), -7) }])
 
 // --- Blocks ---
 const notes = ['Code-Review', 'Pairing', 'Bugfix nach Rückfrage', 'Tests ergänzt', 'Abstimmung mit PO', null, null, null, null]
 const blocks = []
-const block = (date, s, e, status, extra = {}) => blocks.push({ datum: date, start: s, ende: e, kind: 'arbeit', status, aufgabe_id: null, konto_id: null, notiz: null, vorlage_id: null, ...extra })
+const block = (date, s, e, status, extra = {}) => blocks.push({ date, start: s, end: e, kind: 'work', status, task_id: null, account_id: null, note: null, template_id: null, ...extra })
 
 // Fills [from, to) with work blocks; fixed appointments (templates) are left out
 function fill(date, from, to, status, fixed) {
   let t = from
   const pool = tasksOn(date)
-  for (const f of [...fixed.filter(f => f.start >= from && f.start < to), { start: to, ende: to }].sort((a, b) => a.start - b.start)) {
+  for (const f of [...fixed.filter(f => f.start >= from && f.start < to), { start: to, end: to }].sort((a, b) => a.start - b.start)) {
     while (t < f.start) {
       const e = Math.min(f.start, t + grid(45, 150))
-      if (random() < 0.1) block(date, t, e, status, { konto_id: choice([K.fm, K.sup]) })
-      else block(date, t, e, status, { aufgabe_id: choice(pool), notiz: choice(notes) })
+      if (random() < 0.1) block(date, t, e, status, { account_id: choice([K.fm, K.sup]) })
+      else block(date, t, e, status, { task_id: choice(pool), note: choice(notes) })
       t = e
     }
-    t = Math.max(t, f.ende)
+    t = Math.max(t, f.end)
   }
 }
 
@@ -134,98 +134,98 @@ function fixedAppointments(date, status, toMin) {
   const weekdayNumber = weekday(date)
   const fixed = []
   const week = Math.round((new Date(`${monday(date)}T12:00:00Z`) - new Date(`${monday(start)}T12:00:00Z`)) / (7 * 864e5))
-  if (date !== addDays(monday(today), -7)) fixed.push({ start: 570, ende: 585, vorlage_id: 1, konto_id: K.gb })
-  if (weekdayNumber === 1 && week % 2 === 0) fixed.push({ start: 840, ende: 900, vorlage_id: 2, konto_id: K.fm })
-  if (weekdayNumber === 5) fixed.push({ start: 900, ende: 960, vorlage_id: 3, aufgabe_id: 8 })
-  const due = fixed.filter(f => f.ende <= toMin)
-  for (const { start: s, ende: e, ...carryover } of due) block(date, s, e, status, carryover)
+  if (date !== addDays(monday(today), -7)) fixed.push({ start: 570, end: 585, template_id: 1, account_id: K.gb })
+  if (weekdayNumber === 1 && week % 2 === 0) fixed.push({ start: 840, end: 900, template_id: 2, account_id: K.fm })
+  if (weekdayNumber === 5) fixed.push({ start: 900, end: 960, template_id: 3, task_id: 8 })
+  const due = fixed.filter(f => f.end <= toMin)
+  for (const { start: s, end: e, ...carryover } of due) block(date, s, e, status, carryover)
   return due
 }
 
 for (let d = start; d <= addDays(today, 7); d = addDays(d, 1)) {
-  const dayTypeValue = dayType[d]?.typ
-  if (weekday(d) > 5 || ['urlaub', 'krank', 'gleittag'].includes(dayTypeValue)) continue
+  const dayTypeValue = dayType[d]?.type
+  if (weekday(d) > 5 || ['vacation', 'sick', 'flex_day'].includes(dayTypeValue)) continue
   if (d > today) {
     // Future: only a few planned blocks; the app materializes templates itself
     if (d > addDays(today, 3)) continue
     const pool = tasksOn(d)
-    block(d, 600, 720, 'geplant', { aufgabe_id: choice(pool) })
-    block(d, 765, 840, 'geplant', { aufgabe_id: choice(pool) })
+    block(d, 600, 720, 'planned', { task_id: choice(pool) })
+    block(d, 765, 840, 'planned', { task_id: choice(pool) })
     continue
   }
   const start = grid(465, 525)
   if (d === today) {
-    const fixed = fixedAppointments(d, 'gebucht', 600)
-    fill(d, start, 660, 'gebucht', fixed)
-    blocks.push({ datum: d, start: 720, ende: 765, kind: 'pause', status: 'geplant', aufgabe_id: null, konto_id: null, notiz: null, vorlage_id: null })
-    fill(d, 660, 720, 'geplant', [])
-    fill(d, 765, 1005, 'geplant', [])
+    const fixed = fixedAppointments(d, 'booked', 600)
+    fill(d, start, 660, 'booked', fixed)
+    blocks.push({ date: d, start: 720, end: 765, kind: 'break', status: 'planned', task_id: null, account_id: null, note: null, template_id: null })
+    fill(d, 660, 720, 'planned', [])
+    fill(d, 765, 1005, 'planned', [])
     continue
   }
-  const targetMinutes = dayTypeValue === 'halb_urlaub' ? 240 : (dayType[d]?.soll_override ?? 480)
+  const targetMinutes = dayTypeValue === 'half_vacation' ? 240 : (dayType[d]?.target_override ?? 480)
   const endMinute = start + targetMinutes + 45 + grid(-45, 75)
-  const fixed = fixedAppointments(d, 'gebucht', endMinute)
+  const fixed = fixedAppointments(d, 'booked', endMinute)
   if (endMinute <= 720) {
-    fill(d, start, endMinute, 'gebucht', fixed)
+    fill(d, start, endMinute, 'booked', fixed)
     continue
   }
   const breakStart = grid(705, 750)
-  fill(d, start, breakStart, 'gebucht', fixed.filter(f => f.start < breakStart))
-  blocks.push({ datum: d, start: breakStart, ende: breakStart + 45, kind: 'pause', status: 'gebucht', aufgabe_id: null, konto_id: null, notiz: null, vorlage_id: null })
-  fill(d, breakStart + 45, endMinute, 'gebucht', fixed.filter(f => f.start >= breakStart))
+  fill(d, start, breakStart, 'booked', fixed.filter(f => f.start < breakStart))
+  blocks.push({ date: d, start: breakStart, end: breakStart + 45, kind: 'break', status: 'booked', task_id: null, account_id: null, note: null, template_id: null })
+  fill(d, breakStart + 45, endMinute, 'booked', fixed.filter(f => f.start >= breakStart))
 }
 // Like resolveAssignment: task blocks also carry the account of their task
 await insert('block', blocks.map(b => ({
   ...b,
-  konto_id: b.aufgabe_id ? tasks[b.aufgabe_id - 1].konto_id : b.konto_id,
-  erstellt_am: iso(b.datum, b.start),
+  account_id: b.task_id ? tasks[b.task_id - 1].account_id : b.account_id,
+  created_at: iso(b.date, b.start),
 })))
 
-await insert('tag', dayRows)
+await insert('day', dayRows)
 
 // --- Todos ---
 await insert('todo', [
-  { art: 'merker', text: 'Reisekosten September einreichen', faellig_am: addDays(today, -2), sortierung: 0 },
-  { art: 'merker', text: 'Zertifikat für Staging erneuern', faellig_am: today, aufgabe_id: 3, sortierung: 1 },
-  { art: 'merker', text: 'Feedbackgespräch vorbereiten', faellig_am: addDays(today, 5), sortierung: 2 },
-  { art: 'merker', text: 'Doku zu Caching-Strategie schreiben', aufgabe_id: 2, sortierung: 3 },
-  { art: 'merker', text: 'Laptop-Tausch beantragen', sortierung: 4, erledigt_am: iso(addDays(today, -4)) },
-  { art: 'daily', text: 'Blocker: Staging-DB voll', konto_id: K.gb, sortierung: 0 },
-  { art: 'daily', text: 'PDF-Rendering: Library-Entscheidung', aufgabe_id: 6, sortierung: 1 },
-  { art: 'daily', text: 'Urlaubsvertretung klären', sortierung: 2 },
-  { art: 'daily', text: 'Review GB-114 offen', aufgabe_id: 2, sortierung: 3, erledigt_am: iso(addDays(today, -1)) },
-  { art: 'warten', text: 'Freigabe Rechnungslayout', wer: 'Fachbereich Finanzen', nachfassen_am: addDays(today, -1), aufgabe_id: 6, sortierung: 0 },
-  { art: 'warten', text: 'SSO-Zugangsdaten Testumgebung', wer: 'IT-Betrieb', nachfassen_am: addDays(today, 3), konto_id: K.kp, sortierung: 1 },
-  { art: 'warten', text: 'Budget für Rust-Schulung', wer: 'Teamleitung', nachfassen_am: addDays(today, 10), aufgabe_id: 8, sortierung: 2 },
-].map(t => ({ wer: null, nachfassen_am: null, aufgabe_id: null, konto_id: null, faellig_am: null, erledigt_am: null, erstellt_am: iso(addDays(today, -7)), ...t })))
+  { kind: 'reminder', text: 'Reisekosten September einreichen', due_date: addDays(today, -2), sort_order: 0 },
+  { kind: 'reminder', text: 'Zertifikat für Staging erneuern', due_date: today, task_id: 3, sort_order: 1 },
+  { kind: 'reminder', text: 'Feedbackgespräch vorbereiten', due_date: addDays(today, 5), sort_order: 2 },
+  { kind: 'reminder', text: 'Doku zu Caching-Strategie schreiben', task_id: 2, sort_order: 3 },
+  { kind: 'reminder', text: 'Laptop-Tausch beantragen', sort_order: 4, done_at: iso(addDays(today, -4)) },
+  { kind: 'daily_topic', text: 'Blocker: Staging-DB voll', account_id: K.gb, sort_order: 0 },
+  { kind: 'daily_topic', text: 'PDF-Rendering: Library-Entscheidung', task_id: 6, sort_order: 1 },
+  { kind: 'daily_topic', text: 'Urlaubsvertretung klären', sort_order: 2 },
+  { kind: 'daily_topic', text: 'Review GB-114 offen', task_id: 2, sort_order: 3, done_at: iso(addDays(today, -1)) },
+  { kind: 'waiting_for', text: 'Freigabe Rechnungslayout', person: 'Fachbereich Finanzen', follow_up_date: addDays(today, -1), task_id: 6, sort_order: 0 },
+  { kind: 'waiting_for', text: 'SSO-Zugangsdaten Testumgebung', person: 'IT-Betrieb', follow_up_date: addDays(today, 3), account_id: K.kp, sort_order: 1 },
+  { kind: 'waiting_for', text: 'Budget für Rust-Schulung', person: 'Teamleitung', follow_up_date: addDays(today, 10), task_id: 8, sort_order: 2 },
+].map(t => ({ person: null, follow_up_date: null, task_id: null, account_id: null, due_date: null, done_at: null, created_at: iso(addDays(today, -7)), ...t })))
 
 // --- Notes ---
-await insert('notiz', [
-  { titel: 'Deployment-Checkliste', inhalt: '## Vor dem Release\n\n- [ ] Migrationen geprüft\n- [ ] Feature-Flags gesetzt\n- [ ] Changelog aktualisiert\n\n## Danach\n\n1. Smoke-Tests\n2. Monitoring 30 min beobachten', tags: '["release","checkliste"]', konto_id: K.gb, angepinnt: 1, daysAgo: -20 },
-  { titel: 'Redis-Konfiguration', inhalt: 'TTL **300 s** für Antworten, Invalidierung per Pub/Sub.\n\n```\nmaxmemory-policy allkeys-lru\n```', tags: '["redis","technik"]', aufgabe_id: 2, angepinnt: 1, daysAgo: -5 },
-  { titel: 'Retro-Notizen Sprint 18', inhalt: '**Gut:** Pairing, schnellere Reviews\n\n**Verbessern:** Tickets kleiner schneiden, Daily pünktlich beenden', tags: '["retro"]', konto_id: K.gb, angepinnt: 0, daysAgo: -12 },
-  { titel: 'SSO-Flow', inhalt: '1. Redirect zum IdP\n2. Callback mit Code\n3. Token-Tausch serverseitig\n\n> Refresh-Token nie im Browser speichern.', tags: '["sso","technik"]', aufgabe_id: 5, angepinnt: 0, daysAgo: -40 },
-  { titel: 'Ideen Weiterbildung', inhalt: '- Rust Ownership-Kapitel\n- Vortrag über Observability\n- Konferenz im Frühjahr', tags: '["lernen"]', konto_id: K.wb, angepinnt: 0, daysAgo: -2 },
-  { titel: 'Telefonnummern', inhalt: 'IT-Hotline: 1234\nEmpfang: 1000', tags: '[]', angepinnt: 0, daysAgo: -50 },
-].map(({ daysAgo: t, ...n }) => ({ aufgabe_id: null, konto_id: null, ...n, erstellt_am: iso(addDays(today, t - 3)), geaendert_am: iso(addDays(today, t), 900) })))
+await insert('note', [
+  { title: 'Deployment-Checkliste', content: '## Vor dem Release\n\n- [ ] Migrationen geprüft\n- [ ] Feature-Flags gesetzt\n- [ ] Changelog aktualisiert\n\n## Danach\n\n1. Smoke-Tests\n2. Monitoring 30 min beobachten', tags: '["release","checkliste"]', account_id: K.gb, pinned: 1, daysAgo: -20 },
+  { title: 'Redis-Konfiguration', content: 'TTL **300 s** für Antworten, Invalidierung per Pub/Sub.\n\n```\nmaxmemory-policy allkeys-lru\n```', tags: '["redis","technik"]', task_id: 2, pinned: 1, daysAgo: -5 },
+  { title: 'Retro-Notizen Sprint 18', content: '**Gut:** Pairing, schnellere Reviews\n\n**Verbessern:** Tickets kleiner schneiden, Daily pünktlich beenden', tags: '["retro"]', account_id: K.gb, pinned: 0, daysAgo: -12 },
+  { title: 'SSO-Flow', content: '1. Redirect zum IdP\n2. Callback mit Code\n3. Token-Tausch serverseitig\n\n> Refresh-Token nie im Browser speichern.', tags: '["sso","technik"]', task_id: 5, pinned: 0, daysAgo: -40 },
+  { title: 'Ideen Weiterbildung', content: '- Rust Ownership-Kapitel\n- Vortrag über Observability\n- Konferenz im Frühjahr', tags: '["lernen"]', account_id: K.wb, pinned: 0, daysAgo: -2 },
+  { title: 'Telefonnummern', content: 'IT-Hotline: 1234\nEmpfang: 1000', tags: '[]', pinned: 0, daysAgo: -50 },
+].map(({ daysAgo: t, ...n }) => ({ task_id: null, account_id: null, ...n, created_at: iso(addDays(today, t - 3)), updated_at: iso(addDays(today, t), 900) })))
 
 // --- Vacation entitlement and settings ---
-await insert('urlaubsanspruch', [
-  { jahr: Number(year), art: 'grund', bezeichnung: 'Grundanspruch', tage: 30 },
-  { jahr: Number(year), art: 'zusatz', bezeichnung: 'Sonderurlaub Umzug', tage: 1 },
-  { jahr: Number(year), art: 'rest', bezeichnung: `Resturlaub ${Number(year) - 1}`, tage: 4.5 },
+await insert('vacation_entitlement', [
+  { year: Number(year), kind: 'base', label: 'Grundanspruch', days: 30 },
+  { year: Number(year), kind: 'extra', label: 'Sonderurlaub Umzug', days: 1 },
+  { year: Number(year), kind: 'carryover', label: `Resturlaub ${Number(year) - 1}`, days: 4.5 },
 ])
 await insert('settings', Object.entries({
   urlaubVorbelegt: true,
-  stundenkontoStart: { datum: start, saldoMin: 135 },
-  sollProTagMin: 480,
-  arbeitstage: [1, 2, 3, 4, 5],
-  bundesland: 'BW',
-  arbeitsbeginn: 480,
-  timelineVon: 420,
-  timelineBis: 1140,
-  urlaubErinnerungTage: 21,
-  urlaubErinnerungText: 'Übergabe planen, Abwesenheitsnotiz und Vertretung einrichten.',
+  balanceStart: { date: start, balanceMin: 135 },
+  targetPerDayMin: 480,
+  workdays: [1, 2, 3, 4, 5],
+  federalState: 'BW',
+  workStart: 480,
+  timelineFrom: 420,
+  timelineTo: 1140,
+  vacationNoticeDays: 21,
+  vacationNoticeText: 'Übergabe planen, Abwesenheitsnotiz und Vertretung einrichten.',
 }).map(([key, value]) => ({ key, value: JSON.stringify(value) })))
 
 console.log(`Seed done (${url}): ${accounts.length} accounts, ${tasks.length} tasks, ${blocks.length} blocks, ${dayRows.length} days`)

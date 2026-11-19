@@ -9,16 +9,16 @@ export async function loadSettings(): Promise<Settings> {
   const rows = await db.select().from(settings)
   const saved = Object.fromEntries(rows.map(z => [z.key, z.value]))
 
-  if (!saved.stundenkontoStart) {
-    const start = { datum: today(), saldoMin: 0 }
-    await db.insert(settings).values({ key: 'stundenkontoStart', value: start }).onConflictDoNothing()
-    saved.stundenkontoStart = start
+  if (!saved.balanceStart) {
+    const start = { date: today(), balanceMin: 0 }
+    await db.insert(settings).values({ key: 'balanceStart', value: start }).onConflictDoNothing()
+    saved.balanceStart = start
   }
 
   const result = settingsSchema.safeParse({ ...DEFAULT_SETTINGS, ...saved })
   if (!result.success) {
     // Do not let single broken values block the whole app: only accept valid keys
-    const clean: Record<string, unknown> = { ...DEFAULT_SETTINGS, stundenkontoStart: saved.stundenkontoStart }
+    const clean: Record<string, unknown> = { ...DEFAULT_SETTINGS, balanceStart: saved.balanceStart }
     for (const [key, value] of Object.entries(saved)) {
       const field = settingsSchema.shape[key as keyof Settings]
       if (field?.safeParse(value).success) clean[key] = value

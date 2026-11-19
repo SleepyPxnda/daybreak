@@ -2,7 +2,7 @@ import { getHolidays } from 'feiertagejs'
 import type { IsoDate } from './time'
 import { weekday } from './time'
 
-export type DayType = 'arbeit' | 'urlaub' | 'halb_urlaub' | 'krank' | 'gleittag'
+export type DayType = 'work' | 'vacation' | 'half_vacation' | 'sick' | 'flex_day'
 
 /** Stored deviation of a day (day table). */
 export interface DayEntry {
@@ -12,10 +12,10 @@ export interface DayEntry {
 }
 
 export interface TargetSettings {
-  sollProTagMin: number
+  targetPerDayMin: number
   /** ISO weekdays 1 = Mon ... 7 = Sun */
-  arbeitstage: number[]
-  bundesland: string
+  workdays: number[]
+  federalState: string
 }
 
 export interface DayInfo {
@@ -54,22 +54,22 @@ export function holidayName(date: IsoDate, federalState: string): string | undef
  * - Workday: work/flex day = full target, half vacation = half, vacation/sick = 0.
  */
 export function dayInfo(date: IsoDate, entry: DayEntry | undefined, settings: TargetSettings): DayInfo {
-  const holiday = holidayName(date, settings.bundesland)
-  const isWorkday = !holiday && settings.arbeitstage.includes(weekday(date))
-  const type = entry?.type ?? 'arbeit'
+  const holiday = holidayName(date, settings.federalState)
+  const isWorkday = !holiday && settings.workdays.includes(weekday(date))
+  const type = entry?.type ?? 'work'
 
   let target = 0
   if (isWorkday) {
     switch (type) {
-      case 'arbeit':
-      case 'gleittag':
-        target = settings.sollProTagMin
+      case 'work':
+      case 'flex_day':
+        target = settings.targetPerDayMin
         break
-      case 'halb_urlaub':
-        target = Math.round(settings.sollProTagMin / 2)
+      case 'half_vacation':
+        target = Math.round(settings.targetPerDayMin / 2)
         break
-      case 'urlaub':
-      case 'krank':
+      case 'vacation':
+      case 'sick':
         target = 0
         break
     }

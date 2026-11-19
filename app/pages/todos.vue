@@ -9,13 +9,13 @@ useHead({ title: 'Merker & Daily · daybreak' })
 
 const { byKind } = useOpenTodos()
 const lists = TODO_KINDS.map(a => ({ ...a, todos: byKind(a.kind) }))
-const waitingFor = byKind('warten')
+const waitingFor = byKind('waiting_for')
 const dueWaitingFor = computed(() => waitingFor.value.filter(t => isDue(t, today())).length)
 
 const Empty: Record<string, string> = {
-  merker: 'Nichts im Kopf behalten – schön.',
-  warten: 'Du wartest auf niemanden.',
-  daily: 'Nichts fürs nächste Daily.',
+  reminder: 'Nichts im Kopf behalten – schön.',
+  waiting_for: 'Du wartest auf niemanden.',
+  daily_topic: 'Nichts fürs nächste Daily.',
 }
 
 // Archive of discussed/done items - load only when expanded
@@ -58,8 +58,8 @@ async function remove(id: number) {
           <CardTitle class="flex items-center justify-between gap-2">
             {{ l.title }}
             <span
-              v-if="l.kind === 'warten' && dueWaitingFor"
-              class="inline-flex items-center gap-1.5 text-xs font-medium text-warnung"
+              v-if="l.kind === 'waiting_for' && dueWaitingFor"
+              class="inline-flex items-center gap-1.5 text-xs font-medium text-warning"
             >
               <AlarmClock class="size-3" />
               <span class="tabular-nums">{{ dueWaitingFor }}</span> nachfassen

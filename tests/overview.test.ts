@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest'
 import type { OverviewBlock } from '../shared/utils/overview'
 import { groupOverview, monthClosing } from '../shared/utils/overview'
 
-const apollo = { accountId: 1, accountName: 'Projekt Apollo', accountColor: 'lavendel' }
+const apollo = { accountId: 1, accountName: 'Projekt Apollo', accountColor: 'lavender' }
 const meeting = { accountId: 2, accountName: 'Firmenmeeting', accountColor: 'mint' }
 const login = { taskId: 10, taskKey: 'PROJ-123', taskTitle: 'Login-Refactoring' }
 const withoutTask = { taskId: null, taskKey: null, taskTitle: null }
 
 function b(date: string, start: number, end: number, part: Partial<OverviewBlock> = {}): OverviewBlock {
-  return { date, start, end, kind: 'arbeit', status: 'gebucht', note: null, ...apollo, ...login, ...part }
+  return { date, start, end, kind: 'work', status: 'booked', note: null, ...apollo, ...login, ...part }
 }
 
 describe('groupOverview', () => {
@@ -44,8 +44,8 @@ describe('groupOverview', () => {
 
   it('ignores planned blocks and breaks', () => {
     const u = groupOverview([
-      b('2026-09-28', 480, 540, { status: 'geplant' }),
-      b('2026-09-28', 720, 750, { kind: 'pause', accountId: null, ...withoutTask }),
+      b('2026-09-28', 480, 540, { status: 'planned' }),
+      b('2026-09-28', 720, 750, { kind: 'break', accountId: null, ...withoutTask }),
     ])
     expect(u).toEqual({ total: 0, accounts: [] })
   })
@@ -67,7 +67,7 @@ describe('monthClosing', () => {
   it('start, end, break including gaps, and actual', () => {
     const [t] = monthClosing([
       b('2026-09-28', 480, 720), // 08:00-12:00
-      b('2026-09-28', 720, 750, { kind: 'pause', accountId: null, ...withoutTask }), // break block 0:30
+      b('2026-09-28', 720, 750, { kind: 'break', accountId: null, ...withoutTask }), // break block 0:30
       b('2026-09-28', 780, 1020), // 13:00-17:00 (gap 12:30-13:00)
     ], [day])
     expect(t).toMatchObject({ start: 480, end: 1020, actual: 480, isBreak: 60, target: 480 })
@@ -82,13 +82,13 @@ describe('monthClosing', () => {
       b('2026-09-28', 780, 810, { ...meeting, ...withoutTask }),
     ], [day])
     expect(t!.accounts).toEqual([
-      { accountId: 1, name: 'Projekt Apollo', color: 'lavendel', minutes: 240, labels: ['PROJ-123', 'Doku'] },
+      { accountId: 1, name: 'Projekt Apollo', color: 'lavender', minutes: 240, labels: ['PROJ-123', 'Doku'] },
       { accountId: 2, name: 'Firmenmeeting', color: 'mint', minutes: 90, labels: ['Jour fixe'] },
     ])
   })
 
   it('planned blocks do not count; a day without bookings stays empty', () => {
-    const days = monthClosing([b('2026-09-28', 480, 540, { status: 'geplant' })], [day, { date: '2026-09-29', target: 480 }])
+    const days = monthClosing([b('2026-09-28', 480, 540, { status: 'planned' })], [day, { date: '2026-09-29', target: 480 }])
     expect(days).toEqual([
       { date: '2026-09-28', target: 480, start: null, end: null, actual: 0, isBreak: 0, accounts: [] },
       { date: '2026-09-29', target: 480, start: null, end: null, actual: 0, isBreak: 0, accounts: [] },

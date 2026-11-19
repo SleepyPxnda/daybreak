@@ -7,7 +7,7 @@ interface AccountData {
   name: string
   color: string
   aliases: string[]
-  status: 'aktiv' | 'archiviert'
+  status: 'active' | 'archived'
 }
 
 const props = defineProps<{ account?: AccountData | null }>()
@@ -15,16 +15,16 @@ const open = defineModel<boolean>('open', { default: false })
 const emit = defineEmits<{ saved: [id: number] }>()
 
 const name = ref('')
-const color = ref<AccountColor>('lavendel')
+const color = ref<AccountColor>('lavender')
 const aliases = ref('')
 const archived = ref(false)
 
 watch(open, (nowOpen) => {
   if (!nowOpen) return
   name.value = props.account?.name ?? ''
-  color.value = (props.account?.color as AccountColor) ?? 'lavendel'
+  color.value = (props.account?.color as AccountColor) ?? 'lavender'
   aliases.value = props.account?.aliases.join(', ') ?? ''
-  archived.value = props.account?.status === 'archiviert'
+  archived.value = props.account?.status === 'archived'
 })
 
 async function save() {
@@ -32,7 +32,7 @@ async function save() {
     name: name.value,
     color: color.value,
     aliases: aliases.value.split(/[,\s]+/).map(a => a.trim()).filter(Boolean),
-    status: archived.value ? 'archiviert' as const : 'aktiv' as const,
+    status: archived.value ? 'archived' as const : 'active' as const,
   }
   const result = await runAction(
     () => props.account

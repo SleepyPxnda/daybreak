@@ -21,7 +21,7 @@ const newEntitlement = reactive<{ label: string, days: number | null | undefined
 async function add() {
   const days = newEntitlement.days
   if (!newEntitlement.label.trim() || days == null) return
-  const kind = vacation.value?.entitlements.length ? 'zusatz' : 'grund'
+  const kind = vacation.value?.entitlements.length ? 'extra' : 'base'
   const ok = await runAction(() => api('/api/vacation/entitlements', {
     method: 'POST',
     body: { year: year.value, kind, label: newEntitlement.label, days: half(days) },
@@ -36,7 +36,7 @@ async function carryOver() {
   await runAction(() => api('/api/vacation/carry-over', { method: 'POST', body: { year: year.value } }), ['vacation'])
 }
 
-const hasCarryoverEntitlement = computed(() => vacation.value?.entitlements.some(p => p.kind === 'rest') ?? false)
+const hasCarryoverEntitlement = computed(() => vacation.value?.entitlements.some(p => p.kind === 'carryover') ?? false)
 </script>
 
 <template>
@@ -63,13 +63,13 @@ const hasCarryoverEntitlement = computed(() => vacation.value?.entitlements.some
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="grund">
+            <SelectItem value="base">
               Grund
             </SelectItem>
-            <SelectItem value="zusatz">
+            <SelectItem value="extra">
               Zusatz
             </SelectItem>
-            <SelectItem value="rest">
+            <SelectItem value="carryover">
               Rest
             </SelectItem>
           </SelectContent>
@@ -98,7 +98,7 @@ const hasCarryoverEntitlement = computed(() => vacation.value?.entitlements.some
       <div class="flex flex-wrap items-center justify-between gap-3 bg-card px-4 py-2.5 text-sm">
         <span class="font-mono text-[13px] text-muted-foreground tabular-nums">
           Anspruch <span class="text-foreground">{{ number(vacation.entitlement) }}</span> · genommen <span class="text-foreground">{{ number(vacation.taken) }}</span> · geplant <span class="text-foreground">{{ number(vacation.planned) }}</span> ·
-          Rest <span class="font-medium" :class="vacation.carryover < 0 ? 'text-negativ' : 'text-foreground'">{{ number(vacation.carryover) }}</span>
+          Rest <span class="font-medium" :class="vacation.carryover < 0 ? 'text-negative' : 'text-foreground'">{{ number(vacation.carryover) }}</span>
         </span>
         <Button v-if="vacation.previousYearCarryover !== null" size="sm" variant="outline" @click="carryOver">
           {{ hasCarryoverEntitlement ? 'Rest aktualisieren' : 'Rest aus Vorjahr übernehmen' }} ({{ number(vacation.previousYearCarryover) }})

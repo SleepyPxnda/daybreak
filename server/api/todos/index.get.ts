@@ -5,7 +5,7 @@ import { task, account, todo } from '../../db/schema'
 import { db } from '../../db/client'
 
 const querySchema = z.object({
-  kind: z.enum(['merker', 'daily', 'warten']).optional(),
+  kind: z.enum(['reminder', 'daily_topic', 'waiting_for']).optional(),
   /** open (default) or done (archive) */
   status: z.enum(['open', 'done']).default('open'),
   taskId: z.coerce.number().int().positive().optional(),

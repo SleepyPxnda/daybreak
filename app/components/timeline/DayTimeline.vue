@@ -197,17 +197,17 @@ function isDroppable(e: DragEvent) {
 // --- Appearance --------------------------------------------------------
 function blockCssClasses(b: TimelineBlock) {
   return cn(
-    b.kind === 'pause' ? 'bg-muted text-muted-foreground ring-1 ring-inset ring-border' : accountColorClasses(b.accountColor).surface,
+    b.kind === 'break' ? 'bg-muted text-muted-foreground ring-1 ring-inset ring-border' : accountColorClasses(b.accountColor).surface,
     // Planned: dashed border (instead of ring) + hatching
-    b.status === 'geplant' && 'hatched border border-dashed ring-0',
+    b.status === 'planned' && 'hatched border border-dashed ring-0',
     drag.value && 'block' in drag.value && drag.value.block.id === b.id && 'opacity-30',
   )
 }
 
 /** Border color of dashed (planned) blocks in the account color, otherwise line color */
 function blockStyle(b: TimelineBlock) {
-  if (b.status !== 'geplant') return position(b)
-  const color = b.kind === 'pause' || !b.accountColor ? 'var(--color-border)' : `color-mix(in oklch, var(--color-konto-${b.accountColor}) 55%, transparent)`
+  if (b.status !== 'planned') return position(b)
+  const color = b.kind === 'break' || !b.accountColor ? 'var(--color-border)' : `color-mix(in oklch, var(--color-account-${b.accountColor}) 55%, transparent)`
   return { ...position(b), borderColor: color }
 }
 
@@ -292,7 +292,7 @@ function position(z: TimeRange) {
           </ContextMenuTrigger>
           <ContextMenuContent>
             <ContextMenuItem @select="emit('menu', 'toggle', b, menuMinute)">
-              {{ b.status === 'geplant' ? 'Buchen' : 'Als geplant markieren' }}
+              {{ b.status === 'planned' ? 'Buchen' : 'Als geplant markieren' }}
             </ContextMenuItem>
             <ContextMenuItem @select="emit('menu', 'split', b, menuMinute)">
               Hier teilen
@@ -300,7 +300,7 @@ function position(z: TimeRange) {
             <ContextMenuItem @select="emit('menu', 'edit', b, menuMinute)">
               Aufgabe/Konto ändern …
             </ContextMenuItem>
-            <ContextMenuItem v-if="b.kind === 'arbeit' && !b.templateId" @select="emit('menu', 'recurring', b, menuMinute)">
+            <ContextMenuItem v-if="b.kind === 'work' && !b.templateId" @select="emit('menu', 'recurring', b, menuMinute)">
               Als wiederkehrend speichern …
             </ContextMenuItem>
             <ContextMenuSeparator />

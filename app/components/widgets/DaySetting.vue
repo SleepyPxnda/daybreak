@@ -12,21 +12,21 @@ const props = defineProps<{
 }>()
 
 const TYPES: { value: DayType, label: string }[] = [
-  { value: 'arbeit', label: 'Arbeitstag' },
-  { value: 'urlaub', label: 'Urlaub' },
-  { value: 'halb_urlaub', label: '½ Urlaub' },
-  { value: 'krank', label: 'Krank' },
-  { value: 'gleittag', label: 'Gleittag' },
+  { value: 'work', label: 'Arbeitstag' },
+  { value: 'vacation', label: 'Urlaub' },
+  { value: 'half_vacation', label: '½ Urlaub' },
+  { value: 'sick', label: 'Krank' },
+  { value: 'flex_day', label: 'Gleittag' },
 ]
 
 const label = computed(() => {
   if (props.holiday) return props.holiday
-  if (!props.isWorkday && props.type === 'arbeit') return 'Frei'
+  if (!props.isWorkday && props.type === 'work') return 'Frei'
   return TYPES.find(t => t.value === props.type)?.label ?? props.type
 })
 
 const open = ref(false)
-const selectedType = ref<DayType>('arbeit')
+const selectedType = ref<DayType>('work')
 const overrideHours = ref<number | null | undefined>()
 const dayNote = ref('')
 

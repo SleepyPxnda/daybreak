@@ -16,7 +16,7 @@ const open = defineModel<boolean>('open', { default: false })
 const emit = defineEmits<{ saved: [id: number] }>()
 
 const { data: accounts } = useAccounts()
-const activeAccounts = computed(() => accounts.value.filter(k => k.status === 'aktiv' || k.id === props.task?.accountId))
+const activeAccounts = computed(() => accounts.value.filter(k => k.status === 'active' || k.id === props.task?.accountId))
 
 const selectedAccount = ref<string>('')
 const key = ref('')

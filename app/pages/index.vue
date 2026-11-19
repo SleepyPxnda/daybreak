@@ -24,8 +24,8 @@ useHead({ title: () => `${isToday.value ? 'Heute' : format(toDate(date.value), '
 const { data: settings } = useSettings()
 const { blocks, conflicts, info } = useDay(date)
 
-const from = computed(() => settings.value?.timelineVon ?? 420)
-const to = computed(() => settings.value?.timelineBis ?? 1140)
+const from = computed(() => settings.value?.timelineFrom ?? 420)
+const to = computed(() => settings.value?.timelineTo ?? 1140)
 
 const {
   currentMinute,
@@ -108,10 +108,10 @@ watch(() => route.query.dayClosing, (value) => {
 
     <div v-if="conflicts.length" class="flex flex-wrap gap-3">
       <NextVacation presentation="banner" class="flex-[1_1_420px]" />
-      <div class="flex items-center gap-2.5 rounded-xl border bg-warnung-subtle px-4 py-2.5 text-sm">
-        <TriangleAlert class="size-[18px] shrink-0 text-warnung" />
+      <div class="flex items-center gap-2.5 rounded-xl border bg-warning-subtle px-4 py-2.5 text-sm">
+        <TriangleAlert class="size-[18px] shrink-0 text-warning" />
         <span>
-          <span class="font-semibold text-warnung">{{ conflicts.length }} wiederkehrende{{ conflicts.length === 1 ? 'r Block' : ' Blöcke' }}</span>
+          <span class="font-semibold text-warning">{{ conflicts.length }} wiederkehrende{{ conflicts.length === 1 ? 'r Block' : ' Blöcke' }}</span>
           nicht eingetragen – Zeitraum belegt
         </span>
       </div>

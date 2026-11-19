@@ -21,9 +21,9 @@ export function useBlockEditing() {
 
   /** New block: past time is booked, future time is planned */
   function standardStatus(date: string, end: number) {
-    if (date < today()) return 'gebucht' as const
-    if (date > today()) return 'geplant' as const
-    return end <= (currentMinute.value ?? 0) ? 'gebucht' as const : 'geplant' as const
+    if (date < today()) return 'booked' as const
+    if (date > today()) return 'planned' as const
+    return end <= (currentMinute.value ?? 0) ? 'booked' as const : 'planned' as const
   }
 
   function draftOpen(e: BlockDraft) {
@@ -49,7 +49,7 @@ export function useBlockEditing() {
   async function menu(actionName: BlockMenuAction, b: TimelineBlock, minute: number) {
     switch (actionName) {
       case 'toggle':
-        await runAction(() => api(`/api/blocks/${b.id}`, { method: 'PATCH', body: { status: b.status === 'geplant' ? 'gebucht' : 'geplant' } }), DAY_KEYS)
+        await runAction(() => api(`/api/blocks/${b.id}`, { method: 'PATCH', body: { status: b.status === 'planned' ? 'booked' : 'planned' } }), DAY_KEYS)
         break
       case 'split': {
         const at = minute > b.start && minute < b.end ? minute : snapToGrid((b.start + b.end) / 2)
@@ -85,7 +85,7 @@ export function useBlockEditing() {
     const end = Math.min(start + 60, DAY_MIN)
     await runAction(() => api('/api/blocks', {
       method: 'POST',
-      body: { date, kind: 'arbeit', status: standardStatus(date, end), start, end, taskId },
+      body: { date, kind: 'work', status: standardStatus(date, end), start, end, taskId },
     }), DAY_KEYS)
   }
 
@@ -95,15 +95,15 @@ export function useBlockEditing() {
     if (!reminder) return
     const end = Math.min(start + 30, DAY_MIN)
     if (!reminder.taskId && !reminder.accountId) {
-      draftOpen({ date, start, end, status: 'geplant', note: reminder.text })
+      draftOpen({ date, start, end, status: 'planned', note: reminder.text })
       return
     }
     await runAction(() => api('/api/blocks', {
       method: 'POST',
       body: {
         date,
-        kind: 'arbeit',
-        status: 'geplant',
+        kind: 'work',
+        status: 'planned',
         start,
         end,
         ...(reminder.taskId ? { taskId: reminder.taskId } : { accountId: reminder.accountId }),

@@ -6,7 +6,7 @@ import type { TodoRow } from '~/composables/useTodos'
 const props = defineProps<{ todo: TodoRow | null }>()
 const open = defineModel<boolean>('open', { default: false })
 
-const kind = ref<TodoKind>('merker')
+const kind = ref<TodoKind>('reminder')
 const text = ref('')
 const person = ref('')
 const cutoffDate = ref('')
@@ -18,7 +18,7 @@ watch(open, (nowOpen) => {
   kind.value = t.kind
   text.value = t.text
   person.value = t.person ?? ''
-  cutoffDate.value = (t.kind === 'warten' ? t.followUpDate : t.dueDate) ?? ''
+  cutoffDate.value = (t.kind === 'waiting_for' ? t.followUpDate : t.dueDate) ?? ''
   assignment.value = assignmentValue(t)
 })
 
@@ -29,9 +29,9 @@ async function save() {
     body: {
       kind: kind.value,
       text: text.value,
-      person: kind.value === 'warten' ? person.value : null,
-      followUpDate: kind.value === 'warten' ? cutoffDate.value || null : null,
-      dueDate: kind.value === 'merker' ? cutoffDate.value || null : null,
+      person: kind.value === 'waiting_for' ? person.value : null,
+      followUpDate: kind.value === 'waiting_for' ? cutoffDate.value || null : null,
+      dueDate: kind.value === 'reminder' ? cutoffDate.value || null : null,
       ...assignmentFromValue(assignment.value),
     },
   }), TODO_KEYS)
@@ -68,7 +68,7 @@ async function remove() {
             </SelectContent>
           </Select>
         </div>
-        <div v-if="kind === 'warten'" class="grid gap-2">
+        <div v-if="kind === 'waiting_for'" class="grid gap-2">
           <Label for="todo-person" class="text-xs font-normal text-muted-foreground">Auf wen</Label>
           <Input id="todo-person" v-model="person" class="h-9 rounded-md" placeholder="z. B. Tim" />
         </div>
@@ -76,8 +76,8 @@ async function remove() {
           <Label for="todo-text" class="text-xs font-normal text-muted-foreground">Text</Label>
           <Textarea id="todo-text" v-model="text" rows="2" required class="rounded-md" />
         </div>
-        <div v-if="kind !== 'daily'" class="grid gap-2">
-          <Label for="todo-cutoff-date" class="text-xs font-normal text-muted-foreground">{{ kind === 'warten' ? 'Nachfassen am' : 'Fällig am' }} (optional)</Label>
+        <div v-if="kind !== 'daily_topic'" class="grid gap-2">
+          <Label for="todo-cutoff-date" class="text-xs font-normal text-muted-foreground">{{ kind === 'waiting_for' ? 'Nachfassen am' : 'Fällig am' }} (optional)</Label>
           <Input id="todo-cutoff-date" v-model="cutoffDate" type="date" class="h-9 w-44 rounded-md font-mono" />
         </div>
         <div class="grid gap-1.5">

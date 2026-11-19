@@ -11,14 +11,14 @@ export interface QuickInputTask {
   key?: string | null
   title: string
   accountId: number
-  status: 'offen' | 'abgeschlossen'
+  status: 'open' | 'closed'
 }
 
 export interface QuickInputAccount {
   id: number
   name: string
   aliases: string[]
-  status: 'aktiv' | 'archiviert'
+  status: 'active' | 'archived'
 }
 
 export interface QuickInputContext {
@@ -73,20 +73,20 @@ export type QuickInputResult =
   | QuickInputTodo
   | QuickInputNote
 
-const TODO_PREFIXES: Record<string, TodoKind> = { t: 'merker', d: 'daily', w: 'warten' }
+const TODO_PREFIXES: Record<string, TodoKind> = { t: 'reminder', d: 'daily_topic', w: 'waiting_for' }
 
 /** `t ...`, `d ...`, `w who: ...` - optional `bis <date>` at the end (not for daily topics). */
 function parseTodo(todoKind: TodoKind, words: string[], today: IsoDate): QuickInputTodo | { type: 'error', message: string } {
   let carryover = words
   let cutoffDate: IsoDate | undefined
-  if (todoKind !== 'daily' && carryover.length >= 3 && norm(carryover.at(-2)!) === 'bis') {
+  if (todoKind !== 'daily_topic' && carryover.length >= 3 && norm(carryover.at(-2)!) === 'bis') {
     cutoffDate = parseDateToken(carryover.at(-1)!, today, 'vor')
     if (cutoffDate) carryover = carryover.slice(0, -2)
   }
 
   let text = carryover.join(' ').trim()
   let person: string | undefined
-  if (todoKind === 'warten') {
+  if (todoKind === 'waiting_for') {
     const colon = text.indexOf(':')
     if (colon > 0) {
       person = text.slice(0, colon).trim()
@@ -157,7 +157,7 @@ const noteFrom = (words: string[]) => (words.length ? words.join(' ') : undefine
 
 function findAccount(name: string, accounts: QuickInputAccount[]): QuickInputAccount[] {
   const n = norm(name)
-  const active = accounts.filter(k => k.status === 'aktiv')
+  const active = accounts.filter(k => k.status === 'active')
   const perAlias = active.filter(k => k.aliases.some(a => norm(a) === n))
   if (perAlias.length) return perAlias
   const exact = active.filter(k => norm(k.name) === n)
@@ -175,13 +175,13 @@ function detectAssignment(words: string[], atAccount: QuickInputAccount | undefi
     const perKey = ctx.tasks.find(a => a.key && norm(a.key) === norm(first))
     if (perKey) return { assignment: { type: 'task', taskId: perKey.id, accountId: perKey.accountId }, note: noteFrom(after) }
 
-    const perAlias = ctx.accounts.find(k => k.status === 'aktiv' && k.aliases.some(a => norm(a) === norm(first)))
+    const perAlias = ctx.accounts.find(k => k.status === 'active' && k.aliases.some(a => norm(a) === norm(first)))
     if (perAlias) return { assignment: { type: 'account', accountId: perAlias.id }, note: noteFrom(after) }
   }
 
   if (atAccount && words.length === 0) return { assignment: { type: 'account', accountId: atAccount.id } }
 
-  const open = ctx.tasks.filter(a => a.status === 'offen' && (!atAccount || a.accountId === atAccount.id))
+  const open = ctx.tasks.filter(a => a.status === 'open' && (!atAccount || a.accountId === atAccount.id))
   // With @account the whole text must match - otherwise it is a new task (e.g. "2h New idea @apollo")
   const tasksHit = fuzzyPrefix(words, open, a => a.title, !!atAccount)
   if (tasksHit) {
@@ -192,7 +192,7 @@ function detectAssignment(words: string[], atAccount: QuickInputAccount | undefi
 
   if (atAccount) return { assignment: { type: 'newTask', title: words.join(' '), accountId: atAccount.id } }
 
-  const activeAccounts = ctx.accounts.filter(k => k.status === 'aktiv')
+  const activeAccounts = ctx.accounts.filter(k => k.status === 'active')
   const accountHit = fuzzyPrefix(words, activeAccounts, k => k.name)
   if (accountHit) {
     const assignments = accountHit.hit.map(k => ({ type: 'account' as const, accountId: k.id }))
@@ -216,12 +216,12 @@ export function parseQuickInput(input: string, ctx: QuickInputContext): QuickInp
     return title ? { type: 'note', title } : { type: 'error', message: 'Titel fehlt' }
   }
 
-  let kind: BlockKind = 'arbeit'
-  let status: BlockStatus = 'gebucht'
+  let kind: BlockKind = 'work'
+  let status: BlockStatus = 'booked'
   const prefix = norm(words[0]!)
-  if (prefix === 'p') kind = 'pause'
-  else if (prefix === 'plan') status = 'geplant'
-  const hasPrefix = kind === 'pause' || status === 'geplant'
+  if (prefix === 'p') kind = 'break'
+  else if (prefix === 'plan') status = 'planned'
+  const hasPrefix = kind === 'break' || status === 'planned'
   if (hasPrefix) words = words.slice(1)
 
   // Duration or time directly after the prefix
@@ -249,16 +249,16 @@ export function parseQuickInput(input: string, ctx: QuickInputContext): QuickInp
   // Date as the last word
   let date = ctx.standardDate ?? ctx.today
   const last = words.at(-1)
-  const dateFromToken = last ? parseDateToken(last, ctx.today, status === 'geplant' ? 'vor' : 'zurueck') : undefined
+  const dateFromToken = last ? parseDateToken(last, ctx.today, status === 'planned' ? 'vor' : 'zurueck') : undefined
   if (dateFromToken) {
     date = dateFromToken
     words = words.slice(0, -1)
   }
-  if (status === 'gebucht' && date > ctx.today) {
+  if (status === 'booked' && date > ctx.today) {
     return { type: 'error', message: 'Gebucht werden kann nur bis heute – für die Zukunft „plan“ voranstellen' }
   }
 
-  if (kind === 'pause') return { type: 'block', kind, status, date, time, note: noteFrom(words) }
+  if (kind === 'break') return { type: 'block', kind, status, date, time, note: noteFrom(words) }
 
   // @account (anywhere in the text)
   let atAccount: QuickInputAccount | undefined

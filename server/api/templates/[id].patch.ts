@@ -17,13 +17,13 @@ export default defineEventHandler(async (event) => {
   if (merged.validUntil && merged.validUntil < merged.validFrom) throw createError({ statusCode: 400, statusMessage: '„gültig bis“ liegt vor „gültig ab“' })
   const assignmentChanged = data.taskId !== undefined || data.accountId !== undefined
   const assignment = assignmentChanged
-    ? await resolveAssignment({ kind: 'arbeit', taskId: merged.taskId, accountId: data.taskId ? null : merged.accountId })
+    ? await resolveAssignment({ kind: 'work', taskId: merged.taskId, accountId: data.taskId ? null : merged.accountId })
     : {}
 
   return db.transaction(async (tx) => {
     const [changed] = await tx.update(template).set({ ...data, ...assignment }).where(eq(template.id, id)).returning()
     // A change only affects future, still planned blocks - they are regenerated on next load.
-    await tx.delete(block).where(and(eq(block.templateId, id), eq(block.status, 'geplant'), gt(block.date, today())))
+    await tx.delete(block).where(and(eq(block.templateId, id), eq(block.status, 'planned'), gt(block.date, today())))
     return changed!
   })
 })

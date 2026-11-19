@@ -141,7 +141,7 @@ const preview = computed(() => renderMarkdown(form.content))
       <span
         class="inline-flex shrink-0 items-center gap-1.5 text-[13px] tabular-nums"
         :class="{
-          'text-positiv': status === 'saved',
+          'text-positive': status === 'saved',
           'text-destructive': status === 'error',
           'text-muted-foreground': status === 'changed' || status === 'saving',
         }"

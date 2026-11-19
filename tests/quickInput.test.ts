@@ -6,16 +6,16 @@ import type { QuickInputContext } from '../shared/utils/quickInput'
 const ctx: QuickInputContext = {
   today: '2026-09-28',
   accounts: [
-    { id: 1, name: 'Projekt Apollo', aliases: ['apollo'], status: 'aktiv' },
-    { id: 2, name: 'Wartung', aliases: [], status: 'aktiv' },
-    { id: 3, name: 'Firmenmeeting', aliases: ['mtg'], status: 'aktiv' },
-    { id: 4, name: 'Altprojekt', aliases: ['alt'], status: 'archiviert' },
+    { id: 1, name: 'Projekt Apollo', aliases: ['apollo'], status: 'active' },
+    { id: 2, name: 'Wartung', aliases: [], status: 'active' },
+    { id: 3, name: 'Firmenmeeting', aliases: ['mtg'], status: 'active' },
+    { id: 4, name: 'Altprojekt', aliases: ['alt'], status: 'archived' },
   ],
   tasks: [
-    { id: 10, key: 'PROJ-123', title: 'Login-Refactoring', accountId: 1, status: 'offen' },
-    { id: 11, key: 'PROJ-124', title: 'Logout-Button', accountId: 1, status: 'offen' },
-    { id: 12, key: null, title: 'Server-Updates', accountId: 2, status: 'offen' },
-    { id: 13, key: 'OLD-1', title: 'Login alt', accountId: 2, status: 'abgeschlossen' },
+    { id: 10, key: 'PROJ-123', title: 'Login-Refactoring', accountId: 1, status: 'open' },
+    { id: 11, key: 'PROJ-124', title: 'Logout-Button', accountId: 1, status: 'open' },
+    { id: 12, key: null, title: 'Server-Updates', accountId: 2, status: 'open' },
+    { id: 13, key: 'OLD-1', title: 'Login alt', accountId: 2, status: 'closed' },
   ],
 }
 
@@ -63,7 +63,7 @@ describe('parseDateToken', () => {
 describe('parseQuickInput - examples', () => {
   it('2h PROJ-123 Review -> booked on task with note', () => {
     expect(parse('2h PROJ-123 Review')).toEqual({
-      type: 'block', kind: 'arbeit', status: 'gebucht', date: '2026-09-28',
+      type: 'block', kind: 'work', status: 'booked', date: '2026-09-28',
       time: { duration: 120 },
       assignment: { type: 'task', taskId: 10, accountId: 1 },
       note: 'Review',
@@ -105,7 +105,7 @@ describe('parseQuickInput - examples', () => {
 
   it('9:00-10:30 mtg -> fixed time on account via alias', () => {
     expect(parse('9:00-10:30 mtg')).toEqual({
-      type: 'block', kind: 'arbeit', status: 'gebucht', date: '2026-09-28',
+      type: 'block', kind: 'work', status: 'booked', date: '2026-09-28',
       time: { start: 540, end: 630 },
       assignment: { type: 'account', accountId: 3 },
       note: undefined,
@@ -118,13 +118,13 @@ describe('parseQuickInput - examples', () => {
 
   it('p 30m -> break', () => {
     expect(parse('p 30m')).toEqual({
-      type: 'block', kind: 'pause', status: 'gebucht', date: '2026-09-28', time: { duration: 30 }, note: undefined,
+      type: 'block', kind: 'break', status: 'booked', date: '2026-09-28', time: { duration: 30 }, note: undefined,
     })
   })
 
   it('plan 5h PROJ-123 morgen -> planned for tomorrow', () => {
     expect(parse('plan 5h PROJ-123 morgen')).toMatchObject({
-      status: 'geplant', date: '2026-09-29', time: { duration: 300 }, assignment: { taskId: 10 },
+      status: 'planned', date: '2026-09-29', time: { duration: 300 }, assignment: { taskId: 10 },
     })
   })
 
@@ -134,7 +134,7 @@ describe('parseQuickInput - examples', () => {
   })
 
   it('booking for yesterday', () => {
-    expect(parse('2h PROJ-123 gestern')).toMatchObject({ status: 'gebucht', date: '2026-09-27' })
+    expect(parse('2h PROJ-123 gestern')).toMatchObject({ status: 'booked', date: '2026-09-27' })
   })
 
   it('without a date the displayed day applies, relative dates stay relative to today', () => {
@@ -146,20 +146,20 @@ describe('parseQuickInput - examples', () => {
 
 describe('parseQuickInput - reminder, daily, waiting-for', () => {
   it('t renew certificate -> reminder', () => {
-    expect(parse('t Zertifikat verlängern')).toEqual({ type: 'todo', todoKind: 'merker', text: 'Zertifikat verlängern' })
+    expect(parse('t Zertifikat verlängern')).toEqual({ type: 'todo', todoKind: 'reminder', text: 'Zertifikat verlängern' })
   })
 
   it('t ... bis fr -> reminder with due date', () => {
-    expect(parse('t Zertifikat verlängern bis fr')).toEqual({ type: 'todo', todoKind: 'merker', text: 'Zertifikat verlängern', cutoffDate: '2026-10-02' })
+    expect(parse('t Zertifikat verlängern bis fr')).toEqual({ type: 'todo', todoKind: 'reminder', text: 'Zertifikat verlängern', cutoffDate: '2026-10-02' })
   })
 
   it('d Deployment-Freeze ansprechen -> daily topic, "bis" stays text', () => {
-    expect(parse('d Deployment-Freeze ansprechen')).toEqual({ type: 'todo', todoKind: 'daily', text: 'Deployment-Freeze ansprechen' })
+    expect(parse('d Deployment-Freeze ansprechen')).toEqual({ type: 'todo', todoKind: 'daily_topic', text: 'Deployment-Freeze ansprechen' })
     expect(parse('d warten bis morgen')).toMatchObject({ text: 'warten bis morgen' })
   })
 
   it('w Tim: PR-Review Login -> waiting-for with who', () => {
-    expect(parse('w Tim: PR-Review Login')).toEqual({ type: 'todo', todoKind: 'warten', text: 'PR-Review Login', person: 'Tim' })
+    expect(parse('w Tim: PR-Review Login')).toEqual({ type: 'todo', todoKind: 'waiting_for', text: 'PR-Review Login', person: 'Tim' })
   })
 
   it('w ... bis fr / bis 2026-10-02 -> follow-up date', () => {
@@ -168,7 +168,7 @@ describe('parseQuickInput - reminder, daily, waiting-for', () => {
   })
 
   it('w without colon -> text only', () => {
-    expect(parse('w Rückmeldung Kunde')).toEqual({ type: 'todo', todoKind: 'warten', text: 'Rückmeldung Kunde' })
+    expect(parse('w Rückmeldung Kunde')).toEqual({ type: 'todo', todoKind: 'waiting_for', text: 'Rückmeldung Kunde' })
   })
 
   it('"bis" without a valid date stays part of the text', () => {
@@ -181,7 +181,7 @@ describe('parseQuickInput - reminder, daily, waiting-for', () => {
   })
 
   it('prefix is case-insensitive', () => {
-    expect(parse('T Merker')).toMatchObject({ type: 'todo', todoKind: 'merker' })
+    expect(parse('T Merker')).toMatchObject({ type: 'todo', todoKind: 'reminder' })
   })
 })
 

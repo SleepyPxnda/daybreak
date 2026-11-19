@@ -13,36 +13,36 @@ const { data: templates } = await useFetch('/api/templates', { key: 'templates',
 // Form state (hours instead of minutes where more readable)
 const form = reactive({
   targetProDayHours: 8,
-  arbeitstage: [1, 2, 3, 4, 5] as number[],
-  bundesland: 'BW' as Settings['bundesland'],
-  arbeitsbeginn: 480,
-  timelineVon: 420,
-  timelineBis: 1140,
+  workdays: [1, 2, 3, 4, 5] as number[],
+  federalState: 'BW' as Settings['federalState'],
+  workStart: 480,
+  timelineFrom: 420,
+  timelineTo: 1140,
   startDate: today(),
   startBalanceHours: 0,
-  urlaubErinnerungTage: 7,
-  urlaubErinnerungText: '',
-  erinnerungenAktiv: false,
+  vacationNoticeDays: 7,
+  vacationNoticeText: '',
+  bookingNotificationsEnabled: false,
   bookingNotificationGapHours: 2,
-  erinnerungFeierabend: 990,
+  bookingNotificationEndOfDay: 990,
 })
 
 watchEffect(() => {
   const e = settings.value
   if (!e) return
-  form.targetProDayHours = e.sollProTagMin / 60
-  form.arbeitstage = [...e.arbeitstage]
-  form.bundesland = e.bundesland
-  form.arbeitsbeginn = e.arbeitsbeginn
-  form.timelineVon = e.timelineVon
-  form.timelineBis = e.timelineBis
-  form.startDate = e.stundenkontoStart.datum
-  form.startBalanceHours = e.stundenkontoStart.saldoMin / 60
-  form.urlaubErinnerungTage = e.urlaubErinnerungTage
-  form.urlaubErinnerungText = e.urlaubErinnerungText
-  form.erinnerungenAktiv = e.erinnerungenAktiv
-  form.bookingNotificationGapHours = e.erinnerungLueckeMin / 60
-  form.erinnerungFeierabend = e.erinnerungFeierabend
+  form.targetProDayHours = e.targetPerDayMin / 60
+  form.workdays = [...e.workdays]
+  form.federalState = e.federalState
+  form.workStart = e.workStart
+  form.timelineFrom = e.timelineFrom
+  form.timelineTo = e.timelineTo
+  form.startDate = e.balanceStart.date
+  form.startBalanceHours = e.balanceStart.balanceMin / 60
+  form.vacationNoticeDays = e.vacationNoticeDays
+  form.vacationNoticeText = e.vacationNoticeText
+  form.bookingNotificationsEnabled = e.bookingNotificationsEnabled
+  form.bookingNotificationGapHours = e.bookingNotificationGapMin / 60
+  form.bookingNotificationEndOfDay = e.bookingNotificationEndOfDay
 })
 
 // Browser permission is per browser, the setting is stored server-side - show both
@@ -53,7 +53,7 @@ onMounted(() => {
 
 async function bookingNotificationsToggle(enabled: boolean) {
   if (!enabled) {
-    form.erinnerungenAktiv = false
+    form.bookingNotificationsEnabled = false
     return
   }
   if (!('Notification' in window)) {
@@ -61,26 +61,26 @@ async function bookingNotificationsToggle(enabled: boolean) {
     return
   }
   permission.value = await Notification.requestPermission()
-  form.erinnerungenAktiv = permission.value === 'granted'
-  if (!form.erinnerungenAktiv) toast.error('Benachrichtigungen sind im Browser blockiert.')
+  form.bookingNotificationsEnabled = permission.value === 'granted'
+  if (!form.bookingNotificationsEnabled) toast.error('Benachrichtigungen sind im Browser blockiert.')
 }
 
 async function save() {
   const ok = await runAction(() => api('/api/settings', {
     method: 'PUT',
     body: {
-      sollProTagMin: snapToGrid(form.targetProDayHours * 60),
-      arbeitstage: form.arbeitstage,
-      bundesland: form.bundesland,
-      arbeitsbeginn: form.arbeitsbeginn,
-      timelineVon: form.timelineVon,
-      timelineBis: form.timelineBis,
-      stundenkontoStart: { datum: form.startDate, saldoMin: Math.round(form.startBalanceHours * 60) },
-      urlaubErinnerungTage: Math.max(0, Math.round(form.urlaubErinnerungTage || 0)),
-      urlaubErinnerungText: form.urlaubErinnerungText,
-      erinnerungenAktiv: form.erinnerungenAktiv,
-      erinnerungLueckeMin: Math.min(480, Math.max(30, snapToGrid((form.bookingNotificationGapHours || 0) * 60))),
-      erinnerungFeierabend: form.erinnerungFeierabend,
+      targetPerDayMin: snapToGrid(form.targetProDayHours * 60),
+      workdays: form.workdays,
+      federalState: form.federalState,
+      workStart: form.workStart,
+      timelineFrom: form.timelineFrom,
+      timelineTo: form.timelineTo,
+      balanceStart: { date: form.startDate, balanceMin: Math.round(form.startBalanceHours * 60) },
+      vacationNoticeDays: Math.max(0, Math.round(form.vacationNoticeDays || 0)),
+      vacationNoticeText: form.vacationNoticeText,
+      bookingNotificationsEnabled: form.bookingNotificationsEnabled,
+      bookingNotificationGapMin: Math.min(480, Math.max(30, snapToGrid((form.bookingNotificationGapHours || 0) * 60))),
+      bookingNotificationEndOfDay: form.bookingNotificationEndOfDay,
     },
   }), ['settings', 'balance', 'next-vacation'])
   if (ok) toast.success('Einstellungen gespeichert')
@@ -144,7 +144,7 @@ const archiveOpen = ref(false)
               </div>
               <div class="grid gap-1">
                 <Label class="text-xs font-normal text-muted-foreground">Bundesland (Feiertage)</Label>
-                <Select v-model="form.bundesland">
+                <Select v-model="form.federalState">
                   <SelectTrigger class="w-24 rounded-md data-[size=default]:h-9" aria-label="Bundesland">
                     <SelectValue />
                   </SelectTrigger>
@@ -158,7 +158,7 @@ const archiveOpen = ref(false)
             </div>
             <div class="grid gap-1">
               <span class="text-xs text-muted-foreground">Arbeitstage</span>
-              <WeekdayPicker v-model="form.arbeitstage" />
+              <WeekdayPicker v-model="form.workdays" />
             </div>
           </div>
         </section>
@@ -175,15 +175,15 @@ const archiveOpen = ref(false)
           <div class="flex flex-wrap gap-3">
             <div class="grid gap-1">
               <Label class="text-xs font-normal text-muted-foreground">Arbeitsbeginn</Label>
-              <TimeInput v-model="form.arbeitsbeginn" />
+              <TimeInput v-model="form.workStart" />
             </div>
             <div class="grid gap-1">
               <Label class="text-xs font-normal text-muted-foreground">Timeline von</Label>
-              <TimeInput v-model="form.timelineVon" />
+              <TimeInput v-model="form.timelineFrom" />
             </div>
             <div class="grid gap-1">
               <Label class="text-xs font-normal text-muted-foreground">Timeline bis</Label>
-              <TimeInput v-model="form.timelineBis" />
+              <TimeInput v-model="form.timelineTo" />
             </div>
           </div>
         </section>
@@ -220,32 +220,32 @@ const archiveOpen = ref(false)
           </div>
           <div class="grid gap-4">
             <div class="flex items-center gap-2.5">
-              <Switch id="booking-notifications" :model-value="form.erinnerungenAktiv" @update:model-value="bookingNotificationsToggle" />
+              <Switch id="booking-notifications" :model-value="form.bookingNotificationsEnabled" @update:model-value="bookingNotificationsToggle" />
               <Label for="booking-notifications">Browser-Erinnerungen ans Buchen</Label>
             </div>
-            <p v-if="form.erinnerungenAktiv && permission !== 'granted'" class="flex items-start gap-2 rounded-xl border bg-fehler-subtle px-4 py-2.5 text-sm">
+            <p v-if="form.bookingNotificationsEnabled && permission !== 'granted'" class="flex items-start gap-2 rounded-xl border bg-error-subtle px-4 py-2.5 text-sm">
               <CircleAlert class="mt-0.5 size-4 shrink-0 text-destructive" />
               <span><span class="font-medium text-destructive">Nicht erlaubt:</span> In diesem Browser sind Benachrichtigungen nicht erlaubt – Schalter aus- und wieder einschalten oder in den Website-Einstellungen freigeben.</span>
             </p>
             <div class="flex flex-wrap gap-3">
-              <template v-if="form.erinnerungenAktiv">
+              <template v-if="form.bookingNotificationsEnabled">
                 <div class="grid gap-1">
                   <Label for="booking-notification-gap" class="text-xs font-normal text-muted-foreground">Erinnern nach (Stunden ohne Buchung)</Label>
                   <NumberInput id="booking-notification-gap" v-model="form.bookingNotificationGapHours" :min="0.5" :max="8" :step="0.25" class="w-32" />
                 </div>
                 <div class="grid gap-1">
                   <Label class="text-xs font-normal text-muted-foreground">Feierabend-Erinnerung ab</Label>
-                  <TimeInput v-model="form.erinnerungFeierabend" />
+                  <TimeInput v-model="form.bookingNotificationEndOfDay" />
                 </div>
               </template>
               <div class="grid gap-1">
                 <Label for="vacation-lead" class="text-xs font-normal text-muted-foreground">Urlaubserinnerung (Tage vorher)</Label>
-                <NumberInput id="vacation-lead" v-model="form.urlaubErinnerungTage" :min="0" :max="90" class="w-32" />
+                <NumberInput id="vacation-lead" v-model="form.vacationNoticeDays" :min="0" :max="90" class="w-32" />
               </div>
             </div>
             <div class="grid gap-1">
               <Label for="vacation-text" class="text-xs font-normal text-muted-foreground">Erinnerungstext</Label>
-              <Input id="vacation-text" v-model="form.urlaubErinnerungText" placeholder="z. B. Übergabe planen, Abwesenheitsnotiz einrichten" class="h-9 rounded-md" />
+              <Input id="vacation-text" v-model="form.vacationNoticeText" placeholder="z. B. Übergabe planen, Abwesenheitsnotiz einrichten" class="h-9 rounded-md" />
             </div>
           </div>
         </section>

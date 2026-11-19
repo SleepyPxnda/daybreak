@@ -9,10 +9,10 @@ export default defineEventHandler(async () => {
   const days = await loadDayEntries(addDays(today, -60), addDays(today, 366))
   const vacation = nextVacation(today, days, settings)
   // Confirmed if all vacation days in the range are confirmed (newly added days cancel this)
-  const vacationDays = vacation ? dateRange(vacation.from, vacation.to).map(d => days[d]).filter(t => t?.type === 'urlaub' || t?.type === 'halb_urlaub') : []
+  const vacationDays = vacation ? dateRange(vacation.from, vacation.to).map(d => days[d]).filter(t => t?.type === 'vacation' || t?.type === 'half_vacation') : []
   return {
     vacation: vacation && { ...vacation, confirmed: vacationDays.length > 0 && vacationDays.every(t => t!.confirmed) },
-    notify: !!vacation && !vacation.running && vacation.daysUntil <= settings.urlaubErinnerungTage,
-    bookingNotificationText: settings.urlaubErinnerungText,
+    notify: !!vacation && !vacation.running && vacation.daysUntil <= settings.vacationNoticeDays,
+    bookingNotificationText: settings.vacationNoticeText,
   }
 })

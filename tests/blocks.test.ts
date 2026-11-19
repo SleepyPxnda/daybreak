@@ -11,7 +11,7 @@ import {
 import type { BlockBasis } from '../shared/utils/blocks'
 
 const b = (start: number, end: number, extra: Partial<BlockBasis> = {}): BlockBasis =>
-  ({ date: '2026-09-28', kind: 'arbeit', status: 'gebucht', start, end, ...extra })
+  ({ date: '2026-09-28', kind: 'work', status: 'booked', start, end, ...extra })
 
 describe('ranges', () => {
   it('checks validity', () => {
@@ -53,8 +53,8 @@ describe('actual/planned', () => {
   it('counts only booked work as actual', () => {
     const blocks = [
       b(480, 720),
-      b(720, 750, { kind: 'pause' }),
-      b(750, 900, { status: 'geplant' }),
+      b(720, 750, { kind: 'break' }),
+      b(750, 900, { status: 'planned' }),
     ]
     expect(actualMinutes(blocks)).toBe(240)
     expect(plannedMinutes(blocks)).toBe(150)

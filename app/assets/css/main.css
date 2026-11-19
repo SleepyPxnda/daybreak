@@ -43,24 +43,24 @@
     --color-foreground: var(--foreground);
     --color-background: var(--background);
 
-    /* Account colors + status as Tailwind colors (bg-konto-mint, text-positiv ...) */
-    --color-konto-lavendel: var(--konto-lavendel);
-    --color-konto-pfirsich: var(--konto-pfirsich);
-    --color-konto-mint: var(--konto-mint);
-    --color-konto-himmel: var(--konto-himmel);
-    --color-konto-rose: var(--konto-rose);
-    --color-konto-butter: var(--konto-butter);
-    --color-konto-salbei: var(--konto-salbei);
-    --color-konto-flieder: var(--konto-flieder);
-    --color-positiv: var(--positiv);
-    --color-negativ: var(--negativ);
+    /* Account colors + status as Tailwind colors (bg-account-mint, text-positive ...) */
+    --color-account-lavender: var(--account-lavender);
+    --color-account-peach: var(--account-peach);
+    --color-account-mint: var(--account-mint);
+    --color-account-sky: var(--account-sky);
+    --color-account-rose: var(--account-rose);
+    --color-account-butter: var(--account-butter);
+    --color-account-sage: var(--account-sage);
+    --color-account-lilac: var(--account-lilac);
+    --color-positive: var(--positive);
+    --color-negative: var(--negative);
     /* Brand status colors (cloudypanda): color for icon/title, -subtle as area */
-    --color-warnung: var(--warnung);
-    --color-warnung-subtle: var(--warnung-subtle);
+    --color-warning: var(--warning);
+    --color-warning-subtle: var(--warning-subtle);
     --color-info: var(--info);
     --color-info-subtle: var(--info-subtle);
-    --color-erfolg-subtle: var(--erfolg-subtle);
-    --color-fehler-subtle: var(--fehler-subtle);
+    --color-success-subtle: var(--success-subtle);
+    --color-error-subtle: var(--error-subtle);
     /* Layers: surface (background) -> raised (card/sidebar) -> overlay (popover) */
     --color-raised: var(--card);
     --color-secondary-hover: var(--secondary-hover);
@@ -102,23 +102,23 @@
     --ring:                 #e8a042;
     --radius: 0.75rem;
 
-    /* Account colors: as dot, bar and tinted area (bg-konto-x/18) with ink text */
-    --konto-lavendel: oklch(0.80 0.09 295);
-    --konto-pfirsich: oklch(0.83 0.08 55);
-    --konto-mint:     oklch(0.84 0.08 165);
-    --konto-himmel:   oklch(0.82 0.08 235);
-    --konto-rose:     oklch(0.80 0.09 5);
-    --konto-butter:   oklch(0.88 0.08 95);
-    --konto-salbei:   oklch(0.82 0.06 140);
-    --konto-flieder:  oklch(0.78 0.08 320);
+    /* Account colors: as dot, bar and tinted area (bg-account-x/18) with ink text */
+    --account-lavender: oklch(0.80 0.09 295);
+    --account-peach: oklch(0.83 0.08 55);
+    --account-mint:     oklch(0.84 0.08 165);
+    --account-sky:   oklch(0.82 0.08 235);
+    --account-rose:     oklch(0.80 0.09 5);
+    --account-butter:   oklch(0.88 0.08 95);
+    --account-sage:   oklch(0.82 0.06 140);
+    --account-lilac:  oklch(0.78 0.08 320);
 
     /* Status (cloudypanda) */
-    --positiv: #4cc777;          /* success */
-    --negativ: #ff6b6b;          /* danger */
-    --erfolg-subtle: #12241a;
-    --fehler-subtle: #2a1416;
-    --warnung: #f2c14e;
-    --warnung-subtle: #272010;
+    --positive: #4cc777;          /* success */
+    --negative: #ff6b6b;          /* danger */
+    --success-subtle: #12241a;
+    --error-subtle: #2a1416;
+    --warning: #f2c14e;
+    --warning-subtle: #272010;
     --info: #79b0f5;
     --info-subtle: #121e2e;
 

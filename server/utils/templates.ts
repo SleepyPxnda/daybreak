@@ -40,8 +40,8 @@ export async function materializeTemplates(from: IsoDate, to: IsoDate, settings:
       const v = templatesById.get(b.templateId)!
       return {
         ...b,
-        kind: 'arbeit' as const,
-        status: 'geplant' as const,
+        kind: 'work' as const,
+        status: 'planned' as const,
         taskId: v.taskId,
         accountId: v.accountId,
       }

@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   const input = await readValidatedBody(event, todoCreateSchema.parse)
   const data = cleanTodo(input.kind, input)
   if (data.taskId != null || data.accountId != null) {
-    Object.assign(data, await resolveAssignment({ kind: 'arbeit', taskId: data.taskId, accountId: data.taskId ? null : data.accountId }))
+    Object.assign(data, await resolveAssignment({ kind: 'work', taskId: data.taskId, accountId: data.taskId ? null : data.accountId }))
   }
 
   // New entries go to the end of their list

@@ -5,7 +5,7 @@ import { dateSchema } from '#shared/utils/settings'
 
 /** Fields without defaults - basis for PATCH. */
 export const todoFields = z.object({
-  kind: z.enum(['merker', 'daily', 'warten']),
+  kind: z.enum(['reminder', 'daily_topic', 'waiting_for']),
   text: z.string().trim().min(1).max(1000),
   person: z.string().trim().max(100).transform(w => w || null).nullable(),
   followUpDate: dateSchema.nullable(),
@@ -19,11 +19,11 @@ export const todoCreateSchema = todoFields.partial().required({ kind: true, text
 /** Discard fields that do not fit the kind (who/follow-up only for waiting-for, due only for reminder). */
 export function cleanTodo<T extends Partial<z.infer<typeof todoFields>>>(kind: string, data: T): T {
   const clean = { ...data }
-  if (kind !== 'warten') {
+  if (kind !== 'waiting_for') {
     if ('wer' in clean) clean.person = null
     if ('followUpDate' in clean) clean.followUpDate = null
   }
-  if (kind !== 'merker' && 'dueDate' in clean) clean.dueDate = null
+  if (kind !== 'reminder' && 'dueDate' in clean) clean.dueDate = null
   return clean
 }
 

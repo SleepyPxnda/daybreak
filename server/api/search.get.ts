@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
       .from(task)
       .innerJoin(account, eq(account.id, task.accountId))
       .where(or(contains(task.title, q), contains(task.key, q)))
-      .orderBy(desc(sql`${task.status} = 'offen'`), desc(task.id))
+      .orderBy(desc(sql`${task.status} = 'open'`), desc(task.id))
       .limit(8),
     db.select({ id: account.id, name: account.name, color: account.color, status: account.status })
       .from(account)

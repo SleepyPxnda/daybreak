@@ -14,7 +14,7 @@ const open = defineModel<boolean>('open', { default: false })
 
 const actual = computed(() => actualMinutes(props.blocks))
 const gap = computed(() => props.target - actual.value)
-const planned = computed(() => props.blocks.filter(b => b.status === 'geplant'))
+const planned = computed(() => props.blocks.filter(b => b.status === 'planned'))
 
 const { data: suggestions } = useFetch('/api/blocks/recent', {
   key: 'recent',
@@ -36,7 +36,7 @@ async function book(v: { taskId: number | null, accountId: number | null }) {
   if (!duration.value || duration.value % GRID_MIN !== 0) return void toast.error('Dauer im 15-min-Raster angeben, z. B. 1h30 oder 45m')
   await runAction(() => api('/api/blocks', {
     method: 'POST',
-    body: { date: props.date, kind: 'arbeit', status: 'gebucht', duration: duration.value, ...(v.taskId ? { taskId: v.taskId } : { accountId: v.accountId }) },
+    body: { date: props.date, kind: 'work', status: 'booked', duration: duration.value, ...(v.taskId ? { taskId: v.taskId } : { accountId: v.accountId }) },
   }), DAY_KEYS)
 }
 
@@ -59,17 +59,17 @@ function chipText(v: { taskKey: string | null, taskTitle: string | null, account
         <div class="rounded-xl border bg-card p-4 text-center tabular-nums">
           <template v-if="gap > 0">
             <div class="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
-              <TriangleAlert class="size-3.5 text-negativ" /> Lücke zum Soll
+              <TriangleAlert class="size-3.5 text-negative" /> Lücke zum Soll
             </div>
-            <div class="text-2xl font-semibold text-negativ">
+            <div class="text-2xl font-semibold text-negative">
               {{ formatBalance(-gap) }}
             </div>
           </template>
           <template v-else>
             <div class="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
-              <Check class="size-3.5 text-positiv" /> Soll erreicht
+              <Check class="size-3.5 text-positive" /> Soll erreicht
             </div>
-            <div class="text-2xl font-semibold text-positiv">
+            <div class="text-2xl font-semibold text-positive">
               {{ formatBalance(-gap) }}
             </div>
           </template>
@@ -88,7 +88,7 @@ function chipText(v: { taskKey: string | null, taskTitle: string | null, account
             Keine geplanten Blöcke.
           </p>
           <div v-for="b in planned" :key="b.id" class="flex min-h-10 items-center gap-2.5 rounded-md border bg-card py-1 pr-1 pl-3 text-sm">
-            <span class="size-2 shrink-0 rounded-full" :class="b.kind === 'pause' ? 'bg-muted-foreground' : accountColorClasses(b.accountColor).dot" />
+            <span class="size-2 shrink-0 rounded-full" :class="b.kind === 'break' ? 'bg-muted-foreground' : accountColorClasses(b.accountColor).dot" />
             <span class="fade-end min-w-0 flex-1" :title="blockTitle(b)">{{ blockTitle(b) }}</span>
             <span class="font-mono text-[13px] text-muted-foreground">{{ formatTime(b.start) }}–{{ formatTime(b.end) }}</span>
             <Button size="icon-sm" variant="ghost" aria-label="Übernehmen" @click="bookPlanned([b.id])">

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { alterText, isDue, addWorkdays, sortTodos, daysSince } from '../shared/utils/todos'
 import type { TodoBasis } from '../shared/utils/todos'
 
-const E = { sollProTagMin: 480, arbeitstage: [1, 2, 3, 4, 5], bundesland: 'BW' }
+const E = { targetPerDayMin: 480, workdays: [1, 2, 3, 4, 5], federalState: 'BW' }
 
 describe('addWorkdays', () => {
   it('skips weekends', () => {
@@ -18,14 +18,14 @@ describe('addWorkdays', () => {
 
 describe('due date and age', () => {
   it('waiting: due from the follow-up date', () => {
-    expect(isDue({ kind: 'warten', followUpDate: '2026-09-28' }, '2026-09-28')).toBe(true)
-    expect(isDue({ kind: 'warten', followUpDate: '2026-09-29' }, '2026-09-28')).toBe(false)
-    expect(isDue({ kind: 'warten', followUpDate: null }, '2026-09-28')).toBe(false)
+    expect(isDue({ kind: 'waiting_for', followUpDate: '2026-09-28' }, '2026-09-28')).toBe(true)
+    expect(isDue({ kind: 'waiting_for', followUpDate: '2026-09-29' }, '2026-09-28')).toBe(false)
+    expect(isDue({ kind: 'waiting_for', followUpDate: null }, '2026-09-28')).toBe(false)
   })
 
   it('reminder: due from its due date, daily never', () => {
-    expect(isDue({ kind: 'merker', dueDate: '2026-09-27' }, '2026-09-28')).toBe(true)
-    expect(isDue({ kind: 'daily', dueDate: '2026-09-27' }, '2026-09-28')).toBe(false)
+    expect(isDue({ kind: 'reminder', dueDate: '2026-09-27' }, '2026-09-28')).toBe(true)
+    expect(isDue({ kind: 'daily_topic', dueDate: '2026-09-27' }, '2026-09-28')).toBe(false)
   })
 
   it('age in days', () => {
@@ -38,7 +38,7 @@ describe('due date and age', () => {
 
 describe('sortTodos', () => {
   const t = (id: number, sortOrder: number, followUpDate: string | null = null): TodoBasis =>
-    ({ id, kind: 'warten', sortOrder, followUpDate, createdAt: '2026-09-01T00:00:00Z' })
+    ({ id, kind: 'waiting_for', sortOrder, followUpDate, createdAt: '2026-09-01T00:00:00Z' })
 
   it('due items on top (oldest cutoff date first), the rest by sort order', () => {
     const list = [t(1, 0), t(2, 1, '2026-09-27'), t(3, 2), t(4, 3, '2026-09-20'), t(5, 4, '2026-10-05')]

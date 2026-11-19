@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
     const accountId = data.taskId ? null : (data.accountId !== undefined ? data.accountId : previous.accountId)
     Object.assign(values, taskId == null && accountId == null
       ? { taskId: null, accountId: null }
-      : await resolveAssignment({ kind: 'arbeit', taskId, accountId }))
+      : await resolveAssignment({ kind: 'work', taskId, accountId }))
   }
   if (done !== undefined) values.doneAt = done ? new Date().toISOString() : null
 

@@ -3,7 +3,7 @@ import { dayInfo } from './target'
 import type { IsoDate } from './time'
 import { dateRange, addDays, daysBetween } from './time'
 
-export type EntitlementKind = 'grund' | 'zusatz' | 'rest'
+export type EntitlementKind = 'base' | 'extra' | 'carryover'
 
 export interface VacationEntitlementRow {
   kind: EntitlementKind
@@ -31,9 +31,9 @@ export interface VacationBalance {
 export function vacationPrefill(year: number): VacationEntitlementRow[] {
   const short = (j: number) => String(j % 100).padStart(2, '0')
   return [
-    { kind: 'grund', label: 'Grundanspruch', days: 32 },
-    { kind: 'zusatz', label: `Sonderurlaub WS ${short(year)}/${short(year + 1)}`, days: 2 },
-    { kind: 'zusatz', label: `Sonderurlaub SS ${short(year + 1)}`, days: 2 },
+    { kind: 'base', label: 'Grundanspruch', days: 32 },
+    { kind: 'extra', label: `Sonderurlaub WS ${short(year)}/${short(year + 1)}`, days: 2 },
+    { kind: 'extra', label: `Sonderurlaub SS ${short(year + 1)}`, days: 2 },
   ]
 }
 
@@ -43,8 +43,8 @@ export function vacationPrefill(year: number): VacationEntitlementRow[] {
  */
 export function vacationDays(info: Pick<DayInfo, 'type' | 'isWorkday'>): number {
   if (!info.isWorkday) return 0
-  if (info.type === 'urlaub') return 1
-  if (info.type === 'halb_urlaub') return 0.5
+  if (info.type === 'vacation') return 1
+  if (info.type === 'half_vacation') return 0.5
   return 0
 }
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { holidayName, dayInfo } from '../shared/utils/target'
 import type { TargetSettings } from '../shared/utils/target'
 
-const E: TargetSettings = { sollProTagMin: 480, arbeitstage: [1, 2, 3, 4, 5], bundesland: 'BW' }
+const E: TargetSettings = { targetPerDayMin: 480, workdays: [1, 2, 3, 4, 5], federalState: 'BW' }
 
 describe('holidayName (BW)', () => {
   it('recognizes BW holidays in 2026', () => {
@@ -20,7 +20,7 @@ describe('holidayName (BW)', () => {
 
 describe('dayInfo', () => {
   it('workday: full target', () => {
-    expect(dayInfo('2026-09-28', undefined, E)).toMatchObject({ target: 480, isWorkday: true, type: 'arbeit' })
+    expect(dayInfo('2026-09-28', undefined, E)).toMatchObject({ target: 480, isWorkday: true, type: 'work' })
   })
 
   it('weekend: 0', () => {
@@ -35,29 +35,29 @@ describe('dayInfo', () => {
   })
 
   it('vacation and sick: 0', () => {
-    expect(dayInfo('2026-09-28', { date: '2026-09-28', type: 'urlaub' }, E).target).toBe(0)
-    expect(dayInfo('2026-09-28', { date: '2026-09-28', type: 'krank' }, E).target).toBe(0)
+    expect(dayInfo('2026-09-28', { date: '2026-09-28', type: 'vacation' }, E).target).toBe(0)
+    expect(dayInfo('2026-09-28', { date: '2026-09-28', type: 'sick' }, E).target).toBe(0)
   })
 
   it('half vacation day: half target', () => {
-    expect(dayInfo('2026-09-28', { date: '2026-09-28', type: 'halb_urlaub' }, E).target).toBe(240)
+    expect(dayInfo('2026-09-28', { date: '2026-09-28', type: 'half_vacation' }, E).target).toBe(240)
   })
 
   it('flex day: full target (actual stays 0 -> negative)', () => {
-    expect(dayInfo('2026-09-28', { date: '2026-09-28', type: 'gleittag' }, E).target).toBe(480)
+    expect(dayInfo('2026-09-28', { date: '2026-09-28', type: 'flex_day' }, E).target).toBe(480)
   })
 
   it('target override wins, even on weekends', () => {
-    expect(dayInfo('2026-12-24', { date: '2026-12-24', type: 'arbeit', targetOverride: 240 }, E).target).toBe(240)
-    expect(dayInfo('2026-10-03', { date: '2026-10-03', type: 'arbeit', targetOverride: 120 }, E).target).toBe(120)
+    expect(dayInfo('2026-12-24', { date: '2026-12-24', type: 'work', targetOverride: 240 }, E).target).toBe(240)
+    expect(dayInfo('2026-10-03', { date: '2026-10-03', type: 'work', targetOverride: 120 }, E).target).toBe(120)
   })
 
   it('absence on a holiday or weekend has no effect', () => {
-    expect(dayInfo('2026-06-04', { date: '2026-06-04', type: 'gleittag' }, E).target).toBe(0)
+    expect(dayInfo('2026-06-04', { date: '2026-06-04', type: 'flex_day' }, E).target).toBe(0)
   })
 
   it('respects configured workdays', () => {
-    const fourDays = { ...E, arbeitstage: [1, 2, 3, 4] }
+    const fourDays = { ...E, workdays: [1, 2, 3, 4] }
     expect(dayInfo('2026-10-02', undefined, fourDays).target).toBe(0) // Friday
   })
 })

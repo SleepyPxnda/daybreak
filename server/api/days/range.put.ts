@@ -8,7 +8,7 @@ import { dateRange, daysBetween } from '#shared/utils/time'
 
 const range = { from: dateSchema, to: dateSchema }
 const schema = z.union([
-  z.object({ ...range, type: z.enum(['arbeit', 'urlaub', 'halb_urlaub', 'krank', 'gleittag']) }),
+  z.object({ ...range, type: z.enum(['work', 'vacation', 'half_vacation', 'sick', 'flex_day']) }),
   z.object({ ...range, blocker: z.boolean() }),
 ]).refine(b => b.from <= b.to && daysBetween(b.from, b.to) <= 366, 'Ungültiger Zeitraum')
 
@@ -26,13 +26,13 @@ export default defineEventHandler(async (event) => {
   const workdays = dateRange(from, to).filter(d => dayInfo(d, undefined, settings).isWorkday)
   const inRange = and(gte(day.date, from), lte(day.date, to))
   // Entries without any deviation (only deviations are stored)
-  const empty = and(inRange, eq(day.type, 'arbeit'), isNull(day.targetOverride), isNull(day.note), eq(day.blocker, false))
+  const empty = and(inRange, eq(day.type, 'work'), isNull(day.targetOverride), isNull(day.note), eq(day.blocker, false))
 
   await db.transaction(async (tx) => {
     if ('blocker' in body) {
       if (body.blocker) {
         for (const date of workdays) {
-          await tx.insert(day).values({ date, type: 'arbeit', blocker: true }).onConflictDoUpdate({ target: day.date, set: { blocker: true } })
+          await tx.insert(day).values({ date, type: 'work', blocker: true }).onConflictDoUpdate({ target: day.date, set: { blocker: true } })
         }
       }
       else {
@@ -43,11 +43,11 @@ export default defineEventHandler(async (event) => {
     }
 
     const { type } = body
-    if (type === 'arbeit') {
+    if (type === 'work') {
       const remove = Object.values(present).filter(e => e.targetOverride == null && !e.note).map(e => e.date)
       if (remove.length) await tx.delete(day).where(inArray(day.date, remove))
       const keep = Object.values(present).filter(e => !remove.includes(e.date)).map(e => e.date)
-      if (keep.length) await tx.update(day).set({ type: 'arbeit', blocker: false }).where(inArray(day.date, keep))
+      if (keep.length) await tx.update(day).set({ type: 'work', blocker: false }).where(inArray(day.date, keep))
       return
     }
     for (const date of workdays) {

@@ -7,10 +7,10 @@ const { data: tasks } = useAllTasks()
 
 // Closed/archived entries only when currently selected (not in suggestions)
 const groups = computed(() => accounts.value
-  .filter(k => k.status === 'aktiv' || value.value === `k:${k.id}` || tasks.value.some(a => a.accountId === k.id && value.value === `a:${a.id}`))
+  .filter(k => k.status === 'active' || value.value === `k:${k.id}` || tasks.value.some(a => a.accountId === k.id && value.value === `a:${a.id}`))
   .map(k => ({
     account: k,
-    tasks: tasks.value.filter(a => a.accountId === k.id && (a.status === 'offen' || value.value === `a:${a.id}`)),
+    tasks: tasks.value.filter(a => a.accountId === k.id && (a.status === 'open' || value.value === `a:${a.id}`)),
   })))
 
 // Render the display in the trigger itself (Reka otherwise shows only raw text without spacing/color)

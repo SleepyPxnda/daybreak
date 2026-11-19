@@ -4,7 +4,7 @@ import type { DayEntry } from '../shared/utils/target'
 import { materialize, templateAppliesOn } from '../shared/utils/templates'
 import type { MaterializationInput, TemplateRule } from '../shared/utils/templates'
 
-const settings = { sollProTagMin: 480, arbeitstage: [1, 2, 3, 4, 5], bundesland: 'BW' }
+const settings = { targetPerDayMin: 480, workdays: [1, 2, 3, 4, 5], federalState: 'BW' }
 
 const daily: TemplateRule = {
   id: 1,
@@ -62,10 +62,10 @@ describe('materialize - daily Mon-Fri 09:30-09:45', () => {
 
   it('no blocks on vacation, sick or flex days', () => {
     const days: Record<string, DayEntry> = {
-      '2026-06-01': { date: '2026-06-01', type: 'urlaub' },
-      '2026-06-02': { date: '2026-06-02', type: 'krank' },
-      '2026-06-03': { date: '2026-06-03', type: 'gleittag' },
-      '2026-06-05': { date: '2026-06-05', type: 'halb_urlaub' },
+      '2026-06-01': { date: '2026-06-01', type: 'vacation' },
+      '2026-06-02': { date: '2026-06-02', type: 'sick' },
+      '2026-06-03': { date: '2026-06-03', type: 'flex_day' },
+      '2026-06-05': { date: '2026-06-05', type: 'half_vacation' },
     }
     const data = materialize(input({ to: '2026-06-05', days })).created.map(b => b.date)
     expect(data).toEqual(['2026-06-05'])

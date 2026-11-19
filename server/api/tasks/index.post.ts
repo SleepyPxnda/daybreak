@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   try {
     const [created] = await db.insert(task).values({
       ...data,
-      closedAt: data.status === 'abgeschlossen' ? new Date().toISOString() : null,
+      closedAt: data.status === 'closed' ? new Date().toISOString() : null,
     }).returning()
     return { ...created!, bookedMin: 0, plannedMin: 0 }
   }

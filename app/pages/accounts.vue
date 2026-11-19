@@ -8,7 +8,7 @@ const router = useRouter()
 const { data: accounts } = useAccounts()
 
 const showArchived = ref(false)
-const visibleAccounts = computed(() => accounts.value.filter(k => showArchived.value || k.status === 'aktiv'))
+const visibleAccounts = computed(() => accounts.value.filter(k => showArchived.value || k.status === 'active'))
 
 const selectedId = computed(() => Number(route.query.accountId) || visibleAccounts.value[0]?.id)
 const selected = computed(() => accounts.value.find(k => k.id === selectedId.value))
@@ -37,7 +37,7 @@ function accountChange() {
 
 // Display status: "in progress" = open and time already booked
 function statusDisplay(a: { status: string, bookedMin: number }) {
-  if (a.status === 'abgeschlossen') return { text: 'Abgeschlossen', icon: CircleCheck, cssClass: 'text-positiv' }
+  if (a.status === 'closed') return { text: 'Abgeschlossen', icon: CircleCheck, cssClass: 'text-positive' }
   if (a.bookedMin > 0) return { text: 'In Arbeit', icon: CircleDot, cssClass: 'text-info' }
   return { text: 'Offen', icon: Circle, cssClass: 'text-muted-foreground' }
 }
@@ -62,7 +62,7 @@ function select(id: number) {
           :key="k.id"
           type="button"
           class="flex items-center gap-2.5 rounded-md px-3 py-2.5 text-left"
-          :class="[k.id === selectedId ? 'bg-muted' : 'hover:bg-raised', { 'text-muted-foreground': k.status === 'archiviert' }]"
+          :class="[k.id === selectedId ? 'bg-muted' : 'hover:bg-raised', { 'text-muted-foreground': k.status === 'archived' }]"
           :aria-current="k.id === selectedId ? 'true' : undefined"
           @click="select(k.id)"
         >
@@ -89,7 +89,7 @@ function select(id: number) {
           {{ selected.name }}
         </h1>
         <span v-if="selected.aliases.length" class="font-mono text-[13px] text-muted-foreground">{{ selected.aliases.join(' · ') }}</span>
-        <span v-if="selected.status === 'archiviert'" class="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+        <span v-if="selected.status === 'archived'" class="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
           <Archive class="size-3.5" /> archiviert
         </span>
         <div class="grow" />
@@ -130,9 +130,9 @@ function select(id: number) {
               @click="navigateTo(`/tasks/${a.id}`)"
             >
               <TableCell class="px-4">
-                <TaskKey v-if="a.key" :value="a.key" :color="selected.color" :class="{ 'opacity-60': a.status === 'abgeschlossen' }" />
+                <TaskKey v-if="a.key" :value="a.key" :color="selected.color" :class="{ 'opacity-60': a.status === 'closed' }" />
               </TableCell>
-              <TableCell class="px-4 whitespace-normal wrap-anywhere" :class="{ 'text-muted-foreground': a.status === 'abgeschlossen' }">
+              <TableCell class="px-4 whitespace-normal wrap-anywhere" :class="{ 'text-muted-foreground': a.status === 'closed' }">
                 {{ a.title }}
               </TableCell>
               <TableCell class="px-4">
@@ -144,7 +144,7 @@ function select(id: number) {
               <TableCell class="px-4 text-right text-muted-foreground tabular-nums">
                 {{ a.estimateMin ? formatDuration(a.estimateMin) : '–' }}
               </TableCell>
-              <TableCell class="px-4 text-right tabular-nums" :class="{ 'text-negativ': a.estimateMin && a.bookedMin > a.estimateMin }">
+              <TableCell class="px-4 text-right tabular-nums" :class="{ 'text-negative': a.estimateMin && a.bookedMin > a.estimateMin }">
                 {{ formatDuration(a.bookedMin) }}
               </TableCell>
             </TableRow>

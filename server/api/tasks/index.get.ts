@@ -8,7 +8,7 @@ import { addDays } from '#shared/utils/time'
 
 const querySchema = z.object({
   accountId: z.coerce.number().int().positive().optional(),
-  status: z.enum(['offen', 'abgeschlossen']).optional(),
+  status: z.enum(['open', 'closed']).optional(),
   /**
    * "Tasks in progress": open + booked in the last 14 days or planned on this day.
    * Extended: also tasks created in the last 14 days, so they can be dragged onto the timeline.
@@ -26,12 +26,12 @@ export default defineEventHandler(async (event) => {
     const day = query.activeOn
     const since = addDays(day, -14)
     const active = db.selectDistinct({ id: block.taskId }).from(block).where(or(
-      and(eq(block.status, 'gebucht'), gte(block.date, since), lte(block.date, day)),
-      and(eq(block.status, 'geplant'), eq(block.date, day)),
+      and(eq(block.status, 'booked'), gte(block.date, since), lte(block.date, day)),
+      and(eq(block.status, 'planned'), eq(block.date, day)),
     ))
     // createdAt is an ISO timestamp - the first 10 characters are the date
     const newlyCreated = and(gte(sql`substr(${task.createdAt}, 1, 10)`, since), lte(sql`substr(${task.createdAt}, 1, 10)`, day))
-    filter.push(eq(task.status, 'offen'), or(inArray(task.id, active), newlyCreated)!)
+    filter.push(eq(task.status, 'open'), or(inArray(task.id, active), newlyCreated)!)
   }
 
   return db.select(taskWithSums)

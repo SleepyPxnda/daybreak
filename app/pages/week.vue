@@ -21,8 +21,8 @@ const isThisWeek = computed(() => monday.value === toIsoDate(startOfISOWeek(new 
 useHead({ title: () => `KW ${kw.value} · daybreak` })
 
 const { data: settings } = useSettings()
-const from = computed(() => settings.value?.timelineVon ?? 420)
-const to = computed(() => settings.value?.timelineBis ?? 1140)
+const from = computed(() => settings.value?.timelineFrom ?? 420)
+const to = computed(() => settings.value?.timelineTo ?? 1140)
 
 const range = { from: monday, to: sunday }
 const { data: blocksResponse } = useFetch('/api/blocks', {
@@ -81,11 +81,11 @@ function weekSwitch(weeks: number) {
   navigateTo({ query: destination === toIsoDate(startOfISOWeek(new Date())) ? {} : { week: destination } })
 }
 
-const TYPE_LABELS: Record<string, string> = { urlaub: 'Urlaub', halb_urlaub: '½ Urlaub', krank: 'Krank', gleittag: 'Gleittag' }
+const TYPE_LABELS: Record<string, string> = { vacation: 'Urlaub', half_vacation: '½ Urlaub', sick: 'Krank', flex_day: 'Gleittag' }
 function dayLabel(info?: { holiday?: string, type: string, isWorkday: boolean }) {
   if (!info) return undefined
   if (info.holiday) return info.holiday
-  if (info.isWorkday && info.type !== 'arbeit') return TYPE_LABELS[info.type]
+  if (info.isWorkday && info.type !== 'work') return TYPE_LABELS[info.type]
   return undefined
 }
 </script>
@@ -119,7 +119,7 @@ function dayLabel(info?: { holiday?: string, type: string, isWorkday: boolean })
         </div>
         <div class="flex h-8 items-center gap-2 rounded-full border px-3 font-mono text-[13px] text-muted-foreground">
           <span>Woche <span class="text-foreground">{{ formatDuration(sum.actual) }}</span> / {{ formatDuration(sum.target) }}</span>
-          <span :class="sum.actual - sum.target >= 0 ? 'text-positiv' : 'text-negativ'">{{ formatBalance(sum.actual - sum.target) }}</span>
+          <span :class="sum.actual - sum.target >= 0 ? 'text-positive' : 'text-negative'">{{ formatBalance(sum.actual - sum.target) }}</span>
           <span>· geplant {{ formatDuration(sum.planned) }}</span>
         </div>
       </div>
@@ -142,7 +142,7 @@ function dayLabel(info?: { holiday?: string, type: string, isWorkday: boolean })
             <Badge v-if="dayLabel(t.info)" variant="secondary" class="w-fit">
               {{ dayLabel(t.info) }}
             </Badge>
-            <span v-if="t.conflicts" class="flex items-start gap-1 text-xs text-warnung">
+            <span v-if="t.conflicts" class="flex items-start gap-1 text-xs text-warning">
               <TriangleAlert class="mt-px size-3.5 shrink-0" />
               {{ t.conflicts }} Vorlage(n) nicht eingetragen – belegt
             </span>

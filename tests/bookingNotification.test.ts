@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { checkBookingNotification } from '../shared/utils/bookingNotification'
 import type { BookingNotificationInput } from '../shared/utils/bookingNotification'
 
-const booked = (start: number, end: number) => ({ start, end, kind: 'arbeit' as const, status: 'gebucht' as const })
-const planned = (start: number, end: number) => ({ start, end, kind: 'arbeit' as const, status: 'geplant' as const })
+const booked = (start: number, end: number) => ({ start, end, kind: 'work' as const, status: 'booked' as const })
+const planned = (start: number, end: number) => ({ start, end, kind: 'work' as const, status: 'planned' as const })
 
 // Work start 08:00, target 8h, gap 2h, end of day 16:30
 const basis: BookingNotificationInput = {
