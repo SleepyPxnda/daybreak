@@ -19,6 +19,7 @@ withDefaults(defineProps<{
   id?: string
   placeholder?: string
   ariaLabel?: string
+  ariaInvalid?: boolean
   class?: HTMLAttributes['class']
 }>(), {
   min: undefined,
@@ -27,6 +28,7 @@ withDefaults(defineProps<{
   id: undefined,
   placeholder: undefined,
   ariaLabel: undefined,
+  ariaInvalid: undefined,
   class: undefined,
 })
 </script>
@@ -46,7 +48,7 @@ withDefaults(defineProps<{
   >
     <NumberFieldContent>
       <NumberFieldDecrement />
-      <NumberFieldInput :placeholder="placeholder" :aria-label="ariaLabel" class="h-9 rounded-md font-mono" />
+      <NumberFieldInput :placeholder="placeholder" :aria-label="ariaLabel" :aria-invalid="ariaInvalid || undefined" class="h-9 rounded-md font-mono" />
       <NumberFieldIncrement />
     </NumberFieldContent>
   </NumberField>

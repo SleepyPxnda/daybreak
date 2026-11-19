@@ -149,6 +149,7 @@ describe('migration 0003 -> latest', () => {
     ])
     expect(await rows('SELECT title, content, pinned FROM note')).toEqual([{ title: 'Titel', content: 'Inhalt', pinned: 1 }])
     expect(await rows('SELECT year, label, days FROM vacation_entitlement WHERE id = 3')).toEqual([{ year: 2026, label: 'Posten rest', days: 2.5 }])
+    expect(await rows('SELECT valid_from, valid_until FROM vacation_entitlement')).toEqual(Array(3).fill({ valid_from: null, valid_until: null }))
 
     expect(await rows('PRAGMA foreign_key_check')).toEqual([])
     for (const { name } of await rows('SELECT name FROM sqlite_master WHERE type = \'table\' AND name NOT LIKE \'\\_\\_%\' ESCAPE \'\\\' AND name NOT LIKE \'sqlite_%\'')) {

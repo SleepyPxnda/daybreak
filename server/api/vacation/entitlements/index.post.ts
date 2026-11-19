@@ -3,6 +3,7 @@ import { db } from '../../../db/client'
 
 export default defineEventHandler(async (event) => {
   const data = await readValidatedBody(event, entitlementFields.parse)
+  assertEntitlementWindow(data)
   const [created] = await db.insert(vacationEntitlement).values(data).returning()
   return created!
 })

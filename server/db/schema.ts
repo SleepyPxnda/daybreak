@@ -120,6 +120,8 @@ export const vacationEntitlement = sqliteTable('vacation_entitlement', {
   kind: text('kind', { enum: ['base', 'extra', 'carryover'] }).notNull(),
   label: text('label').notNull(),
   days: real('days').notNull(),
+  validFrom: text('valid_from'),
+  validUntil: text('valid_until'),
 })
 
 export const settings = sqliteTable('settings', {
