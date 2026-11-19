@@ -35,6 +35,7 @@ Back:     JSON → runAction() shows errors as a toast, refreshNuxtData(KEYS) re
 - **Settings**: `loadSettings()` fills missing values from the defaults and drops invalid single values (`safeParse`); the balance start date is fixed on first read.
 - **Account order**: `account.sortOrder` is set by drag and drop (`POST /api/accounts/reorder`); `compareAccountOrder` in `shared/utils/accounts.ts` is the one definition of the display order (active by `sortOrder`, archived last by name). `GET /api/accounts` and the overview (`groupOverview`, `monthClosing`, fed with `loadAccountOrder()`) use it.
 - **Derived, not stored**: target, balance, vacation status, overview – computed per request from blocks/days/settings (`shared/utils`).
+- **Vacation balance**: `loadVacationBalance(year)` (`server/utils/vacation.ts`) folds `vacationBalance()` over every year from the earliest entitlement year up to `year`; limited entries (`vacation_entitlement.validFrom`/`validUntil`) hand their remainder on to the next year as derived `HandedOnEntitlement`s, never stored. Allocation, forfeiture and hand-on rules are pure in `shared/utils/vacation.ts`; the window rules are checked at the routes by `assertEntitlementWindow`.
 - **Client**: no store (no Pinia). Shared state = Nuxt's `useFetch` cache under fixed keys (e.g. `'balance'` in layout and `useDay`); one `useState` (palette open); `localStorage` only for booking-notification state.
 - Formats: date as `YYYY-MM-DD` string, time as minutes since midnight on the 15-minute grid, day boundaries in `Europe/Berlin` (process TZ).
 
@@ -42,7 +43,7 @@ Back:     JSON → runAction() shows errors as a toast, refreshNuxtData(KEYS) re
 
 - The client talks to the server only over HTTP (`useFetch` to read, `api()` to mutate); never imports `server/`. Both sides may use `shared/utils`; `shared` imports neither `app/` nor `server/`.
 - Validation only at the route with zod (body, query, params); `shared/utils` expects valid values.
-- Errors: the server throws `createError({ statusCode, statusMessage })` with a German message (404 via `notFound`, UNIQUE → 409 via `isUniqueViolation`); the client shows it as a toast via `runAction()`.
+- Errors: the server throws `createError({ statusCode, statusMessage })` with a German message (404 via `notFound`, UNIQUE → 409 via `isUniqueViolation`); the client shows it as a toast via `runAction()`. Inline-edited fields that save one field per request (the vacation entitlement rows) also reset the rejected field to its stored value and mark it `aria-invalid` (red border) until that field saves or the shown data set changes; forms, dialogs and autosave editors stay toast-only.
 - Side effects (DB writes, template materialization, migrations) only on the server; browser notifications only in `useBookingNotifications`.
 - No external services; access protection only via Basic Auth on the server.
 
@@ -63,3 +64,5 @@ Dates are commit dates (the original docs are undated).
 - 2026-11-19 – All code in English, only the UI in German – one language in code; the existing German names (code, file names, page URLs, API paths, DB tables, columns and stored values) were renamed in a dedicated refactor.
 - 2026-11-19 – Data migrations: stored values and settings keys are rewritten by a `pnpm db:generate --custom` migration (`drizzle/0005_english_values.sql`) whose SQL file is written by hand; snapshots and `_journal.json` are never edited. `tests/migration.test.ts` is the one DB test: a one-way migration of the only data file needs proof that no rows, values or settings are lost.
 - 2026-11-19 – drizzle-kit dropped the `RENAME COLUMN` statements for the rebuilt (not renamed) tables `block` and `todo`, so 16 lines were added by hand to `drizzle/0004_english_names.sql`. Lesson: after `db:generate`, check that every RENAME is present for rebuilt tables; the migration test catches it.
+- 2026-11-19 – Vacation balance of a year is a fold over all years from the earliest entitlement year, not computed from that year alone – a limited entry hands its remainder on to the next year; data is small, stays derived, and "the earlier year consumes first" falls out of the fold.
+- 2026-11-19 – Inline-edited fields that save per field reset the rejected field and mark it `aria-invalid` besides the toast (extends "Boundaries → Errors") – the table always shows what is saved, and any future inline-edit table behaves the same.
