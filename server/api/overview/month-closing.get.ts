@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   const blocks = await loadBookedWork(from, to)
   const infos = await loadDayInfos(from, to, await loadSettings())
 
-  return monthClosing(blocks, infos).map((day, i) => {
+  return monthClosing(blocks, infos, await loadAccountOrder()).map((day, i) => {
     const { type, holiday, isWorkday, note } = infos[i]!
     return { ...day, type, holiday, isWorkday, note }
   })

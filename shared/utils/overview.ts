@@ -53,12 +53,18 @@ function share(part: number, whole: number): number {
 
 const byMinutes = (a: { minutes: number }, b: { minutes: number }) => b.minutes - a.minutes
 
+/** Sorts accounts by their position in `accountOrder` (ids in display order). */
+function byAccountOrder(accountOrder: number[]) {
+  const position = (accountId: number) => accountOrder.indexOf(accountId)
+  return (a: { accountId: number }, b: { accountId: number }) => position(a.accountId) - position(b.accountId)
+}
+
 /**
  * Booked work time grouped account -> task -> days.
- * Share per level relative to the level above; sorted by hours descending, days chronological.
+ * Share per level relative to the level above; accounts in the given display order, tasks by hours descending, days chronological.
  * Planned blocks and breaks do not count (like actual time).
  */
-export function groupOverview(blocks: OverviewBlock[]): Overview {
+export function groupOverview(blocks: OverviewBlock[], accountOrder: number[]): Overview {
   const accounts = new Map<number, { account: OverviewAccount, tasks: Map<number | null, OverviewTask & { dayMap: Map<IsoDate, OverviewDay> }> }>()
 
   for (const b of blocks) {
@@ -101,7 +107,7 @@ export function groupOverview(blocks: OverviewBlock[]): Overview {
         .map(t => ({ ...t, share: share(t.minutes, a.minutes) }))
         .sort((x, y) => x.date.localeCompare(y.date)),
     })).sort(byMinutes),
-  })).sort(byMinutes)
+  })).sort(byAccountOrder(accountOrder))
 
   return { total, accounts: result }
 }
@@ -135,9 +141,9 @@ function blockLabel(b: OverviewBlock): string | undefined {
 /**
  * Month closing: per day start, end, break and the booked time per account,
  * for transferring into the company tool. Break = end - start - actual, so start/end/break always match the actual time.
- * Returns all given days (also without bookings), accounts by hours descending.
+ * Returns all given days (also without bookings), accounts in the given display order.
  */
-export function monthClosing(blocks: OverviewBlock[], days: { date: IsoDate, target: number }[]): ClosingDay[] {
+export function monthClosing(blocks: OverviewBlock[], days: { date: IsoDate, target: number }[], accountOrder: number[]): ClosingDay[] {
   const booked = blocks.filter(b => b.kind === 'work' && b.status === 'booked' && b.accountId != null)
 
   return days.map(({ date, target }) => {
@@ -160,6 +166,6 @@ export function monthClosing(blocks: OverviewBlock[], days: { date: IsoDate, tar
     const start = Math.min(...amDay.map(b => b.start))
     const end = Math.max(...amDay.map(b => b.end))
     const actual = amDay.reduce((s, b) => s + duration(b), 0)
-    return { date, target, start, end, actual, isBreak: end - start - actual, accounts: [...accounts.values()].sort(byMinutes) }
+    return { date, target, start, end, actual, isBreak: end - start - actual, accounts: [...accounts.values()].sort(byAccountOrder(accountOrder)) }
   })
 }
