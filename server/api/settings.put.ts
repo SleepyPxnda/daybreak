@@ -1,9 +1,9 @@
-import { einstellungenSchema } from '#shared/utils/einstellungen'
+import { settingsSchema } from '#shared/utils/settings'
 
-const schema = einstellungenSchema.partial()
-  .refine(e => e.timelineVon === undefined || e.timelineBis === undefined || e.timelineVon < e.timelineBis, 'Timeline: Beginn vor Ende')
+const schema = settingsSchema.partial()
+  .refine(e => e.timelineFrom === undefined || e.timelineTo === undefined || e.timelineFrom < e.timelineTo, 'Timeline: Beginn vor Ende')
 
 export default defineEventHandler(async (event) => {
-  const teil = await readValidatedBody(event, schema.parse)
-  return speichereEinstellungen(teil)
+  const part = await readValidatedBody(event, schema.parse)
+  return saveSettings(part)
 })

@@ -1,46 +1,46 @@
 <h1 align="center">☀️ daybreak</h1>
 
 <p align="center">
-  <strong>Persönliches Arbeits-Dashboard: Zeit planen und buchen, Stundenkonto, Urlaub, Merker und Notizen an einem Ort.</strong><br>
-  Single-User · selbst gehostet · eine SQLite-Datei
+  <strong>Personal work dashboard: plan and book time, hours balance, vacation, reminders and notes in one place.</strong><br>
+  Single user · self-hosted · one SQLite file
 </p>
 
 <p align="center">
   <a href="https://github.com/SleepyPxnda/daybreak/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/SleepyPxnda/daybreak/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://github.com/SleepyPxnda/daybreak/releases"><img alt="Release" src="https://img.shields.io/github/v/release/SleepyPxnda/daybreak"></a>
   <a href="https://github.com/SleepyPxnda/daybreak/pkgs/container/daybreak"><img alt="Docker" src="https://img.shields.io/badge/ghcr.io-daybreak-blue?logo=docker"></a>
-  <a href="LICENSE"><img alt="Lizenz: MIT" src="https://img.shields.io/badge/Lizenz-MIT-yellow"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow"></a>
 </p>
 
-![Heute: Zeitleiste, Schnelleingabe, Merker und Daily-Themen](docs/screenshots/heute.jpg)
+![Today: timeline, quick input, reminders and daily topics](docs/screenshots/today.jpg)
 
-Daybreak ersetzt Zettel, Excel-Stundenzettel und die drei Notiz-Apps, die man sonst nebeneinander offen hat. Morgens den Tag planen, tagsüber per Tastatur buchen, abends den Tag abschließen – und am Monatsende stehen die Stunden pro Konto fertig zum Übertragen ins Firmentool bereit.
+Daybreak replaces slips of paper, Excel timesheets and the three note apps you would otherwise keep open side by side. Plan the day in the morning, book by keyboard during the day, close the day in the evening – and at the end of the month the hours per account are ready to be transferred into the company tool.
 
 > [!NOTE]
-> Die Oberfläche ist auf Deutsch, Feiertage kommen aus [feiertagejs](https://github.com/sfakir/feiertagejs) (Bundesland wählbar).
+> The UI is in German. Holidays come from [feiertagejs](https://github.com/sfakir/feiertagejs) (federal state selectable).
 
-## Funktionen
+## Features
 
-- **Heute** – Tages-Timeline im 15-Minuten-Raster: Blöcke ziehen, planen, buchen, teilen; „Wie gestern“ und Tagesabschluss.
-- **Schnelleingabe** (`Strg+K` / `⌘K`) – buchen, planen, Merker anlegen, suchen und navigieren per Kurzbefehl, z. B. `2h GB-114 Review`, `9:00-10:30 mtg`, `plan 3h KP-57 morgen`.
-- **Konten & Aufgaben** – Konto → Aufgabe → Blöcke; Blöcke können auch direkt auf ein Konto gehen (z. B. Firmenmeeting). Aufgaben mit Key, Schätzung und gebuchter Zeit.
-- **Vorlagen** – wiederkehrende Termine (Daily, Jour fixe …) mit Wochentagen, Intervall und Ausnahmen.
-- **Stundenkonto** – Soll/Ist/Saldo je Tag, Monat und gesamt, inkl. Feiertagen (Bundesland wählbar) und Verlaufsdiagramm.
-- **Übersicht** – gebuchte Zeit nach Konto → Aufgabe → Tag für Woche, Monat oder freien Zeitraum; Monatsabschluss zum Übertragen ins Firmentool, wahlweise in Dezimalstunden.
-- **Kalender & Urlaub** – Jahreskalender für Urlaub, halbe Tage, Krank, Gleittag und Blocker; Urlaubskonto mit Anspruch, Resturlaub und Erinnerung vor dem nächsten Urlaub.
-- **Woche** – Timelines aller Wochentage untereinander, Planung per Drag & Drop, Tages- und Wochensummen mit Saldo.
-- **Merker, Daily-Themen, Warten auf** – kleine Listen mit Fälligkeit bzw. Nachfass-Datum, verknüpfbar mit Aufgaben oder Konten.
-- **Notizen** – Markdown-Editor mit Tags, Suche und angepinnten Notizen auf „Heute“.
+- **Today** (`/`) – day timeline on a 15-minute grid: drag, plan, book and split blocks; "Wie gestern" (copy yesterday) and day closing.
+- **Quick input** (`Ctrl+K` / `⌘K`) – book, plan, create reminders, search and navigate with short commands, e.g. `2h GB-114 Review`, `9:00-10:30 mtg`, `plan 3h KP-57 morgen`.
+- **Accounts & tasks** (`/accounts`) – account → task → blocks; blocks can also go directly onto an account (e.g. company meeting). Tasks have a key, an estimate and booked time.
+- **Templates** – recurring appointments (daily, jour fixe …) with weekdays, interval and exceptions.
+- **Hours balance** – target/actual/balance per day, month and in total, including holidays (federal state selectable) and a history chart.
+- **Overview** (`/overview`) – booked time by account → task → day for a week, a month or a custom range; month closing for transferring into the company tool, optionally in decimal hours.
+- **Calendar & vacation** (`/calendar`) – year calendar for vacation, half days, sick days, flex days and blockers; vacation account with entitlement, carryover and a notice before the next vacation.
+- **Week** (`/week`) – timelines of all weekdays one below the other, planning by drag and drop, day and week totals with balance.
+- **Reminders, daily topics, waiting for** (`/todos`) – small lists with a due date or follow-up date, linkable to tasks or accounts.
+- **Notes** (`/notes`) – markdown editor with tags, search and pinned notes on the "Heute" (today) page.
 
-Nur ein dunkles, warmes Theme.
+Just one dark, warm theme.
 
-| Woche | Übersicht |
+| Week | Overview |
 |---|---|
-| ![Woche](docs/screenshots/woche.jpg) | ![Übersicht](docs/screenshots/uebersicht.jpg) |
+| ![Week](docs/screenshots/week.jpg) | ![Overview](docs/screenshots/overview.jpg) |
 
-## Schnellstart mit Docker
+## Quick start with Docker
 
-Images für `linux/amd64` und `linux/arm64` werden bei jedem GitHub-Release nach `ghcr.io/sleepypxnda/daybreak` veröffentlicht.
+Images for `linux/amd64` and `linux/arm64` are published to `ghcr.io/sleepypxnda/daybreak` with every GitHub release.
 
 ```yaml
 # docker-compose.yml
@@ -51,7 +51,7 @@ services:
     volumes: ["./data:/data"]
     environment:
       - TZ=Europe/Berlin
-      - DAYBREAK_PASSWORD=ein-langes-passwort   # optional, siehe unten
+      - DAYBREAK_PASSWORD=a-long-password   # optional, see below
     restart: unless-stopped
 ```
 
@@ -60,63 +60,64 @@ docker compose up -d   # http://localhost:3000
 ```
 
 > [!WARNING]
-> Ohne `DAYBREAK_PASSWORD` hat jeder mit Netzwerkzugriff vollen Zugriff auf die Daten. Nicht ungeschützt ins Internet stellen.
+> Without `DAYBREAK_PASSWORD`, anyone with network access has full access to the data. Do not expose it to the internet unprotected.
 
-Datenbank-Migrationen laufen beim Start automatisch. Für ein Backup reicht eine Kopie von `data/daybreak.db`.
+Database migrations run automatically at startup. For a backup, a copy of `data/daybreak.db` is enough.
 
-| Variable | Default | Bedeutung |
+| Variable | Default | Meaning |
 |---|---|---|
-| `DAYBREAK_PASSWORD` | – | Aktiviert Basic Auth (Benutzername beliebig). Ohne Passwort ist die App offen – dann nur lokal bzw. hinter einem geschützten Reverse Proxy betreiben. |
-| `DATABASE_URL` | `file:/data/daybreak.db` | Pfad zur SQLite-Datei |
-| `TZ` | `Europe/Berlin` | Zeitzone für Tagesgrenzen |
-| `PORT` | `3000` | HTTP-Port |
+| `DAYBREAK_PASSWORD` | – | Enables Basic Auth (any username). Without a password the app is open – then run it only locally or behind a protected reverse proxy. |
+| `DATABASE_URL` | `file:/data/daybreak.db` | Path to the SQLite file |
+| `TZ` | `Europe/Berlin` | Time zone for day boundaries |
+| `PORT` | `3000` | HTTP port |
 
-Tags: `latest`, `X.Y.Z` und `X.Y` (z. B. `ghcr.io/sleepypxnda/daybreak:0.0.3`).
+Tags: `latest`, `X.Y.Z` and `X.Y` (e.g. `ghcr.io/sleepypxnda/daybreak:0.0.3`).
 
-## Entwicklung
+## Development
 
-Voraussetzungen: Node 22+, pnpm.
+Requirements: Node 22+, pnpm.
 
 ```bash
 pnpm install
-pnpm db:seed   # optional: DB mit Testdaten füllen (leert sie vorher!)
+pnpm db:seed   # optional: fill the DB with test data (empties it first!)
 pnpm dev       # http://localhost:3000
 ```
 
-| Befehl | Zweck |
+| Command | Purpose |
 |---|---|
-| `pnpm dev` | Dev-Server |
-| `pnpm test` | Vitest (Fachlogik in `shared/utils/`) |
+| `pnpm dev` | Dev server |
+| `pnpm test` | Vitest (business logic in `shared/utils/`) |
 | `pnpm lint` / `pnpm typecheck` | ESLint / vue-tsc |
-| `pnpm build` | Produktions-Build |
-| `pnpm db:generate` | Migration aus `server/db/schema.ts` erzeugen |
-| `pnpm db:seed` | ~2 Monate Beispieldaten rund um heute erzeugen |
-| `docker compose up --build` | Produktions-Image lokal bauen und starten |
+| `pnpm build` | Production build |
+| `pnpm db:generate` | Generate a migration from `server/db/schema.ts` |
+| `pnpm db:seed` | Create ~2 months of sample data around today |
+| `docker compose up --build` | Build and start the production image locally |
 
-Die lokale Datenbank liegt unter `data/daybreak.db` (gitignored).
+The local database lives at `data/daybreak.db` (gitignored).
 
 **Stack:** Nuxt 4 · shadcn-vue (Reka UI) · Tailwind CSS v4 · Drizzle ORM + SQLite (libsql) · date-fns · feiertagejs · zod · Vitest
 
-### Projektstruktur
+### Project structure
 
 ```
-app/          Nuxt-Frontend (Seiten, Komponenten, Composables)
-server/       API-Routen, DB-Schema und -Client, Server-Utils
-shared/utils/ Reine Fachlogik (Parser, Soll/Saldo, Urlaub …) – mit Tests
-drizzle/      SQL-Migrationen
-docs/         Dokumentation pro Phase
-scripts/      Dev-Skripte (Seed)
+app/          Nuxt frontend (pages, components, composables)
+server/       API routes, DB schema and client, server utils
+shared/utils/ Pure business logic (parser, target/balance, vacation …) – with tests
+drizzle/      SQL migrations
+docs/         Documentation per phase
+scripts/      Dev scripts (seed)
 ```
 
-## Dokumentation
+## Documentation
 
-- [`docs/`](docs/README.md) – Bedienung, Fachregeln, Datenmodell und API je Phase
-- [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) – vollständige Spezifikation
+- [`docs/`](docs/README.md) – usage, business rules, data model and API per phase
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) – architecture and decisions
+- [`docs/SPEC.md`](docs/SPEC.md) – scope per area
 
 ## Release
 
-Ein GitHub-Release mit Tag `vX.Y.Z` baut und veröffentlicht das Docker-Image (`.github/workflows/docker.yml`). CI (Lint, Typecheck, Tests, Build) läuft bei jedem Push.
+A GitHub release with the tag `vX.Y.Z` builds and publishes the Docker image (`.github/workflows/docker.yml`). CI (lint, typecheck, tests, build) runs on every push.
 
-## Lizenz
+## License
 
 [MIT](LICENSE) © 2026 SleepyPxnda

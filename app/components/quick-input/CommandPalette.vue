@@ -17,110 +17,110 @@ import {
   StickyNote,
   Sunrise,
 } from '@lucide/vue'
-import type { TodoArt } from '#shared/utils/todos'
+import type { TodoKind } from '#shared/utils/todos'
 
-// Globale Befehlspalette (Plan §3.8): Strg/⌘ + K von jeder Seite – Schnelleingabe, Suche, Navigation.
-// Filtert selbst (ListboxFilter statt CommandInput), damit Aktions- und Suchtreffer nicht wegfiltert werden.
+// Global command palette: Ctrl/Cmd + K from any page - quick input, search, navigation.
+// Filters by itself (ListboxFilter instead of CommandInput) so action and search results are not filtered away.
 
-const offen = usePaletteOffen()
+const open = usePaletteOpen()
 const route = useRoute()
 
-/** Auf „Heute“ gilt der angezeigte Tag, sonst heute */
-const datum = computed(() => {
-  const d = String(route.query.datum ?? '')
-  return route.path === '/' && istDatum(d) ? d : heute()
+/** On the today page the displayed day applies, otherwise today */
+const date = computed(() => {
+  const d = String(route.query.date ?? '')
+  return route.path === '/' && isIsoDate(d) ? d : today()
 })
 
-const { text, ergebnis, vorschau, zielText, laeuft, ausfuehren } = useSchnelleingabe(datum)
+const { text, result, preview, assignmentText, running, run } = useQuickInput(date)
 
 useEventListener('keydown', (e: KeyboardEvent) => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault()
-    offen.value = !offen.value
+    open.value = !open.value
   }
 })
 
-watch(offen, (jetztOffen) => {
-  if (!jetztOffen) text.value = ''
+watch(open, (nowOpen) => {
+  if (!nowOpen) text.value = ''
 })
 
-// --- Suche ----------------------------------------------------------------
-interface SuchErgebnis {
-  aufgaben: { id: number, key: string | null, titel: string, status: string, kontoFarbe: string }[]
-  konten: { id: number, name: string, farbe: string, status: string }[]
-  notizen: { id: number, titel: string, angepinnt: boolean }[]
-  todos: { id: number, art: TodoArt, text: string, wer: string | null }[]
+// --- Search ----------------------------------------------------------------
+interface SearchResult {
+  tasks: { id: number, key: string | null, title: string, status: string, accountColor: string }[]
+  accounts: { id: number, name: string, color: string, status: string }[]
+  notes: { id: number, title: string, pinned: boolean }[]
+  todos: { id: number, kind: TodoKind, text: string, person: string | null }[]
 }
-const treffer = ref<SuchErgebnis | null>(null)
-const suchtext = computed(() => (ergebnis.value.art === 'suche' ? ergebnis.value.text : ''))
+const hit = ref<SearchResult | null>(null)
+const searchText = computed(() => (result.value.type === 'search' ? result.value.text : ''))
 
-const suchen = useDebounceFn(async (q: string) => {
+const search = useDebounceFn(async (q: string) => {
   if (q.length < 2) {
-    treffer.value = null
+    hit.value = null
     return
   }
   try {
-    const antwort = await api<SuchErgebnis>('/api/suche', { query: { q } })
-    if (q === suchtext.value) treffer.value = antwort
+    const response = await api<SearchResult>('/api/search', { query: { q } })
+    if (q === searchText.value) hit.value = response
   }
   catch {
-    treffer.value = null
+    hit.value = null
   }
 }, 150)
-watch(suchtext, q => suchen(q))
+watch(searchText, q => search(q))
 
 // --- Navigation -----------------------------------------------------------
-const SEITEN = [
-  { titel: 'Heute', to: '/', icon: Sunrise },
-  { titel: 'Woche', to: '/woche', icon: CalendarRange },
-  { titel: 'Übersicht', to: '/uebersicht', icon: BarChart3 },
-  { titel: 'Kalender', to: '/kalender', icon: CalendarDays },
-  { titel: 'Merker & Daily', to: '/todos', icon: ListTodo },
-  { titel: 'Notizen', to: '/notizen', icon: NotebookPen },
-  { titel: 'Konten & Aufgaben', to: '/konten', icon: FolderKanban },
-  { titel: 'Einstellungen', to: '/einstellungen', icon: Settings },
+const PAGES = [
+  { title: 'Heute', to: '/', icon: Sunrise },
+  { title: 'Woche', to: '/week', icon: CalendarRange },
+  { title: 'Übersicht', to: '/overview', icon: BarChart3 },
+  { title: 'Kalender', to: '/calendar', icon: CalendarDays },
+  { title: 'Merker & Daily', to: '/todos', icon: ListTodo },
+  { title: 'Notizen', to: '/notes', icon: NotebookPen },
+  { title: 'Konten & Aufgaben', to: '/accounts', icon: FolderKanban },
+  { title: 'Einstellungen', to: '/settings', icon: Settings },
 ]
-const seiten = computed(() => {
+const pages = computed(() => {
   const q = text.value.trim().toLocaleLowerCase('de')
-  if (!q) return SEITEN
-  if (ergebnis.value.art !== 'suche') return []
-  return SEITEN.filter(s => s.titel.toLocaleLowerCase('de').includes(q))
+  if (!q) return PAGES
+  if (result.value.type !== 'search') return []
+  return PAGES.filter(s => s.title.toLocaleLowerCase('de').includes(q))
 })
 
-const TODO_ICONS: Record<TodoArt, typeof StickyNote> = { merker: StickyNote, warten: Hourglass, daily: MessageSquare }
+const TODO_ICONS: Record<TodoKind, typeof StickyNote> = { reminder: StickyNote, waiting_for: Hourglass, daily_topic: MessageSquare }
 
-async function oeffne(to: string) {
-  offen.value = false
+async function openPage(to: string) {
+  open.value = false
   await navigateTo(to)
 }
 
-async function ausfuehrenUndSchliessen(gewaehlt?: Parameters<typeof ausfuehren>[0]) {
-  if (await ausfuehren(gewaehlt)) offen.value = false
+async function runAndClose(selected?: Parameters<typeof run>[0]) {
+  if (await run(selected)) open.value = false
 }
 
 /**
- * Enter führt eine eindeutige Aktion (Buchen/Merker …) immer direkt aus – unabhängig davon, welcher
- * Eintrag gerade hervorgehoben ist (z. B. nach Einfügen per Strg+V). Bei Kandidaten/Suche navigiert die Liste.
+ * Enter always runs an unambiguous action (booking/reminder ...) directly, regardless of which
+ * entry is currently highlighted (e.g. after pasting with Ctrl+V). For candidates/search the list navigates.
  */
-function enterAbfangen(e: KeyboardEvent) {
-  const r = ergebnis.value
-  const eindeutig = r.art === 'todo' || r.art === 'notiz' || r.art === 'fehler' || (r.art === 'block' && !r.kandidaten)
-  if (!eindeutig) return
+function interceptEnter(e: KeyboardEvent) {
+  const r = result.value
+  const unique = r.type === 'todo' || r.type === 'note' || r.type === 'error' || (r.type === 'block' && !r.candidates)
+  if (!unique) return
   e.preventDefault()
   e.stopPropagation()
-  ausfuehrenUndSchliessen()
+  runAndClose()
 }
 </script>
 
 <template>
-  <CommandDialog v-model:open="offen" title="Befehlspalette" description="Buchen, Merker erfassen, suchen und navigieren">
-    <div class="p-1 pb-0" @keydown.enter.capture="enterAbfangen">
+  <CommandDialog v-model:open="open" title="Befehlspalette" description="Buchen, Merker erfassen, suchen und navigieren">
+    <div class="p-1 pb-0" @keydown.enter.capture="interceptEnter">
       <div class="flex h-9 items-center gap-2 rounded-md border border-input bg-raised px-2.5">
         <Search class="size-4 shrink-0 text-muted-foreground" />
         <ListboxFilter
           v-model="text"
           auto-focus
-          :disabled="laeuft"
+          :disabled="running"
           placeholder="t Merker · d Daily-Thema · w Tim: PR-Review · n Notiz · 2h Aufgabe · suchen …"
           class="w-full bg-transparent font-mono text-sm outline-hidden placeholder:text-muted-foreground"
         />
@@ -128,57 +128,57 @@ function enterAbfangen(e: KeyboardEvent) {
     </div>
 
     <CommandList class="max-h-96">
-      <!-- Aktion aus der Schnelleingabe -->
-      <p v-if="ergebnis.art === 'fehler'" class="px-3 py-2 text-sm text-destructive">
-        {{ ergebnis.meldung }}
+      <!-- Action from the quick input -->
+      <p v-if="result.type === 'error'" class="px-3 py-2 text-sm text-destructive">
+        {{ result.message }}
       </p>
-      <CommandGroup v-else-if="vorschau" heading="Ausführen">
-        <template v-if="ergebnis.art === 'block' && ergebnis.kandidaten">
+      <CommandGroup v-else-if="preview" heading="Ausführen">
+        <template v-if="result.type === 'block' && result.candidates">
           <CommandItem
-            v-for="(k, i) in ergebnis.kandidaten"
+            v-for="(k, i) in result.candidates"
             :key="i"
             :value="`kandidat-${i}`"
-            @select="ausfuehrenUndSchliessen(k)"
+            @select="runAndClose(k)"
           >
-            <CornerDownLeft /> <span class="min-w-0 truncate">{{ vorschau.text }} · {{ zielText(k) }}</span>
+            <CornerDownLeft /> <span class="min-w-0 truncate">{{ preview.text }} · {{ assignmentText(k) }}</span>
           </CommandItem>
         </template>
-        <CommandItem v-else value="ausfuehren" @select="ausfuehrenUndSchliessen()">
+        <CommandItem v-else value="ausfuehren" @select="runAndClose()">
           <CornerDownLeft />
-          <span class="min-w-0 truncate">{{ vorschau.text }}<span v-if="vorschau.notiz" class="text-muted-foreground"> · „{{ vorschau.notiz }}“</span></span>
+          <span class="min-w-0 truncate">{{ preview.text }}<span v-if="preview.note" class="text-muted-foreground"> · „{{ preview.note }}“</span></span>
         </CommandItem>
       </CommandGroup>
 
-      <!-- Suchtreffer -->
-      <template v-if="ergebnis.art === 'suche' && treffer">
-        <CommandGroup v-if="treffer.aufgaben.length" heading="Aufgaben">
-          <CommandItem v-for="a in treffer.aufgaben" :key="`a${a.id}`" :value="`aufgabe-${a.id}`" @select="oeffne(`/aufgaben/${a.id}`)">
-            <span class="size-2.5 shrink-0 rounded-full" :class="kontoFarbKlassen(a.kontoFarbe).punkt" />
-            <AufgabeKey v-if="a.key" :wert="a.key" :farbe="a.kontoFarbe" />
-            <span class="min-w-0 truncate" :class="{ 'text-muted-foreground': a.status !== 'offen' }">{{ a.titel }}</span>
+      <!-- Search results -->
+      <template v-if="result.type === 'search' && hit">
+        <CommandGroup v-if="hit.tasks.length" heading="Aufgaben">
+          <CommandItem v-for="a in hit.tasks" :key="`a${a.id}`" :value="`task-${a.id}`" @select="openPage(`/tasks/${a.id}`)">
+            <span class="size-2.5 shrink-0 rounded-full" :class="accountColorClasses(a.accountColor).dot" />
+            <TaskKey v-if="a.key" :value="a.key" :color="a.accountColor" />
+            <span class="min-w-0 truncate" :class="{ 'text-muted-foreground': a.status !== 'open' }">{{ a.title }}</span>
           </CommandItem>
         </CommandGroup>
-        <CommandGroup v-if="treffer.konten.length" heading="Konten">
-          <CommandItem v-for="k in treffer.konten" :key="`k${k.id}`" :value="`konto-${k.id}`" @select="oeffne(`/konten?konto=${k.id}`)">
-            <span class="size-2.5 shrink-0 rounded-full" :class="kontoFarbKlassen(k.farbe).punkt" />
-            <span class="min-w-0 truncate" :class="{ 'text-muted-foreground': k.status !== 'aktiv' }">{{ k.name }}</span>
+        <CommandGroup v-if="hit.accounts.length" heading="Konten">
+          <CommandItem v-for="k in hit.accounts" :key="`k${k.id}`" :value="`account-${k.id}`" @select="openPage(`/accounts?accountId=${k.id}`)">
+            <span class="size-2.5 shrink-0 rounded-full" :class="accountColorClasses(k.color).dot" />
+            <span class="min-w-0 truncate" :class="{ 'text-muted-foreground': k.status !== 'active' }">{{ k.name }}</span>
           </CommandItem>
         </CommandGroup>
-        <CommandGroup v-if="treffer.notizen.length" heading="Notizen">
-          <CommandItem v-for="n in treffer.notizen" :key="`n${n.id}`" :value="`notiz-${n.id}`" @select="oeffne(`/notizen?id=${n.id}`)">
-            <component :is="n.angepinnt ? Pin : NotebookPen" />
-            <span class="truncate">{{ n.titel }}</span>
+        <CommandGroup v-if="hit.notes.length" heading="Notizen">
+          <CommandItem v-for="n in hit.notes" :key="`n${n.id}`" :value="`note-${n.id}`" @select="openPage(`/notes?id=${n.id}`)">
+            <component :is="n.pinned ? Pin : NotebookPen" />
+            <span class="truncate">{{ n.title }}</span>
           </CommandItem>
         </CommandGroup>
-        <CommandGroup v-if="treffer.todos.length" heading="Merker & Daily">
-          <CommandItem v-for="t in treffer.todos" :key="`t${t.id}`" :value="`todo-${t.id}`" @select="oeffne('/todos')">
-            <component :is="TODO_ICONS[t.art]" />
-            <span v-if="t.wer" class="text-muted-foreground">{{ t.wer }}:</span>
+        <CommandGroup v-if="hit.todos.length" heading="Merker & Daily">
+          <CommandItem v-for="t in hit.todos" :key="`t${t.id}`" :value="`todo-${t.id}`" @select="openPage('/todos')">
+            <component :is="TODO_ICONS[t.kind]" />
+            <span v-if="t.person" class="text-muted-foreground">{{ t.person }}:</span>
             <span class="truncate">{{ t.text }}</span>
           </CommandItem>
         </CommandGroup>
         <p
-          v-if="!treffer.aufgaben.length && !treffer.konten.length && !treffer.notizen.length && !treffer.todos.length && !seiten.length"
+          v-if="!hit.tasks.length && !hit.accounts.length && !hit.notes.length && !hit.todos.length && !pages.length"
           class="px-3 py-6 text-center text-sm text-muted-foreground"
         >
           Nichts gefunden.
@@ -186,9 +186,9 @@ function enterAbfangen(e: KeyboardEvent) {
       </template>
 
       <!-- Navigation -->
-      <CommandGroup v-if="seiten.length" heading="Gehe zu">
-        <CommandItem v-for="s in seiten" :key="s.to" :value="`seite-${s.to}`" @select="oeffne(s.to)">
-          <component :is="s.icon" /> {{ s.titel }}
+      <CommandGroup v-if="pages.length" heading="Gehe zu">
+        <CommandItem v-for="s in pages" :key="s.to" :value="`page-${s.to}`" @select="openPage(s.to)">
+          <component :is="s.icon" /> {{ s.title }}
         </CommandItem>
       </CommandGroup>
     </CommandList>

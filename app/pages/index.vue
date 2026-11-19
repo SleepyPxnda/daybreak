@@ -6,157 +6,157 @@ import { toast } from 'vue-sonner'
 import DayTimeline from '~/components/timeline/DayTimeline.vue'
 import BlockDialog from '~/components/timeline/BlockDialog.vue'
 import QuickInput from '~/components/quick-input/QuickInput.vue'
-import TagEinstellung from '~/components/widgets/TagEinstellung.vue'
-import AufgabenInArbeit from '~/components/widgets/AufgabenInArbeit.vue'
-import TodoSpalte from '~/components/widgets/TodoSpalte.vue'
-import AngepinnteNotizen from '~/components/widgets/AngepinnteNotizen.vue'
-import NaechsterUrlaub from '~/components/widgets/NaechsterUrlaub.vue'
+import DaySetting from '~/components/widgets/DaySetting.vue'
+import TasksInProgress from '~/components/widgets/TasksInProgress.vue'
+import TodoColumn from '~/components/widgets/TodoColumn.vue'
+import PinnedNotes from '~/components/widgets/PinnedNotes.vue'
+import NextVacation from '~/components/widgets/NextVacation.vue'
 
 const route = useRoute()
-const datum = computed(() => {
-  const d = String(route.query.datum ?? '')
-  return istDatum(d) ? d : heute()
+const date = computed(() => {
+  const d = String(route.query.date ?? '')
+  return isIsoDate(d) ? d : today()
 })
-const istHeute = computed(() => datum.value === heute())
+const isToday = computed(() => date.value === today())
 
-useHead({ title: () => `${istHeute.value ? 'Heute' : format(zuDate(datum.value), 'EEE d. MMM', { locale: de })} · daybreak` })
+useHead({ title: () => `${isToday.value ? 'Heute' : format(toDate(date.value), 'EEE d. MMM', { locale: de })} · daybreak` })
 
-const { data: einstellungen } = useEinstellungen()
-const { bloecke, konflikte, info } = useTag(datum)
+const { data: settings } = useSettings()
+const { blocks, conflicts, info } = useDay(date)
 
-const von = computed(() => einstellungen.value?.timelineVon ?? 420)
-const bis = computed(() => einstellungen.value?.timelineBis ?? 1140)
+const from = computed(() => settings.value?.timelineFrom ?? 420)
+const to = computed(() => settings.value?.timelineTo ?? 1140)
 
 const {
-  jetzt,
+  currentMinute,
   blockDialog,
-  bearbeiteterBlock,
-  entwurf,
-  vorlageDialog,
-  vorlageEntwurf,
-  anlegen,
-  oeffnen,
-  aendern,
-  menue,
-  ablegen,
-  ablegenMerker,
-} = useBlockBearbeitung()
+  editedBlock,
+  draft,
+  templateDialog,
+  templateDraft,
+  create,
+  open,
+  change,
+  menu,
+  drop,
+  dropReminder,
+} = useBlockEditing()
 
-const ist = computed(() => istMinuten(bloecke.value))
-const geplant = computed(() => geplantMinuten(bloecke.value))
-const soll = computed(() => info.value?.soll ?? 0)
-const fortschritt = computed(() => (soll.value ? Math.min(100, Math.round((ist.value / soll.value) * 100)) : 0))
+const actual = computed(() => actualMinutes(blocks.value))
+const planned = computed(() => plannedMinutes(blocks.value))
+const target = computed(() => info.value?.target ?? 0)
+const progress = computed(() => (target.value ? Math.min(100, Math.round((actual.value / target.value) * 100)) : 0))
 
-function tagWechseln(tage: number) {
-  const ziel = plusTage(datum.value, tage)
-  navigateTo({ query: ziel === heute() ? {} : { datum: ziel } })
+function switchDay(days: number) {
+  const destination = addDays(date.value, days)
+  navigateTo({ query: destination === today() ? {} : { date: destination } })
 }
 
-// --- Wie gestern / Tagesabschluss --------------------------------------
-async function wieGestern() {
-  const r = await aktion(() => api<{ quelle: string | null, angelegt: unknown[], uebersprungen: number }>(
-    '/api/blocks/wie-gestern', { method: 'POST', body: { datum: datum.value } },
-  ), TAG_KEYS)
+// --- Same as yesterday / day closing --------------------------------------
+async function copyYesterday() {
+  const r = await runAction(() => api<{ source: string | null, created: unknown[], skipped: number }>(
+    '/api/blocks/copy-yesterday', { method: 'POST', body: { date: date.value } },
+  ), DAY_KEYS)
   if (!r) return
-  if (!r.quelle) return void toast.info('Keine gebuchten Blöcke in den letzten 7 Tagen gefunden.')
-  toast.success(`${r.angelegt.length} Blöcke vom ${format(zuDate(r.quelle), 'EEE d.M.', { locale: de })} als geplant übernommen${r.uebersprungen ? ` (${r.uebersprungen} übersprungen – Zeit belegt)` : ''}.`)
+  if (!r.source) return void toast.info('Keine gebuchten Blöcke in den letzten 7 Tagen gefunden.')
+  toast.success(`${r.created.length} Blöcke vom ${format(toDate(r.source), 'EEE d.M.', { locale: de })} als geplant übernommen${r.skipped ? ` (${r.skipped} übersprungen – Zeit belegt)` : ''}.`)
 }
 
-const abschluss = ref(false)
-// Klick auf die Feierabend-Erinnerung öffnet den Tagesabschluss über ?abschluss=1
-watch(() => route.query.abschluss, (wert) => {
-  if (wert === undefined) return
-  abschluss.value = true
+const closing = ref(false)
+// Clicking the end-of-day notification opens the day closing via ?dayClosing=1
+watch(() => route.query.dayClosing, (value) => {
+  if (value === undefined) return
+  closing.value = true
   navigateTo({ query: {} }, { replace: true })
 }, { immediate: true })
 </script>
 
 <template>
   <div class="grid gap-6">
-    <!-- Kopf -->
+    <!-- Header -->
     <div class="flex flex-wrap items-center gap-3">
-      <Button size="icon" variant="ghost" aria-label="Vorheriger Tag" @click="tagWechseln(-1)">
+      <Button size="icon" variant="ghost" aria-label="Vorheriger Tag" @click="switchDay(-1)">
         <ChevronLeft />
       </Button>
-      <!-- Feste Breite, damit die Pfeile beim Blättern nicht springen (längstes Datum passt rein) -->
+      <!-- Fixed width so the arrows do not jump while paging (longest date fits) -->
       <div class="w-60 shrink-0">
         <h1 class="truncate text-2xl font-semibold tracking-tight">
-          {{ istHeute ? 'Heute' : format(zuDate(datum), 'EEEE', { locale: de }) }}
+          {{ isToday ? 'Heute' : format(toDate(date), 'EEEE', { locale: de }) }}
         </h1>
         <p class="truncate text-sm text-muted-foreground">
-          {{ format(zuDate(datum), 'EEEE, d. MMMM yyyy', { locale: de }) }}
+          {{ format(toDate(date), 'EEEE, d. MMMM yyyy', { locale: de }) }}
         </p>
       </div>
-      <Button size="icon" variant="ghost" aria-label="Nächster Tag" @click="tagWechseln(1)">
+      <Button size="icon" variant="ghost" aria-label="Nächster Tag" @click="switchDay(1)">
         <ChevronRight />
       </Button>
-      <!-- Immer im Layout, nur unsichtbar – sonst verschiebt sich der Rest -->
-      <Button size="sm" variant="ghost" :class="{ invisible: istHeute }" :tabindex="istHeute ? -1 : 0" @click="navigateTo({ query: {} })">
+      <!-- Always in the layout, just invisible - otherwise the rest shifts -->
+      <Button size="sm" variant="ghost" :class="{ invisible: isToday }" :tabindex="isToday ? -1 : 0" @click="navigateTo({ query: {} })">
         Heute
       </Button>
       <div class="grow" />
-      <TagEinstellung
+      <DaySetting
         v-if="info"
-        :datum="datum"
-        :typ="info.typ"
-        :soll="info.soll"
-        :feiertag="info.feiertag"
-        :ist-arbeitstag="info.istArbeitstag"
-        :notiz="info.notiz"
+        :date="date"
+        :type="info.type"
+        :target="info.target"
+        :holiday="info.holiday"
+        :is-workday="info.isWorkday"
+        :note="info.note"
       />
     </div>
 
-    <div v-if="konflikte.length" class="flex flex-wrap gap-3">
-      <NaechsterUrlaub darstellung="banner" class="flex-[1_1_420px]" />
-      <div class="flex items-center gap-2.5 rounded-xl border bg-warnung-subtle px-4 py-2.5 text-sm">
-        <TriangleAlert class="size-[18px] shrink-0 text-warnung" />
+    <div v-if="conflicts.length" class="flex flex-wrap gap-3">
+      <NextVacation presentation="banner" class="flex-[1_1_420px]" />
+      <div class="flex items-center gap-2.5 rounded-xl border bg-warning-subtle px-4 py-2.5 text-sm">
+        <TriangleAlert class="size-[18px] shrink-0 text-warning" />
         <span>
-          <span class="font-semibold text-warnung">{{ konflikte.length }} wiederkehrende{{ konflikte.length === 1 ? 'r Block' : ' Blöcke' }}</span>
+          <span class="font-semibold text-warning">{{ conflicts.length }} wiederkehrende{{ conflicts.length === 1 ? 'r Block' : ' Blöcke' }}</span>
           nicht eingetragen – Zeitraum belegt
         </span>
       </div>
     </div>
-    <NaechsterUrlaub v-else darstellung="banner" />
+    <NextVacation v-else presentation="banner" />
 
-    <!-- Zeitleiste mit Fortschritt -->
+    <!-- Timeline with progress -->
     <DayTimeline
-      :bloecke="bloecke"
-      :von="von"
-      :bis="bis"
-      :jetzt="istHeute ? jetzt : undefined"
-      @anlegen="anlegen(datum, $event)"
-      @aendern="aendern"
-      @oeffnen="oeffnen"
-      @menue="menue"
-      @ablegen="(id, start) => ablegen(datum, id, start)"
-      @ablegen-merker="(id, start) => ablegenMerker(datum, id, start)"
+      :blocks="blocks"
+      :from="from"
+      :to="to"
+      :current-minute="isToday ? currentMinute : undefined"
+      @create="create(date, $event)"
+      @change="change"
+      @open="open"
+      @menu="menu"
+      @drop="(id, start) => drop(date, id, start)"
+      @drop-reminder="(id, start) => dropReminder(date, id, start)"
     >
       <div class="mt-4 flex items-center gap-3 text-sm">
-        <span>Gebucht <span class="font-mono font-medium">{{ formatDauer(ist) }}</span> <span class="font-mono text-muted-foreground">/ {{ formatDauer(soll) }}</span></span>
-        <Progress :model-value="fortschritt" class="flex-1" />
-        <span class="text-[13px] text-muted-foreground">geplant <span class="font-mono">{{ formatDauer(geplant) }}</span></span>
+        <span>Gebucht <span class="font-mono font-medium">{{ formatDuration(actual) }}</span> <span class="font-mono text-muted-foreground">/ {{ formatDuration(target) }}</span></span>
+        <Progress :model-value="progress" class="flex-1" />
+        <span class="text-[13px] text-muted-foreground">geplant <span class="font-mono">{{ formatDuration(planned) }}</span></span>
       </div>
     </DayTimeline>
 
-    <QuickInput :datum="datum">
-      <Button variant="outline" class="h-11" @click="wieGestern">
+    <QuickInput :date="date">
+      <Button variant="outline" class="h-11" @click="copyYesterday">
         <Copy /> Wie gestern
       </Button>
-      <Button class="h-11" @click="abschluss = true">
+      <Button class="h-11" @click="closing = true">
         <ClipboardCheck /> Tagesabschluss
       </Button>
     </QuickInput>
 
-    <!-- Karten unter der Timeline: Aufgaben in Arbeit, Merker, Nachfassen, Daily-Themen -->
+    <!-- Cards below the timeline: tasks in progress, reminders, follow-ups, daily topics -->
     <section class="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] items-start gap-6">
-      <AufgabenInArbeit :datum="datum" />
-      <TodoSpalte />
-      <AngepinnteNotizen />
-      <NaechsterUrlaub darstellung="karte" />
+      <TasksInProgress :date="date" />
+      <TodoColumn />
+      <PinnedNotes />
+      <NextVacation presentation="karte" />
     </section>
 
-    <BlockDialog v-model:open="blockDialog" :block="bearbeiteterBlock" :entwurf="entwurf" />
-    <VorlageDialog v-model:open="vorlageDialog" :vorlage="vorlageEntwurf" />
-    <TagesabschlussSheet v-model:open="abschluss" :datum="datum" :bloecke="bloecke" :soll="soll" />
+    <BlockDialog v-model:open="blockDialog" :block="editedBlock" :draft="draft" />
+    <TemplateDialog v-model:open="templateDialog" :template="templateDraft" />
+    <DayClosingSheet v-model:open="closing" :date="date" :blocks="blocks" :target="target" />
   </div>
 </template>

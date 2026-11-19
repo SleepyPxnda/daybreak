@@ -1,48 +1,48 @@
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { block, vorlageAusnahme } from '../../db/schema'
+import { block, templateException } from '../../db/schema'
 import { db } from '../../db/client'
-import { datumSchema, uhrzeitSchema } from '#shared/utils/einstellungen'
+import { dateSchema, timeSchema } from '#shared/utils/settings'
 
 const schema = z.object({
-  datum: datumSchema,
-  start: uhrzeitSchema,
-  ende: uhrzeitSchema,
-  kind: z.enum(['arbeit', 'pause']),
-  status: z.enum(['geplant', 'gebucht']),
-  aufgabeId: z.number().int().positive().nullable(),
-  kontoId: z.number().int().positive().nullable(),
-  notiz: z.string().trim().max(2000).nullable(),
+  date: dateSchema,
+  start: timeSchema,
+  end: timeSchema,
+  kind: z.enum(['work', 'break']),
+  status: z.enum(['planned', 'booked']),
+  taskId: z.number().int().positive().nullable(),
+  accountId: z.number().int().positive().nullable(),
+  note: z.string().trim().max(2000).nullable(),
 }).partial()
 
 export default defineEventHandler(async (event) => {
-  const id = await idAusRoute(event)
-  const daten = await readValidatedBody(event, schema.parse)
-  const [alt] = await db.select().from(block).where(eq(block.id, id))
-  if (!alt) nichtGefunden('Block')
+  const id = await idFromRoute(event)
+  const data = await readValidatedBody(event, schema.parse)
+  const [previous] = await db.select().from(block).where(eq(block.id, id))
+  if (!previous) notFound('Block')
 
-  const neu = { ...alt, ...daten }
-  const zielGeaendert = daten.kind !== undefined || daten.aufgabeId !== undefined || daten.kontoId !== undefined
-  // Neue Aufgabe ohne explizites Konto → Konto kommt von der Aufgabe
-  const ziel = zielGeaendert
-    ? await loeseZielAuf({ kind: neu.kind, aufgabeId: neu.aufgabeId, kontoId: daten.aufgabeId ? null : neu.kontoId })
+  const merged = { ...previous, ...data }
+  const assignmentChanged = data.kind !== undefined || data.taskId !== undefined || data.accountId !== undefined
+  // New task without explicit account: the account comes from the task
+  const assignment = assignmentChanged
+    ? await resolveAssignment({ kind: merged.kind, taskId: merged.taskId, accountId: data.taskId ? null : merged.accountId })
     : {}
 
-  await pruefeZeitraum(neu.datum, neu, id)
+  await assertValidRange(merged.date, merged, id)
 
-  // Vorlagen-Termin auf einen anderen Tag verschoben → ursprünglichen Tag als ausgelassen merken
-  const verschoben = daten.datum !== undefined && daten.datum !== alt.datum && alt.vorlageId != null
+  // Template occurrence moved to another day: remember the original day as skipped
+  const moved = data.date !== undefined && data.date !== previous.date && previous.templateId != null
 
   return db.transaction(async (tx) => {
-    if (verschoben) {
-      await tx.insert(vorlageAusnahme).values({ vorlageId: alt.vorlageId!, datum: alt.datum }).onConflictDoNothing()
+    if (moved) {
+      await tx.insert(templateException).values({ templateId: previous.templateId!, date: previous.date }).onConflictDoNothing()
     }
-    const [geaendert] = await tx.update(block).set({
-      ...daten,
-      ...ziel,
-      notiz: daten.notiz === undefined ? undefined : daten.notiz || null,
-      vorlageId: verschoben ? null : undefined,
+    const [changed] = await tx.update(block).set({
+      ...data,
+      ...assignment,
+      note: data.note === undefined ? undefined : data.note || null,
+      templateId: moved ? null : undefined,
     }).where(eq(block.id, id)).returning()
-    return geaendert!
+    return changed!
   })
 })

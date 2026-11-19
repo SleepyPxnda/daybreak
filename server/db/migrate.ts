@@ -4,7 +4,7 @@ import { db } from './client'
 
 let ready: Promise<void> | undefined
 
-/** Wendet ausstehende Migrationen aus `./drizzle` genau einmal pro Prozess an. */
+/** Applies pending migrations from `./drizzle` exactly once per process. */
 export function runMigrations() {
   ready ??= migrate(db, { migrationsFolder: resolve(process.cwd(), 'drizzle') })
   return ready

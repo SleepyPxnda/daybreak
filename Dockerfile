@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# glibc-Basis statt Alpine: libsql liefert native Binaries für linux-x64-gnu
+# glibc base instead of Alpine: libsql ships native binaries for linux-x64-gnu
 FROM node:22-slim AS base
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
@@ -9,7 +9,7 @@ WORKDIR /app
 
 FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-# postinstall (nuxt prepare) braucht die Quellen noch nicht → Skripte hier überspringen
+# postinstall (nuxt prepare) does not need the sources yet -> skip scripts here
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
 
 FROM deps AS build
@@ -25,7 +25,7 @@ ENV NODE_ENV=production \
 WORKDIR /app
 
 COPY --from=build --chown=node:node /app/.output ./.output
-# Migrationen werden beim Serverstart angewendet (server/plugins/migrate.ts)
+# Migrations are applied on server start (server/plugins/migrate.ts)
 COPY --from=build --chown=node:node /app/drizzle ./drizzle
 
 RUN mkdir -p /data && chown node:node /data

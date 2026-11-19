@@ -1,41 +1,54 @@
-# Daybreak – Dokumentation
+# Daybreak – Documentation
 
-Persönliches Arbeits-Dashboard: Zeit planen und buchen, Stundenkonto, Urlaub, Merker, Daily-Themen, Notizen.
-Die Spezifikation steht in [`IMPLEMENTATION_PLAN.md`](../IMPLEMENTATION_PLAN.md), die Arbeitsregeln in [`CLAUDE.md`](../CLAUDE.md).
-Hier ist dokumentiert, was pro Phase **tatsächlich** gebaut wurde – inklusive Entscheidungen und Abweichungen vom Plan.
+Personal work dashboard: plan and book time, hours balance, vacation, reminders, daily topics, notes. The UI is in German; the German UI labels are quoted in this documentation where you will see them in the app.
+Architecture in [`ARCHITECTURE.md`](ARCHITECTURE.md), overview in [`SPEC.md`](SPEC.md), working rules in [`CLAUDE.md`](../CLAUDE.md).
+This documents what was **actually** built per phase – including decisions and deviations from the plan.
 
-| Phase | Thema | Stand |
+| Phase | Topic | State |
 |---|---|---|
-| [0](phase-0-setup.md) | Setup: Nuxt, Theme, DB, Docker, CI | fertig (Docker/CI ungetestet) |
-| [1](phase-1-zeit.md) | Zeit: Timeline, Schnelleingabe, Stundenkonto, Vorlagen | fertig |
-| [2](phase-2-merker.md) | Merker, Warten auf, Daily-Themen, Befehlspalette | fertig |
-| [3](phase-3-notizen.md) | Notizen: Markdown-Editor, Tags, Suche, Anpinnen | fertig |
-| [4](phase-4-kalender.md) | Kalender, Urlaubskonto, Woche | fertig |
-| [5](phase-5-uebersicht.md) | Übersicht: Konto → Aufgabe → Tage, Stundenkonto-Verlauf | fertig |
-| [6](phase-6-erinnerungen.md) | Browser-Erinnerungen ans Buchen | fertig |
-| [7](phase-7-cloudypanda.md) | Redesign nach dem cloudypanda-Markensystem | fertig |
+| [0](phase-0-setup.md) | Setup: Nuxt, theme, DB, Docker, CI | done (Docker/CI untested) |
+| [1](phase-1-time.md) | Time: timeline, quick input, hours balance, templates | done |
+| [2](phase-2-reminders.md) | Reminders, waiting for, daily topics, command palette | done |
+| [3](phase-3-notes.md) | Notes: markdown editor, tags, search, pinning | done |
+| [4](phase-4-calendar.md) | Calendar, vacation account, week | done |
+| [5](phase-5-overview.md) | Overview: account → task → days, hours balance history | done |
+| [6](phase-6-booking-notifications.md) | Browser notifications to book time | done |
+| [7](phase-7-cloudypanda.md) | Redesign to the cloudypanda brand system | done |
 
-## Schnellstart
+## Quick start
 
 ```bash
 pnpm install
-pnpm db:seed      # optional: leert die DB und füllt sie mit ~2 Monaten Testdaten rund um heute
-pnpm dev          # http://127.0.0.1:3000 – Migrationen laufen beim Start automatisch
+pnpm db:seed      # optional: empties the DB and fills it with ~2 months of test data around today
+pnpm dev          # http://127.0.0.1:3000 – migrations run automatically at startup
 ```
 
-Weitere Befehle: `pnpm test`, `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm db:generate`.
+More commands: `pnpm test`, `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm db:generate`.
 
-## Wichtigste Bedienung auf einen Blick
+## Pages
 
-| Aktion | Wie |
+| Page | URL |
 |---|---|
-| Befehlspalette (buchen, Merker, suchen, navigieren) | `Strg+K` / `⌘K` |
-| Zeit buchen | `2h PROJ-123 Review`, `9:00-10:30 mtg`, `p 30m` |
-| Zeit planen | `plan 3h PROJ-123 morgen` |
-| Merker / Daily-Thema / Warten auf | `t …`, `d …`, `w Tim: … bis fr` |
-| Neue Notiz | `n Titel` |
-| Block anlegen | auf der Timeline ziehen |
-| Timeline zoomen / verschieben | `Strg`+Mausrad / `Shift`+Mausrad oder mittlere Maustaste |
-| Urlaub eintragen | Kalender: Tage ziehen → „Urlaub“ |
+| Heute | `/` (`?date=YYYY-MM-DD`, `?dayClosing=1`) |
+| Woche | `/week` (`?week=<date>`) |
+| Übersicht | `/overview` (`?mode=week\|month\|custom\|month-closing`, `?date`, `?from`, `?to`) |
+| Kalender | `/calendar` (`?year`) |
+| Merker & Daily | `/todos` |
+| Notizen | `/notes` (`?id`, `?tag`) |
+| Konten & Aufgaben | `/accounts` (`?accountId`), task detail `/tasks/:id` |
+| Einstellungen | `/settings` (vacation entitlement: `#vacation`) |
 
-Details in den Phasen-Dokumenten.
+## Most important controls at a glance
+
+| Action | How |
+|---|---|
+| Command palette (book, reminders, search, navigate) | `Ctrl+K` / `⌘K` |
+| Book time | `2h PROJ-123 Review`, `9:00-10:30 mtg`, `p 30m` |
+| Plan time | `plan 3h PROJ-123 morgen` |
+| Reminder / daily topic / waiting for | `t …`, `d …`, `w Tim: … bis fr` |
+| New note | `n Titel` |
+| Create a block | drag on the timeline |
+| Zoom / move the timeline | `Ctrl`+mouse wheel / `Shift`+mouse wheel or middle mouse button |
+| Enter vacation | calendar: drag over days → "Urlaub" |
+
+Details in the phase documents.

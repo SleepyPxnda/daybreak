@@ -1,10 +1,10 @@
 import DOMPurify from 'dompurify'
 import MarkdownIt from 'markdown-it'
 
-// Reines Markdown (Obsidian-kompatibel, Plan §3.7): kein Roh-HTML, Zeilenumbrüche wie in Obsidian
+// Plain Markdown (Obsidian-compatible): no raw HTML, line breaks as in Obsidian
 const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
 
-// Links in neuem Tab öffnen
+// Open links in a new tab
 const standardLink = md.renderer.rules.link_open ?? ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options))
 md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
   tokens[idx]!.attrSet('target', '_blank')
@@ -12,7 +12,7 @@ md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
   return standardLink(tokens, idx, options, env, self)
 }
 
-/** Markdown → sicheres HTML. Nur im Browser aufrufen (DOMPurify braucht ein DOM). */
+/** Markdown -> safe HTML. Call in the browser only (DOMPurify needs a DOM). */
 export function renderMarkdown(text: string): string {
   return DOMPurify.sanitize(md.render(text), { ADD_ATTR: ['target'] })
 }

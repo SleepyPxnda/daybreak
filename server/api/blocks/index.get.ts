@@ -1,20 +1,20 @@
 import { and, asc, eq, gte, lte } from 'drizzle-orm'
-import { aufgabe, block, konto, vorlage } from '../../db/schema'
+import { task, block, account, template } from '../../db/schema'
 import { db } from '../../db/client'
 
 export default defineEventHandler(async (event) => {
-  const { von, bis } = await getValidatedQuery(event, zeitraumQuerySchema.parse)
-  const einstellungen = await ladeEinstellungen()
-  // Plan §3.2: beim Laden fehlende geplante Blöcke aus Vorlagen erzeugen
-  const { konflikte } = await materialisiereVorlagen(von, bis, einstellungen)
+  const { from, to } = await getValidatedQuery(event, rangeQuerySchema.parse)
+  const settings = await loadSettings()
+  // On load, generate missing planned blocks from templates
+  const { conflicts } = await materializeTemplates(from, to, settings)
 
-  const bloecke = await db.select(blockMitAnzeige)
+  const blocks = await db.select(blockWithDisplay)
     .from(block)
-    .leftJoin(aufgabe, eq(aufgabe.id, block.aufgabeId))
-    .leftJoin(konto, eq(konto.id, block.kontoId))
-    .leftJoin(vorlage, eq(vorlage.id, block.vorlageId))
-    .where(and(gte(block.datum, von), lte(block.datum, bis)))
-    .orderBy(asc(block.datum), asc(block.start))
+    .leftJoin(task, eq(task.id, block.taskId))
+    .leftJoin(account, eq(account.id, block.accountId))
+    .leftJoin(template, eq(template.id, block.templateId))
+    .where(and(gte(block.date, from), lte(block.date, to)))
+    .orderBy(asc(block.date), asc(block.start))
 
-  return { bloecke, konflikte }
+  return { blocks, conflicts }
 })

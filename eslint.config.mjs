@@ -2,6 +2,6 @@
 import withNuxt from './.nuxt/eslint.config.mjs'
 
 export default withNuxt({
-  // shadcn-vue-Komponenten sind generiert und werden nicht von Hand gepflegt
+  // shadcn-vue components are generated and not maintained by hand
   ignores: ['app/components/ui/**', 'drizzle/**'],
 })

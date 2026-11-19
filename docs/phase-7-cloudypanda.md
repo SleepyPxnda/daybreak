@@ -1,55 +1,55 @@
-# Phase 7 – Redesign nach dem cloudypanda-Markensystem
+# Phase 7 – Redesign to the cloudypanda brand system
 
-daybreak ist Teil der Tool-Familie **cloudypanda**. Diese Phase stellt die gesamte Oberfläche auf deren Markensystem um. Grundlage sind das Design-System-Artifact „cloudypanda“ und der Entwurf „daybreak · Redesign“, in dem alle Seiten als Mockup angelegt sind. Funktionen, API und Datenmodell bleiben unverändert.
+daybreak is part of the **cloudypanda** tool family. This phase moves the whole UI to its brand system. The basis is the design-system artifact "cloudypanda" and the draft "daybreak · Redesign", in which all pages exist as mockups. Functions, API and data model stay unchanged.
 
-## Bedienung
+## Usage
 
-An der Bedienung ändert sich fast nichts:
-- **Kopfzeile auf jeder Seite.** Sie enthält die Schnelleingabe (`Strg K`) und das Stundenkonto als Pille („Konto ±h:mm · heute ist / soll“). Bisher stand das Stundenkonto nur auf „Heute“, die Schnelleingabe in der Sidebar.
-- **Sidebar in zwei Gruppen.** „Zeit“ enthält Heute, Woche, Übersicht und Kalender. „Arbeit“ enthält Merker & Daily, Notizen sowie Konten & Aufgaben. Einstellungen sitzen unten. Die Aufgaben-Detailseite markiert „Konten & Aufgaben“ als aktiv.
-- **Heute.** Die Zeitleiste ist eine Karte mit Kopf. Zoom-Steuerung und Fortschritt („Gebucht“, Balken, „geplant“) sitzen darin. „Wie gestern“ und „Tagesabschluss“ stehen in einer Zeile mit der Schnelleingabe.
+Almost nothing changes in how the app is used:
+- **Header bar on every page.** It contains the quick input (`Ctrl K`) and the hours balance as a pill ("Konto ±h:mm · heute ist / soll"). Before, the hours balance was only on "Heute", and the quick input in the sidebar.
+- **Sidebar in two groups.** "Zeit" contains Heute, Woche, Übersicht and Kalender. "Arbeit" contains Merker & Daily, Notizen and Konten & Aufgaben. Einstellungen sits at the bottom. The task detail page marks "Konten & Aufgaben" as active.
+- **Today.** The timeline is a card with a header. Zoom controls and progress ("Gebucht", bar, "geplant") sit inside it. "Wie gestern" and "Tagesabschluss" are in one row with the quick input.
 
-## Fachregeln & Entscheidungen
+## Business rules & decisions
 
-- **Tokens.** Die Tokens kommen aus dem Markensystem, die vollständige Tabelle steht in Plan §6. Die Ebenen sind:
-  - `surface` `#0f1115`: Seite.
-  - `surface-raised` `#181b21`: Sidebar, Kartenköpfe, Felder.
-  - `surface-overlay` `#20242c`: Menüs, Dialoge.
+- **Tokens.** The tokens come from the brand system, the complete table is in the brand system. The layers are:
+  - `surface` `#0f1115`: page.
+  - `surface-raised` `#181b21`: sidebar, card headers, fields.
+  - `surface-overlay` `#20242c`: menus, dialogs.
 
-  Haarlinien in `line`, Ränder von Bedienelementen in `line-strong`. Keine Schatten.
-- **Akzent.** Einziger Akzent ist `accent-daybreak` (Bernstein `#e8a042`). Er steht auf dem Icon, dem Tool-Namen, dem einen Primärbutton, aktiven Zuständen und Links. Aktive Zustände sind `bg-primary/12 text-primary`.
-- **Statusfarben der Marke** (`--positiv`, `--negativ`, `--warnung`, `--info`, jeweils mit `*-subtle`-Fläche) ersetzen die bisherige Nutzung von Pastelltönen als Status:
-  - Fällige Merker und „nachfassen“ sind jetzt Warnung statt „butter“.
-  - Der Urlaubs-Hinweis ist jetzt Info statt „mint“.
+  Hairlines in `line`, borders of controls in `line-strong`. No shadows.
+- **Accent.** The only accent is `accent-daybreak` (amber `#e8a042`). It is used on the icon, the tool name, the one primary button, active states and links. Active states are `bg-primary/12 text-primary`.
+- **Brand status colors** (`--positive`, `--negative`, `--warning`, `--info`, each with a `*-subtle` surface) replace the earlier use of pastel tones as status:
+  - Due reminders and "nachfassen" are now warning instead of "butter".
+  - The vacation notice is now info instead of "mint".
 
-  Status wird immer mit Symbol und Wort gezeigt.
-- **Kontofarben.** Die acht Pastelltöne bleiben, weil ihre Schlüssel in der DB stehen. Sie erscheinen nur noch als Punkt, Balken oder getönte Fläche (`kontoFarbKlassen().flaeche`: Fläche 18 %, Rand 55 %, Text `ink`). Die dunklen `-fg`-Textfarben sind entfallen.
-- **Kalender-Kategorien.**
-  - Urlaub, Krank und Gleittag: getönte Fläche mit Rand in mint, pfirsich bzw. himmel. ½ Urlaub: halbe Diagonale. Unbestätigt: nur gestrichelter Rand.
-  - Feiertag: neutraler Ring statt rose.
-  - Heute: Akzentfläche. Auswahl: Akzent-Tönung.
-- **Schrift.** Geist für die Oberfläche, Geist Mono für Zahlen, Zeiten, IDs und den Schriftzug „daybreak“. Beide sind self-hosted über `@fontsource-variable/geist` und `@fontsource-variable/geist-mono`; Montserrat ist entfernt. `.tabular-nums` setzt global Mono.
-- **Buttons.** Sie folgen dem Standard-Stil von shadcn-vue (Rundung 8 px, `outline` für sekundäre Aktionen, 3-px-Fokus-Ring). Die Marke schreibt eigentlich randlose Buttons vor; die Abweichung ist bewusst so gewünscht. `shadow-xs` ist weggelassen.
-- **Weitere Komponenten.**
-  - Felder: `h-9`, `rounded-md`, Rand `line-strong` auf `surface-raised`.
-  - Karten: Rand `line`, Körper `surface`, Kopfstreifen `surface-raised`.
-- **Logo und Tab-Titel.**
-  - `AppLogo.vue` ist das daybreak-Icon der Marke (Wolke plus Linien-Sonne, Farben über Tokens).
-  - `public/favicon.svg` ist die Original-Datei der Marke.
-  - Tab-Titel: `<Seite> · daybreak`, Standard `daybreak · cloudypanda`.
-- **Nur Anzeige: Aufgabenstatus „In Arbeit“.** Gespeichert sind nur „offen“ und „abgeschlossen“. Auf Konten- und Aufgabenseite heißt eine offene Aufgabe mit gebuchter Zeit „In Arbeit“.
-- **Leere Zustände.** Sie dürfen einen kleinen Wetterwitz machen, zum Beispiel „Klarer Himmel – …“. Fehlermeldungen nicht.
+  Status is always shown with a symbol and a word.
+- **Account colors.** The eight pastel tones stay because their keys are stored in the DB. They appear only as a dot, bar or tinted surface (`accountColorClasses().surface`: surface 18 %, border 55 %, text `ink`). The dark `-fg` text colors are gone.
+- **Calendar categories.**
+  - Vacation, sick and flex day: tinted surface with a border in mint, peach and sky respectively. Half vacation: half a diagonal. Unconfirmed: dashed border only.
+  - Holiday: a neutral ring instead of rose.
+  - Today: accent surface. Selection: accent tint.
+- **Font.** Geist for the UI, Geist Mono for numbers, times, IDs and the "daybreak" wordmark. Both are self-hosted via `@fontsource-variable/geist` and `@fontsource-variable/geist-mono`; Montserrat is removed. `.tabular-nums` sets mono globally.
+- **Buttons.** They follow the default shadcn-vue style (radius 8 px, `outline` for secondary actions, 3 px focus ring). The brand actually prescribes borderless buttons; the deviation is deliberately wanted. `shadow-xs` is left out.
+- **Other components.**
+  - Fields: `h-9`, `rounded-md`, border `line-strong` on `surface-raised`.
+  - Cards: border `line`, body `surface`, header strip `surface-raised`.
+- **Logo and tab title.**
+  - `AppLogo.vue` is the daybreak icon of the brand (cloud plus line sun, colors via tokens).
+  - `public/favicon.svg` is the original file of the brand.
+  - Tab title: `<page> · daybreak`, default `daybreak · cloudypanda`.
+- **Display only: task status "In Arbeit" (in progress).** Only "open" and "closed" are stored. On the accounts and task pages, an open task with booked time is called "In Arbeit".
+- **Empty states.** They may make a small weather joke, for example "Klarer Himmel – …" (clear sky). Error messages may not.
 
-## Datenmodell & API
+## Data model & API
 
-Keine Änderungen. Neu sind nur CSS-Tokens in `app/assets/css/main.css`:
-- `--warnung`, `--info` und die `*-subtle`-Flächen
+No changes. Only CSS tokens in `app/assets/css/main.css` are new:
+- `--warning`, `--info` and the `*-subtle` surfaces
 - `--line-strong`, `--secondary-hover`
-- die Tailwind-Farben `raised`, `overlay`, `line-strong`
+- the Tailwind colors `raised`, `overlay`, `line-strong`
 
-## Offen
+## Open
 
-- **Hellen Modus.** Die Marke sieht „Hell“ als Alternative vor; v1 bleibt dunkel.
-- **Kontofarben im Markenton.** Die Pastelltöne könnten näher an die Markentöne rücken. Das braucht eine Abstimmung, weil die Akzente anderer Tools reserviert sind.
-- **Kalender, Blocker plus Kategorie.** Ein Tag mit Blocker und Urlaub zugleich ist optisch nicht gesondert geprüft.
-- **Heute, Tagesabschluss per Link.** `/?abschluss=1` öffnete das Tagesabschluss-Sheet im Test nicht. Die Logik dazu ist unverändert; ob das vorher schon so war, ist nicht geprüft.
+- **Light mode.** The brand provides "light" as an alternative; v1 stays dark.
+- **Account colors in the brand tone.** The pastel tones could move closer to the brand tones. This needs coordination, because the accents of other tools are reserved.
+- **Calendar, blocker plus category.** A day with a blocker and vacation at once has not been visually checked separately.
+- **Today, day closing via link.** `/?dayClosing=1` did not open the day-closing sheet in the test. The logic behind it is unchanged; whether it was already like this before has not been checked.

@@ -4,21 +4,21 @@ import { isValidBasicAuth } from '../server/utils/basicAuth'
 const basic = (credentials: string) => `Basic ${Buffer.from(credentials).toString('base64')}`
 
 describe('isValidBasicAuth', () => {
-  it('akzeptiert das richtige Passwort mit beliebigem Benutzer', () => {
+  it('accepts the correct password with any user', () => {
     expect(isValidBasicAuth(basic('egal:geheim'), 'geheim')).toBe(true)
     expect(isValidBasicAuth(basic(':geheim'), 'geheim')).toBe(true)
   })
 
-  it('erlaubt Doppelpunkte im Passwort', () => {
+  it('allows colons in the password', () => {
     expect(isValidBasicAuth(basic('u:ge:heim'), 'ge:heim')).toBe(true)
   })
 
-  it('lehnt falsches Passwort ab', () => {
+  it('rejects a wrong password', () => {
     expect(isValidBasicAuth(basic('u:falsch'), 'geheim')).toBe(false)
     expect(isValidBasicAuth(basic('u:geheim2'), 'geheim')).toBe(false)
   })
 
-  it('lehnt fehlende oder kaputte Header ab', () => {
+  it('rejects missing or malformed headers', () => {
     expect(isValidBasicAuth(undefined, 'geheim')).toBe(false)
     expect(isValidBasicAuth('Bearer abc', 'geheim')).toBe(false)
     expect(isValidBasicAuth(basic('ohne-doppelpunkt'), 'geheim')).toBe(false)

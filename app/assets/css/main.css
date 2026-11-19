@@ -43,32 +43,32 @@
     --color-foreground: var(--foreground);
     --color-background: var(--background);
 
-    /* Kontofarben + Status als Tailwind-Farben (bg-konto-mint, text-positiv …) */
-    --color-konto-lavendel: var(--konto-lavendel);
-    --color-konto-pfirsich: var(--konto-pfirsich);
-    --color-konto-mint: var(--konto-mint);
-    --color-konto-himmel: var(--konto-himmel);
-    --color-konto-rose: var(--konto-rose);
-    --color-konto-butter: var(--konto-butter);
-    --color-konto-salbei: var(--konto-salbei);
-    --color-konto-flieder: var(--konto-flieder);
-    --color-positiv: var(--positiv);
-    --color-negativ: var(--negativ);
-    /* Statusfarben der Marke (cloudypanda): Farbe für Symbol/Titel, -subtle als Fläche */
-    --color-warnung: var(--warnung);
-    --color-warnung-subtle: var(--warnung-subtle);
+    /* Account colors + status as Tailwind colors (bg-account-mint, text-positive ...) */
+    --color-account-lavender: var(--account-lavender);
+    --color-account-peach: var(--account-peach);
+    --color-account-mint: var(--account-mint);
+    --color-account-sky: var(--account-sky);
+    --color-account-rose: var(--account-rose);
+    --color-account-butter: var(--account-butter);
+    --color-account-sage: var(--account-sage);
+    --color-account-lilac: var(--account-lilac);
+    --color-positive: var(--positive);
+    --color-negative: var(--negative);
+    /* Brand status colors (cloudypanda): color for icon/title, -subtle as area */
+    --color-warning: var(--warning);
+    --color-warning-subtle: var(--warning-subtle);
     --color-info: var(--info);
     --color-info-subtle: var(--info-subtle);
-    --color-erfolg-subtle: var(--erfolg-subtle);
-    --color-fehler-subtle: var(--fehler-subtle);
-    /* Ebenen: surface (background) → raised (card/sidebar) → overlay (popover) */
+    --color-success-subtle: var(--success-subtle);
+    --color-error-subtle: var(--error-subtle);
+    /* Layers: surface (background) -> raised (card/sidebar) -> overlay (popover) */
     --color-raised: var(--card);
     --color-secondary-hover: var(--secondary-hover);
     --color-overlay: var(--popover);
-    /* Rand von Bedienelementen (Felder, Checkboxen), ≥3:1 */
+    /* Border of controls (fields, checkboxes), at least 3:1 */
     --color-line-strong: var(--line-strong);
 
-    /* Marke: 4 · 8 · 12 px, Pillen voll rund */
+    /* Brand: 4 / 8 / 12 px, pills fully rounded */
     --radius-sm: 4px;
     --radius-md: 8px;
     --radius-lg: 12px;
@@ -76,60 +76,60 @@
     --radius-2xl: 12px;
 }
 
-/* Dark-only (v1): <html class="dark"> ist fest gesetzt, siehe nuxt.config.ts.
-   Werte aus dem cloudypanda-Markensystem, siehe Plan §6. */
+/* Dark-only (v1): <html class="dark"> is fixed, see nuxt.config.ts.
+   Values from the cloudypanda brand system. */
 .dark {
-    /* cloudypanda-Tokens (Dunkel): Ebenen statt Schatten, ein Akzent (accent-daybreak) */
+    /* cloudypanda tokens (dark): layers instead of shadows, one accent (accent-daybreak) */
     --background:           #0f1115;  /* surface */
     --foreground:           #eceef2;  /* ink */
-    --card:                 #181b21;  /* surface-raised: Sidebar, Kartenköpfe, Felder */
+    --card:                 #181b21;  /* surface-raised: sidebar, card headers, fields */
     --card-foreground:      #eceef2;
-    --popover:              #20242c;  /* surface-overlay: Menüs, Dialoge, sekundäre Buttons */
+    --popover:              #20242c;  /* surface-overlay: menus, dialogs, secondary buttons */
     --popover-foreground:   #eceef2;
-    --primary:              #e8a042;  /* accent-daybreak (Bernstein) */
+    --primary:              #e8a042;  /* accent-daybreak (amber) */
     --primary-foreground:   #0f1115;  /* on-accent */
     --secondary:            #20242c;
     --secondary-foreground: #eceef2;
-    --secondary-hover:      #2a2f39;  /* Hover auf surface-overlay */
+    --secondary-hover:      #2a2f39;  /* hover on surface-overlay */
     --muted:                #20242c;
     --muted-foreground:     #9aa1ad;  /* ink-muted */
-    --accent:               #20242c;  /* Hover-Fläche */
+    --accent:               #20242c;  /* hover area */
     --accent-foreground:    #eceef2;
     --destructive:          #ff6b6b;  /* danger */
     --border:               #2a2e37;  /* line */
-    --input:                #6b7280;  /* line-strong: Felder, Checkboxen */
+    --input:                #6b7280;  /* line-strong: fields, checkboxes */
     --line-strong:          #6b7280;
     --ring:                 #e8a042;
     --radius: 0.75rem;
 
-    /* Kontofarben: als Punkt, Balken und getönte Fläche (bg-konto-x/18) mit ink-Text */
-    --konto-lavendel: oklch(0.80 0.09 295);
-    --konto-pfirsich: oklch(0.83 0.08 55);
-    --konto-mint:     oklch(0.84 0.08 165);
-    --konto-himmel:   oklch(0.82 0.08 235);
-    --konto-rose:     oklch(0.80 0.09 5);
-    --konto-butter:   oklch(0.88 0.08 95);
-    --konto-salbei:   oklch(0.82 0.06 140);
-    --konto-flieder:  oklch(0.78 0.08 320);
+    /* Account colors: as dot, bar and tinted area (bg-account-x/18) with ink text */
+    --account-lavender: oklch(0.80 0.09 295);
+    --account-peach: oklch(0.83 0.08 55);
+    --account-mint:     oklch(0.84 0.08 165);
+    --account-sky:   oklch(0.82 0.08 235);
+    --account-rose:     oklch(0.80 0.09 5);
+    --account-butter:   oklch(0.88 0.08 95);
+    --account-sage:   oklch(0.82 0.06 140);
+    --account-lilac:  oklch(0.78 0.08 320);
 
     /* Status (cloudypanda) */
-    --positiv: #4cc777;          /* success */
-    --negativ: #ff6b6b;          /* danger */
-    --erfolg-subtle: #12241a;
-    --fehler-subtle: #2a1416;
-    --warnung: #f2c14e;
-    --warnung-subtle: #272010;
+    --positive: #4cc777;          /* success */
+    --negative: #ff6b6b;          /* danger */
+    --success-subtle: #12241a;
+    --error-subtle: #2a1416;
+    --warning: #f2c14e;
+    --warning-subtle: #272010;
     --info: #79b0f5;
     --info-subtle: #121e2e;
 
-    /* Charts: Akzent zuerst, dann neutrale Abstufungen */
+    /* Charts: accent first, then neutral steps */
     --chart-1: #e8a042;
     --chart-2: #79b0f5;
     --chart-3: #4cc777;
     --chart-4: #9aa1ad;
     --chart-5: #f2c14e;
 
-    /* Sidebar: surface-raised, aktiver Eintrag = Akzent-Text auf Akzent-Tönung (in AppSidebar) */
+    /* Sidebar: surface-raised, active entry = accent text on accent tint (in AppSidebar) */
     --sidebar:                    #181b21;
     --sidebar-foreground:         #eceef2;
     --sidebar-primary:            #e8a042;
@@ -147,17 +147,17 @@
   body {
     @apply bg-background text-foreground font-sans;
   }
-  /* Überschriften in Geist Semibold, Satzbau statt Versalien */
+  /* Headings in Geist Semibold, sentence case instead of uppercase */
   h1, h2, h3, .cn-font-heading {
     @apply font-heading font-semibold tracking-tight;
   }
-  /* Ziffern in Zeiten und Tabellen immer in Mono (Marke) */
+  /* Digits in times and tables always in mono (brand) */
   .tabular-nums {
     font-family: var(--font-mono);
   }
 }
 
-/* Markdown-Vorschau der Notizen */
+/* Markdown preview of notes */
 @layer components {
   .markdown {
     @apply text-sm leading-relaxed break-words;
@@ -179,16 +179,16 @@
   .markdown th, .markdown td { @apply border border-border px-2 py-1; }
 }
 
-/* Einzeilig, zu langer Text läuft rechts weich aus statt hart abgeschnitten.
-   Nur für Elemente, die die Zeile füllen (flex-1/w-full) – sonst würde auch kurzer Text am Ende verblassen. */
-@utility auslaufen {
+/* Single line; text that is too long fades out on the right instead of being cut off hard.
+   Only for elements that fill the row (flex-1/w-full), otherwise short text would fade at the end too. */
+@utility fade-end {
   overflow: hidden;
   white-space: nowrap;
   mask-image: linear-gradient(to right, black calc(100% - 2.5rem), transparent);
 }
 
-/* Kalender-Blocker („hier keinen Urlaub“): rot schraffiert, legt sich über eine evtl. Tagesfarbe */
-@utility blocker-schraffur {
+/* Calendar blocker (no vacation here): red hatched, overlays any day color */
+@utility blocker-hatched {
   background-image: repeating-linear-gradient(
     135deg,
     color-mix(in oklch, var(--destructive) 70%, transparent) 0 2px,
@@ -197,8 +197,8 @@
   box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--destructive) 60%, transparent);
 }
 
-/* Geplante Blöcke: halbtransparent + schraffiert (Plan §3.2) */
-@utility schraffiert {
+/* Planned blocks: semi-transparent + hatched */
+@utility hatched {
   opacity: 0.6;
   background-image: repeating-linear-gradient(
     135deg,
