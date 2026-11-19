@@ -72,7 +72,7 @@ const entitlementLines = computed<EntitlementLine[]>(() => {
       </div>
     </CardContent>
 
-    <CardContent class="grid text-sm">
+    <CardContent class="grid grid-cols-1 text-sm">
       <button type="button" class="flex items-center justify-between border-b py-2 text-left hover:text-primary" :aria-expanded="entitlementsOpen" @click="entitlementsOpen = !entitlementsOpen">
         <span class="flex items-center gap-1">
           <ChevronRight class="size-3.5 text-muted-foreground transition-transform" :class="{ 'rotate-90': entitlementsOpen }" /> Anspruch
@@ -85,8 +85,8 @@ const entitlementLines = computed<EntitlementLine[]>(() => {
         </p>
         <div v-for="line in entitlementLines" :key="line.key" class="border-b py-2 pl-3 text-[13px] text-muted-foreground">
           <div class="flex justify-between gap-2">
-            <span class="truncate">{{ line.label }}<template v-if="line.handedOnFromYear"> (aus {{ line.handedOnFromYear }})</template> <span class="opacity-70">({{ KIND_LABELS[line.kind] }})</span></span>
-            <span class="font-mono tabular-nums">{{ line.days > 0 ? '+' : '' }}{{ number(line.days) }}</span>
+            <span class="min-w-0 truncate">{{ line.label }}<template v-if="line.handedOnFromYear"> (aus {{ line.handedOnFromYear }})</template> <span class="opacity-70">({{ KIND_LABELS[line.kind] }})</span></span>
+            <span class="shrink-0 font-mono tabular-nums">{{ line.days > 0 ? '+' : '' }}{{ number(line.days) }}</span>
           </div>
           <div v-if="line.windowText" class="text-xs">
             {{ line.windowText }} · <span class="text-foreground">{{ line.status }}</span>
