@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   const days = await loadDayInfos(from, to, await loadSettings())
 
   return {
-    ...groupOverview(blocks),
+    ...groupOverview(blocks, await loadAccountOrder()),
     target: days.reduce((s, t) => s + t.target, 0),
   }
 })

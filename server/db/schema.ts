@@ -11,6 +11,7 @@ export const account = sqliteTable('account', {
   color: text('color').notNull(),
   aliases: text('aliases', { mode: 'json' }).$type<string[]>().notNull().default(sql`'[]'`),
   status: text('status', { enum: ['active', 'archived'] }).notNull().default('active'),
+  sortOrder: integer('sort_order').notNull().default(0),
   createdAt: createdAt(),
 })
 

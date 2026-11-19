@@ -22,6 +22,10 @@ function dayLabel(t: { holiday?: string, type: string, isWorkday: boolean }) {
 const visibleDays = computed(() => days.value.filter(t => t.actual || t.target || dayLabel(t)))
 const todayDate = today()
 
+const { data: accountList } = useAccounts()
+
+const accountPosition = (accountId: number) => accountList.value.findIndex(entry => entry.id === accountId)
+
 const sum = computed(() => {
   const accounts = new Map<number, { accountId: number, name: string, color: string | null, minutes: number }>()
   for (const k of days.value.flatMap(t => t.accounts)) {
@@ -33,7 +37,7 @@ const sum = computed(() => {
     actual: days.value.reduce((s, t) => s + t.actual, 0),
     target: days.value.reduce((s, t) => s + t.target, 0),
     isBreak: days.value.reduce((s, t) => s + t.isBreak, 0),
-    accounts: [...accounts.values()].sort((a, b) => b.minutes - a.minutes),
+    accounts: [...accounts.values()].sort((a, b) => accountPosition(a.accountId) - accountPosition(b.accountId)),
   }
 })
 

@@ -6,6 +6,7 @@ Accounts & tasks, timeline, quick input for time, hours balance, day closing, re
 
 ### Accounts & tasks (`/accounts`)
 - On the left the accounts (color, aliases for quick input, archiving in the edit dialog; "Archivierte zeigen" shows them).
+- The active accounts can be sorted by drag and drop at the grip handle (a dashed slot shows the landing position). The saved order (`account.sortOrder`) applies everywhere accounts are listed. New and reactivated accounts go to the end of the active ones; archived accounts always come last, sorted by name.
 - On the right the tasks of the selected account with key, title, status, estimate, booked time. A click opens the detail page. A specific account can be opened directly with `?accountId=<id>`.
 - **Task detail** (`/tasks/:id`): sum booked/planned, progress against the estimate, all blocks by day (a click on the day opens it on "Heute"). Edit (including switching the account – blocks and templates move along), close/reopen, delete only without blocks.
 - Accounts with tasks, blocks or templates cannot be deleted – only archived.
@@ -117,7 +118,8 @@ Tables: `account`, `task`, `block` (+ `templateId`), `template` (+ `name`, migra
 | Route | Purpose |
 |---|---|
 | `GET/PUT /api/settings` | settings (with defaults) |
-| `GET/POST /api/accounts`, `PATCH/DELETE /api/accounts/:id` | accounts; aliases must be unique |
+| `GET/POST /api/accounts`, `PATCH/DELETE /api/accounts/:id` | accounts; aliases must be unique; list in the saved order |
+| `POST /api/accounts/reorder` | new order of the active accounts (`{ ids }`, exactly all active ids) |
 | `GET /api/tasks?accountId&status&activeOn=<date>` | tasks including `bookedMin`/`plannedMin` |
 | `GET/PATCH/DELETE /api/tasks/:id`, `POST /api/tasks` | detail with blocks; key unique (409) |
 | `GET /api/blocks?from&to` | blocks with display info; materializes templates, returns `conflicts` |

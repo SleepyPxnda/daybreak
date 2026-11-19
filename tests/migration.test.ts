@@ -129,6 +129,7 @@ describe('migration 0003 -> latest', () => {
 
     expect((await rows('SELECT color FROM account ORDER BY id')).map(row => row.color)).toEqual(COLORS_AFTER)
     expect((await rows('SELECT status FROM account ORDER BY id')).map(row => row.status)).toEqual([...Array(7).fill('active'), 'archived'])
+    expect((await rows('SELECT sort_order FROM account ORDER BY id')).map(row => row.sort_order)).toEqual(Array(8).fill(0))
     expect((await rows('SELECT status FROM task ORDER BY id')).map(row => row.status)).toEqual(['open', 'closed'])
     expect(await rows('SELECT kind, status FROM block ORDER BY id')).toEqual([
       { kind: 'work', status: 'booked' },
