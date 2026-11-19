@@ -2,6 +2,8 @@
 
 What daybreak does today, per area. The phase documents describe how each area was built; later features are added below.
 
+Code, API paths, page URLs, database names and stored values are English; only the UI text is German. The page URLs are listed in [README.md](README.md).
+
 | Area | Document |
 |---|---|
 | Setup: Nuxt, theme, DB, Docker, CI | [phase-0-setup.md](phase-0-setup.md) |

@@ -58,7 +58,7 @@ Tables `vacation_entitlement` (`year`, `kind`, `label`, `days`) and `day` – bo
 | `GET /api/vacation?year` | account (`entitlement`, `taken`, `planned`, `carryover`), `entitlements`, `previousYearCarryover`; creates the prefill on the first call |
 | `POST /api/vacation/entitlements`, `PATCH/DELETE /api/vacation/entitlements/:id` | maintain entries (days in 0.5 steps) |
 | `POST /api/vacation/carry-over` | `{ year }` → carryover entry from the previous year |
-| `GET /api/vacation/next` | next/running vacation (including `confirmed`), `notify` (within the lead time), the notice text |
+| `GET /api/vacation/next` | next/running vacation (including `confirmed`), `notify` (within the lead time), `vacationNoticeText` |
 | `POST /api/vacation/confirm` | `{ from, to }` – mark all vacation days in the range as confirmed (migration `0003_tag_bestaetigt`) |
 | `PUT /api/days/range` | `{ from, to, type }` – day type for a range (max. 1 year) – or `{ from, to, blocker: true \| false }` |
 | `GET /api/days?from&to` | now additionally returns `targetOverride`, `blocker` and `confirmed` |
