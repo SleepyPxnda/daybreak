@@ -12,8 +12,8 @@ const showArchived = ref(false)
 // Local copy of the saved order, so a drop shows the new order immediately
 const orderedAccounts = ref<typeof accounts.value>([])
 watch(accounts, (saved) => { orderedAccounts.value = [...saved] }, { immediate: true })
-const activeAccounts = computed(() => orderedAccounts.value.filter(k => k.status === 'active'))
-const archivedAccounts = computed(() => (showArchived.value ? orderedAccounts.value.filter(k => k.status === 'archived') : []))
+const activeAccounts = computed(() => orderedAccounts.value.filter(account => account.status === 'active'))
+const archivedAccounts = computed(() => (showArchived.value ? orderedAccounts.value.filter(account => account.status === 'archived') : []))
 const visibleAccounts = computed(() => [...activeAccounts.value, ...archivedAccounts.value])
 
 // --- Drag and drop sorting: only the grip starts a drag, a placeholder slot shows the landing position ---
@@ -52,18 +52,18 @@ function dragEnd() {
 async function drop(event: DragEvent) {
   event.preventDefault()
   if (draggedAccountId.value === null || dropIndex.value === null) return
-  const activeIds = activeAccounts.value.map(k => k.id)
+  const activeIds = activeAccounts.value.map(account => account.id)
   const draggedIndex = activeIds.indexOf(draggedAccountId.value)
   const newIds = activeIds.filter(id => id !== draggedAccountId.value)
   newIds.splice(dropIndex.value - (draggedIndex < dropIndex.value ? 1 : 0), 0, draggedAccountId.value)
   if (newIds.join() === activeIds.join()) return
-  orderedAccounts.value = [...newIds.map(id => accounts.value.find(k => k.id === id)!), ...orderedAccounts.value.filter(k => k.status === 'archived')]
+  orderedAccounts.value = [...newIds.map(id => accounts.value.find(account => account.id === id)!), ...orderedAccounts.value.filter(account => account.status === 'archived')]
   const saved = await runAction(() => api('/api/accounts/reorder', { method: 'POST', body: { ids: newIds } }), MASTER_DATA_KEYS)
   if (!saved) orderedAccounts.value = [...accounts.value]
 }
 
 const selectedId = computed(() => Number(route.query.accountId) || visibleAccounts.value[0]?.id)
-const selected = computed(() => accounts.value.find(k => k.id === selectedId.value))
+const selected = computed(() => accounts.value.find(account => account.id === selectedId.value))
 
 const { data: tasks } = useFetch('/api/tasks', {
   key: 'account-tasks',
@@ -109,11 +109,11 @@ function select(id: number) {
         </Button>
       </CardHeader>
       <div class="grid gap-0.5 p-2">
-        <template v-for="(k, index) in activeAccounts" :key="k.id">
+        <template v-for="(account, index) in activeAccounts" :key="account.id">
           <div v-if="draggedAccountId !== null && dropIndex === index" class="rounded-md border border-dashed border-line-strong" :style="{ height: `${draggedRowHeight}px` }" @dragover.prevent @drop="drop" />
           <div
             class="flex items-center rounded-md pl-1"
-            :class="[k.id === selectedId ? 'bg-muted' : 'hover:bg-raised', { hidden: draggedAccountId === k.id }]"
+            :class="[account.id === selectedId ? 'bg-muted' : 'hover:bg-raised', { hidden: draggedAccountId === account.id }]"
             @dragover="dragOverRow($event, index)"
             @drop="drop"
           >
@@ -122,7 +122,7 @@ function select(id: number) {
               draggable="true"
               title="Ziehen zum Sortieren"
               aria-label="Ziehen zum Sortieren"
-              @dragstart="dragStart($event, k.id, index)"
+              @dragstart="dragStart($event, account.id, index)"
               @dragend="dragEnd"
             >
               <GripVertical class="size-4" />
@@ -130,35 +130,35 @@ function select(id: number) {
             <button
               type="button"
               class="flex min-w-0 flex-1 items-center gap-2.5 rounded-md py-2.5 pr-3 pl-2 text-left"
-              :aria-current="k.id === selectedId ? 'true' : undefined"
-              @click="select(k.id)"
+              :aria-current="account.id === selectedId ? 'true' : undefined"
+              @click="select(account.id)"
             >
-              <span class="size-2.5 shrink-0 rounded-full" :class="accountColorClasses(k.color).dot" />
+              <span class="size-2.5 shrink-0 rounded-full" :class="accountColorClasses(account.color).dot" />
               <span class="min-w-0 flex-1">
-                <span class="block truncate text-sm font-semibold">{{ k.name }}</span>
-                <span v-if="k.aliases.length" class="block truncate font-mono text-[11px] text-muted-foreground">{{ k.aliases.join(' · ') }}</span>
+                <span class="block truncate text-sm font-semibold">{{ account.name }}</span>
+                <span v-if="account.aliases.length" class="block truncate font-mono text-[11px] text-muted-foreground">{{ account.aliases.join(' · ') }}</span>
               </span>
             </button>
           </div>
         </template>
         <div v-if="draggedAccountId !== null && dropIndex === activeAccounts.length" class="rounded-md border border-dashed border-line-strong" :style="{ height: `${draggedRowHeight}px` }" @dragover.prevent @drop="drop" />
         <div
-          v-for="k in archivedAccounts"
-          :key="k.id"
+          v-for="account in archivedAccounts"
+          :key="account.id"
           class="flex items-center rounded-md pl-1 text-muted-foreground"
-          :class="k.id === selectedId ? 'bg-muted' : 'hover:bg-raised'"
+          :class="account.id === selectedId ? 'bg-muted' : 'hover:bg-raised'"
         >
           <span class="size-6 shrink-0" />
           <button
             type="button"
             class="flex min-w-0 flex-1 items-center gap-2.5 rounded-md py-2.5 pr-3 pl-2 text-left"
-            :aria-current="k.id === selectedId ? 'true' : undefined"
-            @click="select(k.id)"
+            :aria-current="account.id === selectedId ? 'true' : undefined"
+            @click="select(account.id)"
           >
-            <span class="size-2.5 shrink-0 rounded-full" :class="accountColorClasses(k.color).dot" />
+            <span class="size-2.5 shrink-0 rounded-full" :class="accountColorClasses(account.color).dot" />
             <span class="min-w-0 flex-1">
-              <span class="block truncate text-sm font-semibold">{{ k.name }}</span>
-              <span v-if="k.aliases.length" class="block truncate font-mono text-[11px] text-muted-foreground">{{ k.aliases.join(' · ') }}</span>
+              <span class="block truncate text-sm font-semibold">{{ account.name }}</span>
+              <span v-if="account.aliases.length" class="block truncate font-mono text-[11px] text-muted-foreground">{{ account.aliases.join(' · ') }}</span>
             </span>
           </button>
         </div>
