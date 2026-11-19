@@ -5,7 +5,7 @@ import { GripVertical, Plus } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { parseQuickInput } from '#shared/utils/quickInput'
 import type { TodoKind } from '#shared/utils/todos'
-import { alterText, isDue, cutoffDate, daysSince } from '#shared/utils/todos'
+import { ageText, isDue, cutoffDate, daysSince } from '#shared/utils/todos'
 import type { TodoRow } from '~/composables/useTodos'
 import TodoDialog from './TodoDialog.vue'
 
@@ -148,7 +148,7 @@ function cutoffDateText(t: TodoRow): string | undefined {
           class="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground"
         >
           <span v-if="cutoffDateText(t)" :class="{ 'font-medium text-warning': isDue(t, todayDate) }">{{ cutoffDateText(t) }}</span>
-          <span v-if="kind === 'waiting_for'">{{ alterText(daysSince(t.createdAt, todayDate)) }}</span>
+          <span v-if="kind === 'waiting_for'">{{ ageText(daysSince(t.createdAt, todayDate)) }}</span>
           <span v-if="t.taskTitle || t.accountName" class="inline-flex max-w-full min-w-0 items-center gap-1.5" :title="t.taskTitle ?? t.accountName ?? undefined">
             <span class="size-2 shrink-0 rounded-full" :class="accountColorClasses(t.accountColor).dot" />
             <TaskKey v-if="t.taskKey" :value="t.taskKey" :color="t.accountColor" />

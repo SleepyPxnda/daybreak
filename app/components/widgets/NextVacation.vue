@@ -50,7 +50,7 @@ const countdown = computed(() => {
     <Button v-if="!vacation.running && !vacation.confirmed" size="sm" variant="outline" class="ml-auto" @click="confirm">
       <Check /> Bestätigen
     </Button>
-    <span v-if="!vacation.running && !vacation.confirmed && data?.bookingNotificationText" class="basis-full pl-[30px] text-muted-foreground">{{ data.bookingNotificationText }}</span>
+    <span v-if="!vacation.running && !vacation.confirmed && data?.vacationNoticeText" class="basis-full pl-[30px] text-muted-foreground">{{ data.vacationNoticeText }}</span>
   </div>
 
   <!-- Card below the timeline -->

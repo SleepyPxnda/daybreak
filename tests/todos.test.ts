@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { alterText, isDue, addWorkdays, sortTodos, daysSince } from '../shared/utils/todos'
+import { ageText, isDue, addWorkdays, sortTodos, daysSince } from '../shared/utils/todos'
 import type { TodoBasis } from '../shared/utils/todos'
 
 const E = { targetPerDayMin: 480, workdays: [1, 2, 3, 4, 5], federalState: 'BW' }
@@ -30,9 +30,9 @@ describe('due date and age', () => {
 
   it('age in days', () => {
     expect(daysSince('2026-09-23T10:00:00.000Z', '2026-09-28')).toBe(5)
-    expect(alterText(5)).toBe('seit 5 Tagen')
-    expect(alterText(1)).toBe('seit gestern')
-    expect(alterText(0)).toBe('seit heute')
+    expect(ageText(5)).toBe('seit 5 Tagen')
+    expect(ageText(1)).toBe('seit gestern')
+    expect(ageText(0)).toBe('seit heute')
   })
 })
 

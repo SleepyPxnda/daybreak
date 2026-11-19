@@ -4,7 +4,7 @@ import { yearDays, nextVacation, vacationBalance, vacationDays, vacationPrefill 
 
 const E = { targetPerDayMin: 480, workdays: [1, 2, 3, 4, 5], federalState: 'BW' }
 
-const day = (date: string, type: DayEntry['typ']): [string, DayEntry] => [date, { date, type }]
+const day = (date: string, type: DayEntry['type']): [string, DayEntry] => [date, { date, type }]
 
 describe('vacationDays', () => {
   it('vacation 1, half vacation 0.5, otherwise 0 - only on workdays', () => {

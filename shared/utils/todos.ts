@@ -52,7 +52,7 @@ export function daysSince(createdAt: string, today: IsoDate): number {
   return Math.max(0, daysBetween(toIsoDate(new Date(createdAt)), today))
 }
 
-export function alterText(days: number): string {
+export function ageText(days: number): string {
   if (days === 0) return 'seit heute'
   if (days === 1) return 'seit gestern'
   return `seit ${days} Tagen`

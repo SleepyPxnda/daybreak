@@ -80,7 +80,7 @@ function parseTodo(todoKind: TodoKind, words: string[], today: IsoDate): QuickIn
   let carryover = words
   let cutoffDate: IsoDate | undefined
   if (todoKind !== 'daily_topic' && carryover.length >= 3 && norm(carryover.at(-2)!) === 'bis') {
-    cutoffDate = parseDateToken(carryover.at(-1)!, today, 'vor')
+    cutoffDate = parseDateToken(carryover.at(-1)!, today, 'forward')
     if (cutoffDate) carryover = carryover.slice(0, -2)
   }
 
@@ -124,7 +124,7 @@ export function parseTimeRange(token: string): { start: number, end: number } | 
 }
 
 /** Date token relative to today; for planned blocks weekdays point forward, for booked ones backward. */
-export function parseDateToken(token: string, today: IsoDate, direction: 'vor' | 'zurueck'): IsoDate | undefined {
+export function parseDateToken(token: string, today: IsoDate, direction: 'forward' | 'backward'): IsoDate | undefined {
   const t = norm(token)
   if (t === 'heute') return today
   if (t === 'morgen') return addDays(today, 1)
@@ -134,7 +134,7 @@ export function parseDateToken(token: string, today: IsoDate, direction: 'vor' |
   const assignment = WEEKDAYS[t]
   if (assignment === undefined) return undefined
   const current = weekday(today)
-  if (direction === 'vor') return addDays(today, ((assignment - current + 6) % 7) + 1) // 1...7 days forward
+  if (direction === 'forward') return addDays(today, ((assignment - current + 6) % 7) + 1) // 1...7 days forward
   return addDays(today, -((current - assignment + 7) % 7)) // 0...6 days back
 }
 
@@ -249,7 +249,7 @@ export function parseQuickInput(input: string, ctx: QuickInputContext): QuickInp
   // Date as the last word
   let date = ctx.standardDate ?? ctx.today
   const last = words.at(-1)
-  const dateFromToken = last ? parseDateToken(last, ctx.today, status === 'planned' ? 'vor' : 'zurueck') : undefined
+  const dateFromToken = last ? parseDateToken(last, ctx.today, status === 'planned' ? 'forward' : 'backward') : undefined
   if (dateFromToken) {
     date = dateFromToken
     words = words.slice(0, -1)

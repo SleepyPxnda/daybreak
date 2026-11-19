@@ -18,13 +18,13 @@ export const entitlementFields = z.object({
 
 /** Seed once on first start for the current year (flag in settings). */
 export async function ensureVacationPrefill() {
-  const [flag] = await db.select().from(settings).where(eq(settings.key, 'urlaubVorbelegt'))
+  const [flag] = await db.select().from(settings).where(eq(settings.key, 'vacationPrefilled'))
   if (flag) return
   const year = Number(today().slice(0, 4))
   await db.transaction(async (tx) => {
     const [present] = await tx.select({ id: vacationEntitlement.id }).from(vacationEntitlement).limit(1)
     if (!present) await tx.insert(vacationEntitlement).values(vacationPrefill(year).map(p => ({ ...p, year })))
-    await tx.insert(settings).values({ key: 'urlaubVorbelegt', value: true }).onConflictDoNothing()
+    await tx.insert(settings).values({ key: 'vacationPrefilled', value: true }).onConflictDoNothing()
   })
 }
 

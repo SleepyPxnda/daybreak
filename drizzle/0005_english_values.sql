@@ -20,4 +20,5 @@ UPDATE `settings` SET `key` = CASE `key`
   WHEN 'erinnerungenAktiv' THEN 'bookingNotificationsEnabled'
   WHEN 'erinnerungLueckeMin' THEN 'bookingNotificationGapMin'
   WHEN 'erinnerungFeierabend' THEN 'bookingNotificationEndOfDay'
+  WHEN 'urlaubVorbelegt' THEN 'vacationPrefilled'
   ELSE `key` END;

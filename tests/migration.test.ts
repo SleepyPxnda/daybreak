@@ -54,6 +54,7 @@ const SETTINGS_BEFORE: Record<string, unknown> = {
   erinnerungenAktiv: true,
   erinnerungLueckeMin: 90,
   erinnerungFeierabend: 1020,
+  urlaubVorbelegt: true,
 }
 
 const SETTINGS_AFTER: Record<string, unknown> = {
@@ -69,6 +70,7 @@ const SETTINGS_AFTER: Record<string, unknown> = {
   bookingNotificationsEnabled: true,
   bookingNotificationGapMin: 90,
   bookingNotificationEndOfDay: 1020,
+  vacationPrefilled: true,
 }
 
 const COLORS_BEFORE = ['lavendel', 'pfirsich', 'mint', 'himmel', 'rose', 'butter', 'salbei', 'flieder']

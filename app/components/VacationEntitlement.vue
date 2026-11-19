@@ -8,8 +8,8 @@ const { data: vacation } = useFetch('/api/vacation', { key: 'vacation', query: {
 const number = (t: number) => t.toLocaleString('de-DE', { maximumFractionDigits: 1 })
 const half = (t: number) => Math.round(t * 2) / 2
 
-async function change(id: number, field: 'bezeichnung' | 'tage' | 'art', value: string | number) {
-  const body = { [field]: field === 'tage' ? half(Number(value)) : value }
+async function change(id: number, field: 'label' | 'days' | 'kind', value: string | number) {
+  const body = { [field]: field === 'days' ? half(Number(value)) : value }
   await runAction(() => api(`/api/vacation/entitlements/${id}`, { method: 'PATCH', body }), ['vacation'])
 }
 
@@ -58,7 +58,7 @@ const hasCarryoverEntitlement = computed(() => vacation.value?.entitlements.some
         <span>Art</span><span>Bezeichnung</span><span class="text-right">Tage</span><span />
       </div>
       <div v-for="p in vacation.entitlements" :key="p.id" class="grid min-h-12 grid-cols-[7rem_minmax(0,1fr)_8rem_2rem] items-center gap-2 border-b px-4 py-1.5">
-        <Select :model-value="p.kind" @update:model-value="change(p.id, 'art', String($event))">
+        <Select :model-value="p.kind" @update:model-value="change(p.id, 'kind', String($event))">
           <SelectTrigger class="w-full">
             <SelectValue />
           </SelectTrigger>
@@ -74,12 +74,12 @@ const hasCarryoverEntitlement = computed(() => vacation.value?.entitlements.some
             </SelectItem>
           </SelectContent>
         </Select>
-        <Input :model-value="p.label" aria-label="Bezeichnung" @change="change(p.id, 'bezeichnung', ($event.target as HTMLInputElement).value)" />
+        <Input :model-value="p.label" aria-label="Bezeichnung" @change="change(p.id, 'label', ($event.target as HTMLInputElement).value)" />
         <NumberInput
           :model-value="p.days"
           :step="0.5"
           aria-label="Tage"
-          @update:model-value="$event != null && $event !== p.days && change(p.id, 'tage', $event)"
+          @update:model-value="$event != null && $event !== p.days && change(p.id, 'days', $event)"
         />
         <Button size="icon-sm" variant="ghost" aria-label="Posten löschen" @click="remove(p.id)">
           <Trash2 />

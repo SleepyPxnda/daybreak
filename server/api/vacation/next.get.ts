@@ -13,6 +13,6 @@ export default defineEventHandler(async () => {
   return {
     vacation: vacation && { ...vacation, confirmed: vacationDays.length > 0 && vacationDays.every(t => t!.confirmed) },
     notify: !!vacation && !vacation.running && vacation.daysUntil <= settings.vacationNoticeDays,
-    bookingNotificationText: settings.vacationNoticeText,
+    vacationNoticeText: settings.vacationNoticeText,
   }
 })

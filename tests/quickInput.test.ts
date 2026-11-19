@@ -43,20 +43,20 @@ describe('parseTimeRange', () => {
 
 describe('parseDateToken', () => {
   it('relative days', () => {
-    expect(parseDateToken('morgen', ctx.today, 'vor')).toBe('2026-09-29')
-    expect(parseDateToken('gestern', ctx.today, 'zurueck')).toBe('2026-09-27')
-    expect(parseDateToken('2026-10-01', ctx.today, 'vor')).toBe('2026-10-01')
+    expect(parseDateToken('morgen', ctx.today, 'forward')).toBe('2026-09-29')
+    expect(parseDateToken('gestern', ctx.today, 'backward')).toBe('2026-09-27')
+    expect(parseDateToken('2026-10-01', ctx.today, 'forward')).toBe('2026-10-01')
   })
 
   it('weekdays: planning looks forward, booking looks back', () => {
-    expect(parseDateToken('di', ctx.today, 'vor')).toBe('2026-09-29')
-    expect(parseDateToken('mo', ctx.today, 'vor')).toBe('2026-10-05') // next Monday, not today
-    expect(parseDateToken('mo', ctx.today, 'zurueck')).toBe('2026-09-28') // today
-    expect(parseDateToken('fr', ctx.today, 'zurueck')).toBe('2026-09-25')
+    expect(parseDateToken('di', ctx.today, 'forward')).toBe('2026-09-29')
+    expect(parseDateToken('mo', ctx.today, 'forward')).toBe('2026-10-05') // next Monday, not today
+    expect(parseDateToken('mo', ctx.today, 'backward')).toBe('2026-09-28') // today
+    expect(parseDateToken('fr', ctx.today, 'backward')).toBe('2026-09-25')
   })
 
   it('ignores other words', () => {
-    expect(parseDateToken('review', ctx.today, 'vor')).toBeUndefined()
+    expect(parseDateToken('review', ctx.today, 'forward')).toBeUndefined()
   })
 })
 
@@ -85,7 +85,7 @@ describe('parseQuickInput - examples', () => {
   it('ambiguous -> candidates', () => {
     const r = parse('1h log')
     expect(r).toMatchObject({ type: 'block', candidates: [{ taskId: 10 }, { taskId: 11 }] })
-    expect(r).not.toHaveProperty('ziel', expect.anything())
+    expect(r).not.toHaveProperty('assignment', expect.anything())
   })
 
   it('2h Neue Idee @apollo -> new task in the account', () => {

@@ -216,7 +216,7 @@ await insert('vacation_entitlement', [
   { year: Number(year), kind: 'carryover', label: `Resturlaub ${Number(year) - 1}`, days: 4.5 },
 ])
 await insert('settings', Object.entries({
-  urlaubVorbelegt: true,
+  vacationPrefilled: true,
   balanceStart: { date: start, balanceMin: 135 },
   targetPerDayMin: 480,
   workdays: [1, 2, 3, 4, 5],
