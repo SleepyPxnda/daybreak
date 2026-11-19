@@ -33,6 +33,7 @@ Back:     JSON → runAction() shows errors as a toast, refreshNuxtData(KEYS) re
 
 - **SQLite** (`server/db/schema.ts`): `account` → `task` (exactly one account) → `block` (time range on one day, with `taskId` or directly `accountId`); `template` + `template_exception` (recurring blocks, materialized when `/api/blocks` is read); `day` (only deviations from a normal workday); `todo` (reminder, waiting-for, daily topic); `note`; `vacation_entitlement`; `settings` (key/JSON value).
 - **Settings**: `loadSettings()` fills missing values from the defaults and drops invalid single values (`safeParse`); the balance start date is fixed on first read.
+- **Account order**: `account.sortOrder` is set by drag and drop (`POST /api/accounts/reorder`); `compareAccountOrder` in `shared/utils/accounts.ts` is the one definition of the display order (active by `sortOrder`, archived last by name). `GET /api/accounts` and the overview (`groupOverview`, `monthClosing`, fed with `loadAccountOrder()`) use it.
 - **Derived, not stored**: target, balance, vacation status, overview – computed per request from blocks/days/settings (`shared/utils`).
 - **Client**: no store (no Pinia). Shared state = Nuxt's `useFetch` cache under fixed keys (e.g. `'balance'` in layout and `useDay`); one `useState` (palette open); `localStorage` only for booking-notification state.
 - Formats: date as `YYYY-MM-DD` string, time as minutes since midnight on the 15-minute grid, day boundaries in `Europe/Berlin` (process TZ).
