@@ -10,13 +10,14 @@ import type { TimelineBlock } from '~/utils/timeline'
 // Week: 5 or 7 timelines stacked, planning via drag & drop, day and week totals
 const route = useRoute()
 
+const todayDate = useToday()
 const monday = computed(() => {
   const d = String(route.query.week ?? '')
-  return toIsoDate(startOfISOWeek(toDate(isIsoDate(d) ? d : today())))
+  return toIsoDate(startOfISOWeek(toDate(isIsoDate(d) ? d : todayDate.value)))
 })
 const sunday = computed(() => addDays(monday.value, 6))
 const kw = computed(() => getISOWeek(toDate(monday.value)))
-const isThisWeek = computed(() => monday.value === toIsoDate(startOfISOWeek(new Date())))
+const isThisWeek = computed(() => monday.value === toIsoDate(startOfISOWeek(toDate(todayDate.value))))
 
 useHead({ title: () => `KW ${kw.value} · daybreak` })
 
@@ -78,7 +79,7 @@ const sum = computed(() => ({
 
 function weekSwitch(weeks: number) {
   const destination = addDays(monday.value, weeks * 7)
-  navigateTo({ query: destination === toIsoDate(startOfISOWeek(new Date())) ? {} : { week: destination } })
+  navigateTo({ query: destination === toIsoDate(startOfISOWeek(toDate(todayDate.value))) ? {} : { week: destination } })
 }
 
 const TYPE_LABELS: Record<string, string> = { vacation: 'Urlaub', half_vacation: '½ Urlaub', sick: 'Krank', flex_day: 'Gleittag' }

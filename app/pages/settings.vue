@@ -27,23 +27,40 @@ const form = reactive({
   bookingNotificationEndOfDay: 990,
 })
 
-watchEffect(() => {
-  const e = settings.value
-  if (!e) return
-  form.targetProDayHours = e.targetPerDayMin / 60
-  form.workdays = [...e.workdays]
-  form.federalState = e.federalState
-  form.workStart = e.workStart
-  form.timelineFrom = e.timelineFrom
-  form.timelineTo = e.timelineTo
-  form.startDate = e.balanceStart.date
-  form.startBalanceHours = e.balanceStart.balanceMin / 60
-  form.vacationNoticeDays = e.vacationNoticeDays
-  form.vacationNoticeText = e.vacationNoticeText
-  form.bookingNotificationsEnabled = e.bookingNotificationsEnabled
-  form.bookingNotificationGapHours = e.bookingNotificationGapMin / 60
-  form.bookingNotificationEndOfDay = e.bookingNotificationEndOfDay
-})
+type FormValues = { [Field in keyof typeof form]: (typeof form)[Field] }
+
+function formValuesFrom(stored: Settings): FormValues {
+  return {
+    targetProDayHours: stored.targetPerDayMin / 60,
+    workdays: [...stored.workdays],
+    federalState: stored.federalState,
+    workStart: stored.workStart,
+    timelineFrom: stored.timelineFrom,
+    timelineTo: stored.timelineTo,
+    startDate: stored.balanceStart.date,
+    startBalanceHours: stored.balanceStart.balanceMin / 60,
+    vacationNoticeDays: stored.vacationNoticeDays,
+    vacationNoticeText: stored.vacationNoticeText,
+    bookingNotificationsEnabled: stored.bookingNotificationsEnabled,
+    bookingNotificationGapHours: stored.bookingNotificationGapMin / 60,
+    bookingNotificationEndOfDay: stored.bookingNotificationEndOfDay,
+  }
+}
+
+// Last server state copied into the form: new server values only replace the form while it has no unsaved changes
+let lastCopiedJson: string | null = null
+
+function copyStoredSettingsIntoForm(stored: Settings) {
+  const values = formValuesFrom(stored)
+  Object.assign(form, values)
+  lastCopiedJson = JSON.stringify(values)
+}
+
+watch(settings, (stored) => {
+  if (!stored) return
+  const formHasUnsavedChanges = lastCopiedJson !== null && JSON.stringify(toRaw(form)) !== lastCopiedJson
+  if (!formHasUnsavedChanges) copyStoredSettingsIntoForm(stored)
+}, { immediate: true })
 
 // Browser permission is per browser, the setting is stored server-side - show both
 const permission = ref<NotificationPermission | 'nicht-unterstuetzt'>('default')
@@ -83,7 +100,11 @@ async function save() {
       bookingNotificationEndOfDay: form.bookingNotificationEndOfDay,
     },
   }), ['settings', 'balance', 'next-vacation'])
-  if (ok) toast.success('Einstellungen gespeichert')
+  if (ok) {
+    // runAction() has refreshed settings already, but the form still counts as changed - copy the normalised stored values explicitly
+    if (settings.value) copyStoredSettingsIntoForm(settings.value)
+    toast.success('Einstellungen gespeichert')
+  }
 }
 
 const templateDialog = ref(false)

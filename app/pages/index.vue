@@ -13,11 +13,12 @@ import PinnedNotes from '~/components/widgets/PinnedNotes.vue'
 import NextVacation from '~/components/widgets/NextVacation.vue'
 
 const route = useRoute()
+const todayDate = useToday()
 const date = computed(() => {
   const d = String(route.query.date ?? '')
-  return isIsoDate(d) ? d : today()
+  return isIsoDate(d) ? d : todayDate.value
 })
-const isToday = computed(() => date.value === today())
+const isToday = computed(() => date.value === todayDate.value)
 
 useHead({ title: () => `${isToday.value ? 'Heute' : format(toDate(date.value), 'EEE d. MMM', { locale: de })} · daybreak` })
 
@@ -49,7 +50,7 @@ const progress = computed(() => (target.value ? Math.min(100, Math.round((actual
 
 function switchDay(days: number) {
   const destination = addDays(date.value, days)
-  navigateTo({ query: destination === today() ? {} : { date: destination } })
+  navigateTo({ query: destination === todayDate.value ? {} : { date: destination } })
 }
 
 // --- Same as yesterday / day closing --------------------------------------

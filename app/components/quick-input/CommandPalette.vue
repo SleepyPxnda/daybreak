@@ -24,11 +24,12 @@ import type { TodoKind } from '#shared/utils/todos'
 
 const open = usePaletteOpen()
 const route = useRoute()
+const todayDate = useToday()
 
 /** On the today page the displayed day applies, otherwise today */
 const date = computed(() => {
   const d = String(route.query.date ?? '')
-  return route.path === '/' && isIsoDate(d) ? d : today()
+  return route.path === '/' && isIsoDate(d) ? d : todayDate.value
 })
 
 const { text, result, preview, assignmentText, running, run } = useQuickInput(date)
