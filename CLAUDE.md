@@ -1,33 +1,44 @@
 # Daybreak
 
-Persönliches Arbeits-Dashboard (Zeit planen/buchen, Stundenkonto, Urlaub, Merker, Daily-Themen, Notizen). Single-User, lokal oder per Docker selbst gehostet.
+Personal work dashboard (plan and book time, hours balance, vacation, reminders, daily topics, notes). Single user, run locally or self-hosted via Docker. All code is English; only the UI is German.
 
-**Die vollständige Spezifikation steht in `IMPLEMENTATION_PLAN.md` – vor jeder Aufgabe lesen und phasenweise umsetzen.**
+## Hard rules
+- No Kanban, no issue/ticket system or ticket integration, no export to the company system, no legal break-rule checks, no multi-user.
+- Time is booked as blocks on a 15-minute grid (planned or booked), never with running timers.
+- One SQLite file is the whole data store; everything must run in the Docker image with `Europe/Berlin` for day boundaries.
+- Archived accounts and closed tasks disappear from suggestions, never from totals.
+
+## Architecture
+Nuxt 4 app with Nitro API and Drizzle/SQLite in one process; business logic as pure functions in `shared/utils/`.
+Read `docs/ARCHITECTURE.md` before adding a file; it is binding. Shipped behaviour per area: `docs/SPEC.md`.
 
 ## Stack
-Nuxt 4 · shadcn-vue (Reka UI) · Tailwind v4 · Drizzle ORM + SQLite (`@libsql/client`) · date-fns · feiertagejs (BW) · zod · vitest · pnpm
+Nuxt 4 · shadcn-vue (Reka UI) · Tailwind v4 · Drizzle ORM + SQLite (`@libsql/client`) · date-fns · feiertagejs · zod · vitest · pnpm
 
 ## Tooling
-- MCP-Server stehen in `.mcp.json`: `nuxt` (Nuxt-Doku/Module) und `shadcn` (shadcn-vue Registry). Mit `/mcp` prüfen.
-- Vor Nuxt-API-Fragen den Nuxt MCP nutzen, nicht aus dem Gedächtnis raten (Nuxt 4, `app/`-Verzeichnis).
-- shadcn-vue-Komponenten immer über MCP oder `pnpm dlx shadcn-vue@latest add <name>` hinzufügen, nie von Hand nachbauen.
-- shadcn-vue Skill nach `shadcn-vue init` installieren: `pnpm dlx skills add unovue/shadcn-vue`.
+- MCP servers in `.mcp.json`: `nuxt` (Nuxt docs/modules) and `shadcn` (shadcn-vue registry).
+- Use the Nuxt MCP for Nuxt API questions instead of guessing (Nuxt 4, `app/` directory).
+- Add shadcn-vue components only via MCP or `pnpm dlx shadcn-vue@latest add <name>`, never rebuild them by hand.
 
-## Konventionen
-- UI-Texte und Fachbegriffe auf Deutsch (Konto, Aufgabe, Block, Vorlage, Merker, Warten auf, Daily-Thema, Notiz, Soll, Ist, Saldo). Code-Bezeichner dürfen die deutschen Fachbegriffe verwenden.
-- Hierarchie: Konto (Sammlung) → Aufgabe (gehört zu genau einem Konto) → Blöcke an beliebigen Tagen. Blöcke können auch ohne Aufgabe direkt auf ein Konto gehen (abstrakte Konten wie Firmenmeeting). Siehe Plan §3.1.
-- Datum als `YYYY-MM-DD`-String, Uhrzeiten als Minuten seit Mitternacht, 15-min-Raster.
-- Fachlogik (Schnelleingabe-Parser, Soll/Saldo, Urlaub) als reine Funktionen in `shared/utils/` mit Vitest-Tests.
-- Design nach dem cloudypanda-Markensystem, nur dunkel (Tokens in `app/assets/css/main.css`, siehe Plan §6): Geist/Geist Mono, Bernstein als einziger Akzent, Ebenen statt Schatten. Farben nur über Tokens, keine Hex-Werte in Komponenten.
-- Keine Features außerhalb des Plans (kein Kanban, kein Export, keine Pausenregeln, keine Ticket-Integration).
-- DB-Pfad nur über `DATABASE_URL` (Default `file:./data/daybreak.db`, gitignored); Schemaänderungen immer per `drizzle-kit generate` + Migration. Migrationen laufen im Container beim Start automatisch.
-- Alles muss im Docker-Image laufen (Plan §9): keine Pfade/Abhängigkeiten, die nur lokal existieren; Zeitzone `Europe/Berlin` für Tagesgrenzen.
-- CI (`.github/workflows/ci.yml`) muss grün bleiben: lint, typecheck, test, build.
-- Jede Phase endet mit Dokumentation in `docs/phase-<n>-<thema>.md` (Bedienung, Fachregeln & Entscheidungen, Datenmodell & API, Offen) + Index `docs/README.md`; Fixes nachtragen. Siehe Plan §8.
-
-## Befehle
-- `pnpm dev` – Dev-Server
+## Commands
+- `pnpm install` – install
+- `pnpm dev` – dev server at http://localhost:3000
 - `pnpm test` – Vitest
-- `pnpm db:generate` / `pnpm db:migrate` – Drizzle-Migrationen
-- `pnpm lint` / `pnpm typecheck`
-- `docker compose up --build` – Produktions-Image lokal testen
+- `pnpm typecheck` / `pnpm lint`
+- `pnpm build` – production build
+- `pnpm db:generate` – migration from `server/db/schema.ts` (migrations apply at startup)
+- `pnpm db:seed` – fill the DB with test data (empties it first)
+- `docker compose up --build` – test the production image locally
+
+## Conventions
+
+1. **Language:** all code is English: identifiers, file and folder names, API paths, DB tables and columns, comments, tests, docs (`account`, `task`, `block`, `template`, `reminder`, `waitingFor`, `dailyTopic`, `note`, `target`, `actual`, `balance`). Only user-facing text is German: UI labels, toasts, `statusMessage` of errors, the quick-input syntax users type. The German domain terms (Konto, Aufgabe, Block, Vorlage, Merker, Warten auf, Daily-Thema, Notiz, Soll, Ist, Saldo) appear only in the UI.
+2. **API routes:** one file per route under `server/api/<entity>/` with English plural paths: `index.get.ts`, `index.post.ts`, `[id].get.ts`, `[id].patch.ts`, `[id].delete.ts`; special actions as `<verb>.post.ts` or `[id]/<verb>.post.ts`. Sub-routes go into the folder next to `index.get.ts`, never as `<entity>.get.ts` + `<entity>/`.
+3. **Validation:** every input validated with zod at the route: `readValidatedBody(event, schema.parse)`, `getValidatedQuery(event, schema.parse)`, the ID via the shared route-ID helper. Entity schemas (`<entity>Fields`, `create<Entity>Schema`, PATCH with `.partial()`) live in the entity's util `server/utils/<entity>.ts`; route-only schemas inline as `const schema`. Dates as `YYYY-MM-DD` strings, times as minutes since midnight on the 15-minute grid, through the shared date/time schemas.
+4. **Errors:** only `throw createError({ statusCode, statusMessage: '<German message>' })`; 404 via the not-found helper, UNIQUE violation → 409 via the unique-error helper. Codes: 400 invalid by business rule, 404, 409 conflict.
+5. **Imports:** `server/utils` is auto-imported; `db` and tables imported relatively; `shared/utils` always imported explicitly via `#shared/utils/<file>` (server and client); components via `~/components/...`, also those in `ui/`.
+6. **Client data:** reads with `useFetch(url, { key: '<fixed-key>' })`, not awaited, always with an explicit `key`. Mutations always through the action helper with `api()` and a `*_KEYS` constant for the refresh (no inline key arrays); `api()` is only for mutations. Shared queries and their key lists live in `app/composables/`; a composable file is named after the function it exports. No Pinia; global UI state via `useState('<key>')`.
+7. **Components:** PascalCase `.vue` files in English, feature components in English kebab-case subfolders, imported explicitly. shadcn-vue components in `app/components/ui/` only via MCP or `pnpm dlx shadcn-vue@latest add <name>`, then check or reset `app/assets/css/main.css`. Numbers through the number-input component, times through the time-input component, never native `type="number"`.
+8. **Business logic & tests:** rules (quick-input parser, target/balance, vacation, templates, reminders) as pure functions in `shared/utils/` without DB access; tests flat in `tests/<module>.test.ts` (Vitest, Node) with relative imports. Routes fetch data and call these functions.
+9. **Design:** cloudypanda brand system, dark only (tokens in `app/assets/css/main.css`): Geist/Geist Mono, amber as the only accent, layers instead of shadows. Colors only through tokens/Tailwind classes, no hex values and no `shadow-*` in components.
+10. **Operations:** DB path only via `DATABASE_URL` (default `file:./data/daybreak.db`); schema changes only through `server/db/schema.ts` + `pnpm db:generate`, never edit `drizzle/` by hand (migrations run at startup). Everything must run in the Docker image (`Europe/Berlin` for day boundaries); CI (lint, typecheck, test, build) stays green; no features outside the vision.

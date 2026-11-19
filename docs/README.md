@@ -1,7 +1,7 @@
 # Daybreak – Dokumentation
 
 Persönliches Arbeits-Dashboard: Zeit planen und buchen, Stundenkonto, Urlaub, Merker, Daily-Themen, Notizen.
-Die Spezifikation steht in [`IMPLEMENTATION_PLAN.md`](../IMPLEMENTATION_PLAN.md), die Arbeitsregeln in [`CLAUDE.md`](../CLAUDE.md).
+Architektur in [`ARCHITECTURE.md`](ARCHITECTURE.md), Übersicht in [`SPEC.md`](SPEC.md), die Arbeitsregeln in [`CLAUDE.md`](../CLAUDE.md).
 Hier ist dokumentiert, was pro Phase **tatsächlich** gebaut wurde – inklusive Entscheidungen und Abweichungen vom Plan.
 
 | Phase | Thema | Stand |

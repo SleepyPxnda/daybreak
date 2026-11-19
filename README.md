@@ -111,7 +111,8 @@ scripts/      Dev-Skripte (Seed)
 ## Dokumentation
 
 - [`docs/`](docs/README.md) – Bedienung, Fachregeln, Datenmodell und API je Phase
-- [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) – vollständige Spezifikation
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) – Architektur und Entscheidungen
+- [`docs/SPEC.md`](docs/SPEC.md) – Funktionsumfang je Bereich
 
 ## Release
 
