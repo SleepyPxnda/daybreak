@@ -17,6 +17,10 @@ Year calendar with absences, vacation account with variable entitlement entries,
 
 ### Vacation entitlement (settings)
 - Any number of **entries** per year: kind (base, extra, carryover), label, days (half days possible, negative for deductions). Changes are saved when leaving a field.
+- **Validity window:** each entry has optional "Gültig ab" / "Gültig bis" dates (saved on leaving the field; an incomplete date saves nothing). An entry with at least one bound is a **limited entry**; an empty bound means 1 Jan / 31 Dec of the entry's year. A window must lie between 1 Jan of the entry's year and 31 Dec of the following year, "ab" must not be after "bis", and limited entries need positive days (400 with a German message otherwise).
+- **Handed-on entries:** a limited entry whose window ends in the next year counts fully in its own year; what is left appears in the next year's table as a read-only row "(aus <year>)" with the same window.
+- **Rejected saves** of an entry field (kind, label, days, dates) show the toast, reset that field to the stored value and mark it with a red border until a later save of the same field succeeds or another year is shown.
+- **"Rest aktualisieren"** keeps the window of an existing carryover entry.
 - **"Rest aus Vorjahr übernehmen"** (adopt carryover from the previous year) creates the previous year's remainder as an entry "Resturlaub <year>" or updates it (appears if the previous year has entries).
 - **Prefill on first start** (current year): base entitlement 32, "Sonderurlaub WS 26/27" +2, "Sonderurlaub SS 27" +2 – 36 in total as in the plan.
 
@@ -39,7 +43,10 @@ Year calendar with absences, vacation account with variable entitlement entries,
 Pure functions in `shared/utils/vacation.ts` (tests: `tests/vacation.test.ts`).
 
 - **Vacation days:** vacation = 1, half vacation = 0.5 – only on regular workdays; vacation on weekends/holidays does not count.
-- **taken** = vacation days up to and **including today**, **planned** = after that, **carryover** (the remainder) = entitlement − taken − planned (can become negative).
+- **taken** = vacation days up to and **including today**, **planned** = after that, **carryover** (the remainder) = entitlement − taken − planned − forfeited (can become negative).
+- **Order of use:** each vacation day (date order, taken and planned alike) uses limited entries whose window contains the date first (earliest window end first; on equal ends handed-on before own, then entry order), the rest comes from the year's entries without a window. A half-used day may split across entries.
+- **Forfeiture:** unused days of a limited or handed-on entry whose window end is before today are `forfeited`, only in the year the window ends; they never return to the general pool. `entitlement` stays the sum of own and handed-on entries.
+- **Hand-on and carryover:** the balance of a year is a fold from the earliest entry year (`loadVacationBalance`). "Rest aus Vorjahr übernehmen" uses `carryoverToNextYear`: the previous remainder without the unused days of any limited or handed-on entry, so they are never counted twice.
 - **Prefill** runs exactly once (a flag in `settings`) and only if no entries exist at all – deleted entries do not come back. Labels word for word as in the plan.
 - **Next vacation** (`nextVacation`): consecutive vacation days (half days too) form a range; weekends/holidays in between bridge it, a workday without vacation ends it. If today is a day off in the middle of a vacation, the vacation counts as running. Sick and flex day do not count. "Workdays before" counts regular workdays between today and the start (both exclusive). Search horizon 1 year. An addition to the plan (wish after phase 4).
 - **Adopt carryover** replaces an existing carryover entry of the year (rounded to half days).
@@ -51,11 +58,11 @@ Pure functions in `shared/utils/vacation.ts` (tests: `tests/vacation.test.ts`).
 
 ## Data model & API
 
-Tables `vacation_entitlement` (`year`, `kind`, `label`, `days`) and `day` – both in the schema since phase 0, no migration.
+Tables `vacation_entitlement` (`year`, `kind`, `label`, `days`, `validFrom`, `validUntil`) and `day`; the window columns were added by migration `0007`.
 
 | Route | Purpose |
 |---|---|
-| `GET /api/vacation?year` | account (`entitlement`, `taken`, `planned`, `carryover`), `entitlements`, `previousYearCarryover`; creates the prefill on the first call |
+| `GET /api/vacation?year` | account (`entitlement`, `taken`, `planned`, `forfeited`, `carryover`), `entitlements` (with `used`, `remaining`, `forfeited`, `passesToNextYear`), `handedOnEntitlements`, `previousYearCarryover` (without limited remainders); creates the prefill on the first call |
 | `POST /api/vacation/entitlements`, `PATCH/DELETE /api/vacation/entitlements/:id` | maintain entries (days in 0.5 steps) |
 | `POST /api/vacation/carry-over` | `{ year }` → carryover entry from the previous year |
 | `GET /api/vacation/next` | next/running vacation (including `confirmed`), `notify` (within the lead time), `vacationNoticeText` |
