@@ -5,6 +5,7 @@ import CommandPalette from '~/components/quick-input/CommandPalette.vue'
 import BalanceWidget from '~/components/widgets/BalanceWidget.vue'
 
 useBookingNotifications()
+useRefreshOnFocus()
 
 const paletteOpen = usePaletteOpen()
 // Same key as in useDay - refreshed after every block change via DAY_KEYS

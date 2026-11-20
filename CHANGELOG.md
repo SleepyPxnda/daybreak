@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Data refreshes when the tab or window comes back to the foreground (blocks and balance from another tab or device, Today and week page move to the new day after midnight); nothing changes while the server is unreachable, and unsaved input in dialogs and the settings form is kept.
 - Vacation entitlement entries (for example special leave) can have a validity window ("Gültig ab" / "Gültig bis", also across New Year): they are used first, unused days are forfeited after the window and shown as "verfallen", and what is left is handed on to the next year. Adds a migration (`vacation_entitlement.valid_from`, `valid_until`).
 - Accounts can be sorted by drag and drop on `/accounts`; the saved order applies everywhere accounts are listed, including the overview and the month closing (archived accounts last). Adds a migration (`account.sort_order`).
 - **Breaking: all code names are English now** (the UI stays German). Back up your database file (`data/daybreak.db`) before upgrading.
