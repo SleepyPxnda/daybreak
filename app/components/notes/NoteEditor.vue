@@ -146,17 +146,14 @@ const referencedNoteIdsText = computed(() => references.value
   .slice(0, MAX_NOTE_IDS_PER_REQUEST)
   .join(','))
 
-// Only fetched when the text has note references (an empty `ids` would mean "all notes")
-const { data: referencedNotes, status: referencedNotesStatus, execute: fetchReferencedNotes } = useFetch('/api/notes', {
+// No request while the text has no note references (an empty `ids` would mean "all notes").
+// The guard sits in the fetcher: refreshNuxtData() refreshes this key regardless of the watch options.
+const { data: referencedNotes, status: referencedNotesStatus } = useFetch('/api/notes', {
   key: 'note-references',
   query: { ids: referencedNoteIdsText },
-  immediate: false,
-  watch: false,
+  $fetch: fetchUnlessInputIsEmpty(() => !!referencedNoteIdsText.value),
   default: () => [],
 })
-watch(referencedNoteIdsText, (idsText) => {
-  if (idsText) fetchReferencedNotes()
-}, { immediate: true })
 
 const { data: tasks } = useAllTasks()
 const { data: accounts } = useAccounts()

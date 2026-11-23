@@ -20,16 +20,13 @@ watch(open, (isOpen) => {
   if (!isOpen) searchText.value = ''
 })
 
-// Notes: server search, not while the search text is empty
-const { data: foundNotes, status: noteSearchStatus, execute: searchNotes } = useFetch('/api/notes', {
+// Notes: server search; no request while the search text is empty.
+// The guard sits in the fetcher: refreshNuxtData() refreshes this key regardless of the watch options.
+const { data: foundNotes, status: noteSearchStatus } = useFetch('/api/notes', {
   key: 'note-reference-search',
   query: { q: debouncedSearch },
-  immediate: false,
-  watch: false,
+  $fetch: fetchUnlessInputIsEmpty(() => !!debouncedSearch.value),
   default: () => [],
-})
-watch(debouncedSearch, (text) => {
-  if (text) searchNotes()
 })
 
 // Tasks: from the already loaded master data; only open tasks with a usable key of an active account
