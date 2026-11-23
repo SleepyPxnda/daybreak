@@ -21,17 +21,17 @@ const { data: notes } = useFetch('/api/notes', {
         </span>
       </CardTitle>
     </CardHeader>
-    <CardContent class="grid grid-cols-1 px-0">
+    <CardContent class="grid grid-cols-[minmax(0,1fr)] px-0">
       <NuxtLink
         v-for="n in notes"
         :key="n.id"
         :to="`/notes?id=${n.id}`"
-        class="grid min-h-10 grid-cols-1 gap-0.5 border-b px-4 py-1.5 text-sm last:border-b-0 hover:bg-raised"
+        class="grid min-h-10 grid-cols-[minmax(0,1fr)] gap-0.5 border-b px-4 py-1.5 text-sm last:border-b-0 hover:bg-raised"
         :title="n.title"
       >
-        <span class="flex items-center gap-1.5 font-medium">
+        <span class="flex min-w-0 items-center gap-1.5 font-medium">
           <Pin class="size-3.5 shrink-0 text-primary" />
-          <span class="fade-end min-w-0 flex-1">{{ n.title }}</span>
+          <span class="fade-end min-w-0 flex-1" :title="n.title">{{ n.title }}</span>
           <NoteKindMarker v-if="n.kind" :kind="n.kind" />
         </span>
         <span v-if="n.excerpt" class="line-clamp-2 text-[13px] text-muted-foreground">{{ n.excerpt }}</span>

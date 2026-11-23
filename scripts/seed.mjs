@@ -72,9 +72,10 @@ const accounts = [
   { name: 'Weiterbildung', color: 'mint', aliases: '["wb"]', status: 'active' },
   { name: 'Support', color: 'peach', aliases: '["sup"]', status: 'active' },
   { name: 'Altprojekt Lager', color: 'sage', aliases: '[]', status: 'archived' },
+  { name: 'Kundenprojekt mit einem außergewöhnlich langen Namen für die Übergabe', color: 'sky', aliases: '[]', status: 'active' },
 ]
 await insert('account', accounts.map(k => ({ ...k, created_at: iso(start) })))
-const K = { gb: 1, kp: 2, fm: 3, wb: 4, sup: 5, alt: 6 }
+const K = { gb: 1, kp: 2, fm: 3, wb: 4, sup: 5, alt: 6, long: 7 }
 
 // --- Tasks (ids 1...) with an activity window for the block distribution ---
 const tasks = [
@@ -88,6 +89,8 @@ const tasks = [
   { account_id: K.wb, key: null, title: 'Rust-Grundlagen', estimate_min: 1200, from: -56, to: 30 },
   { account_id: K.sup, key: 'SUP-8', title: 'Tickets 3rd Level', estimate_min: null, from: -56, to: 30 },
   { account_id: K.alt, key: 'LAG-3', title: 'Datenmigration Altsystem', estimate_min: 300, from: -56, to: -45 },
+  // Long text samples (no blocks, see weights)
+  { account_id: K.long, key: 'LANGERSCHLUESSEL-20261123', title: 'Eine Aufgabe mit einem sehr langen Titel, der in keiner Liste und keinem Auswahlfeld Platz hat', estimate_min: null, from: -5, to: 30 },
 ]
 await insert('task', tasks.map(({ from, to, ...a }) => ({
   ...a,
@@ -95,7 +98,7 @@ await insert('task', tasks.map(({ from, to, ...a }) => ({
   created_at: iso(addDays(today, from - 3)),
   closed_at: to < 0 ? iso(addDays(today, to), 960) : null,
 })))
-const weights = [3, 4, 3, 2, 3, 3, 2, 1, 1, 2] // frequency per task
+const weights = [3, 4, 3, 2, 3, 3, 2, 1, 1, 2, 0] // frequency per task
 const tasksOn = (d) => {
   const offset = Math.round((new Date(`${d}T12:00:00Z`) - new Date(`${today}T12:00:00Z`)) / 864e5)
   return tasks.flatMap((a, i) => (offset >= a.from && offset <= a.to ? Array(weights[i]).fill(i + 1) : []))
@@ -207,6 +210,11 @@ await insert('note', [
   { title: 'SSO-Flow', kind: 'problem', content: '1. Redirect zum IdP\n2. Callback mit Code\n3. Token-Tausch serverseitig\n\n> Refresh-Token nie im Browser speichern.', tags: '["sso","technik"]', task_id: 5, pinned: 0, daysAgo: -40 },
   { title: 'Ideen Weiterbildung', kind: 'meeting', content: '- Rust Ownership-Kapitel\n- Vortrag über Observability\n- Konferenz im Frühjahr', tags: '["lernen"]', account_id: K.wb, pinned: 0, daysAgo: -2 },
   { title: 'Telefonnummern', content: 'IT-Hotline: 1234\nEmpfang: 1000', tags: '[]', pinned: 0, daysAgo: -50 },
+  { title: 'Cache-Analyse', kind: 'problem', content: 'Siehe [[#2 Redis-Konfiguration]] für die TTL.\nDie gelöschte Notiz [[#999 Alte Analyse]] gibt es nicht mehr.', tags: '["redis"]', task_id: 2, pinned: 0, daysAgo: 0 },
+  { title: 'Wochenplanung', kind: 'meeting', content: 'Offen: [[GB-114]] und [[Seite]] (kein Verweis).\n**Fett** und --- bleiben roh.', tags: '[]', account_id: K.gb, pinned: 0, daysAgo: -1 },
+  { title: 'Übergabe Altprojekt', kind: 'info', content: 'Das Lager-Projekt ist archiviert, die Notiz bleibt.', tags: '[]', account_id: K.alt, pinned: 0, daysAgo: -30 },
+  { title: 'Eine angepinnte Notiz mit einem Titel aus sehr vielen Wörtern, der weit über jede Zeilenbreite hinausgeht', kind: 'info', content: 'Langer Titel zum Testen der Abschneidung.', tags: '[]', account_id: K.long, pinned: 1, daysAgo: -8 },
+  { title: 'Donaudampfschifffahrtsgesellschaftskapitänsmützenabzeichenhalter https://example.com/ein/sehr/langer/pfad/der/nicht/umbricht?parameter=wert&weiterer=wert', kind: 'problem', content: 'Verweis auf die lange Notiz: [[#10 Eine angepinnte Notiz mit einem Titel aus sehr vielen Wörtern]] und die lange Aufgabe [[LANGERSCHLUESSEL-20261123]].', tags: '[]', task_id: 11, pinned: 0, daysAgo: -3 },
 ].map(({ daysAgo: t, ...n }) => ({ kind: null, task_id: null, account_id: null, ...n, created_at: iso(addDays(today, t - 3)), updated_at: iso(addDays(today, t), 900) })))
 
 // --- Vacation entitlement and settings ---

@@ -12,6 +12,8 @@ const { data: task, error } = await useFetch(() => `/api/tasks/${id.value}`, { k
 // Linked reminders (open entries of all kinds referring to this task)
 const { data: todos } = useFetch('/api/todos', { key: 'task-todos', query: { taskId: id }, default: () => [] })
 const { data: notes } = useFetch('/api/notes', { key: 'task-notes', query: { taskId: id, includeContent: '1' }, default: () => [] })
+// Other notes whose text references this task's key
+const { data: mentioningNotes } = useFetch('/api/notes', { key: 'task-note-mentions', query: { mentionsTaskId: id, includeContent: '1' }, default: () => [] })
 
 useHead({ title: () => `${task.value?.key ? `${task.value.key} ` : ''}${task.value?.title ?? 'Aufgabe'} · daybreak` })
 
@@ -140,7 +142,7 @@ const formatDay = (date: string) => format(toDate(date), 'EEEE, d. MMMM yyyy', {
       </div>
     </div>
 
-    <TaskNotes :task-id="task.id" :task-title="task.title" :notes="notes" />
+    <TaskNotes :task-id="task.id" :task-title="task.title" :notes="notes" :mentioning-notes="mentioningNotes" />
 
     <Card v-if="todos.length" class="gap-0 py-0">
       <CardHeader>

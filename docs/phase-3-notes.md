@@ -28,7 +28,7 @@ Markdown notes with live preview, tags, search, pinning and a link to a task/acc
 ## Business rules & decisions
 
 - **Markdown:** `markdown-it` without raw HTML (plain markdown, Obsidian-compatible), line breaks are taken over as in Obsidian (`breaks`), links are detected automatically and open in a new tab. The output is additionally sanitized with **DOMPurify**. The preview is rendered only in the browser (DOMPurify needs a DOM).
-- Obsidian wikilinks `[[Page]]` stay as text (no linking between notes in v1).
+- Obsidian wikilinks `[[Page]]` stay as text (no linking between notes in v1). Superseded: `[[#<id> …]]` and `[[<task key>]]` are now references, see [SPEC.md](SPEC.md) "References"; other bracket text stays plain text.
 - **Tags** (`shared/utils/notes.ts`): lowercase, without `#`, unique, at most 40 characters; umlauts stay.
 - **Excerpt** for lists: markdown roughly stripped, at most 140 characters.
 - **"Geändert am" (updated at)** is updated only for changes to the content – pinning alone does not move a note in the list.

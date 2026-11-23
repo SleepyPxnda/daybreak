@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { format } from 'date-fns'
 import { useDebounceFn, useEventListener } from '@vueuse/core'
-import { Check, CircleAlert, Pin, Trash2 } from '@lucide/vue'
-import { NOTE_KINDS, normalizeTags } from '#shared/utils/notes'
+import { Check, CircleAlert, ExternalLink, Pin, Trash2, X } from '@lucide/vue'
+import { NOTE_KINDS, normalizeTags, normalizeTaskKey, parseNoteReferences } from '#shared/utils/notes'
 import type { NoteKind } from '#shared/utils/notes'
+import NoteReferencePicker from '~/components/notes/NoteReferencePicker.vue'
+import NoteReferences from '~/components/notes/NoteReferences.vue'
+import type { ResolvedNoteReference } from '~/components/notes/NoteReferences.vue'
 
 interface Note {
   id: number
@@ -18,8 +21,7 @@ interface Note {
 }
 
 // Plain text editor with autosave
-const props = defineProps<{ id: number }>()
-const route = useRoute()
+const props = defineProps<{ id: number, listQuery: Record<string, string | undefined> }>()
 
 const form = reactive<{ title: string, content: string, kind: NoteKind | null, tagsText: string, assignment: string, pinned: boolean }>({ title: '', content: '', kind: null, tagsText: '', assignment: '', pinned: false })
 const loaded = ref(false)
@@ -80,9 +82,10 @@ async function load(id: number) {
     form.title = n.title
     form.content = n.content
     form.kind = n.kind
-    form.tagsText = n.tags.join(', ')
+    form.tagsText = n.tags.map(tag => `#${tag}`).join(' ')
     form.assignment = assignmentValue(n)
     form.pinned = n.pinned
+    referenceContent.value = n.content
     savedState = JSON.stringify(payload())
     savedAt.value = format(new Date(n.updatedAt), 'dd.MM. HH:mm')
     status.value = 'saved'
@@ -122,12 +125,95 @@ const statusText = computed(() => {
 
 const linkedTaskId = computed(() => assignmentFromValue(form.assignment).taskId)
 
+// The title is one line: Enter adds no line break and pasted line breaks become spaces
+watch(() => form.title, (title) => {
+  const oneLine = title.replace(/\s*[\r\n]+\s*/g, ' ')
+  if (oneLine !== title) form.title = oneLine
+})
+
+// --- References -------------------------------------------------------------
+// Parsed from the text while typing (debounced), not from the saved note
+const referenceContent = ref('')
+const updateReferenceContent = useDebounceFn((content: string) => {
+  referenceContent.value = content
+}, 250)
+watch(() => form.content, content => updateReferenceContent(content))
+
+const references = computed(() => parseNoteReferences(referenceContent.value))
+const MAX_NOTE_IDS_PER_REQUEST = 50
+const referencedNoteIdsText = computed(() => references.value
+  .flatMap(reference => (reference.type === 'note' && reference.noteId !== props.id ? [reference.noteId] : []))
+  .slice(0, MAX_NOTE_IDS_PER_REQUEST)
+  .join(','))
+
+// No request while the text has no note references (an empty `ids` would mean "all notes").
+// The guard sits in the fetcher: refreshNuxtData() refreshes this key regardless of the watch options.
+const { data: referencedNotes, status: referencedNotesStatus } = useFetch('/api/notes', {
+  key: 'note-references',
+  query: { ids: referencedNoteIdsText },
+  $fetch: fetchUnlessInputIsEmpty(() => !!referencedNoteIdsText.value),
+  default: () => [],
+})
+
+const { data: tasks } = useAllTasks()
+const { data: accounts } = useAccounts()
+
+const resolvedReferences = computed<ResolvedNoteReference[]>(() => references.value.flatMap((reference): ResolvedNoteReference[] => {
+  if (reference.type === 'note') {
+    if (reference.noteId === props.id) return []
+    const found = referencedNotes.value.find(entry => entry.id === reference.noteId)
+    if (found) return [{ type: 'note', raw: reference.raw, note: found }]
+    // While the lookup runs, an unknown id is not "not found" yet
+    return referencedNotesStatus.value === 'pending' ? [] : [{ type: 'missing', raw: reference.raw }]
+  }
+  const referencedTask = tasks.value.find(entry => entry.key && normalizeTaskKey(entry.key) === reference.normalizedKey)
+  if (!referencedTask) return [{ type: 'missing', raw: reference.raw }]
+  const owner = accounts.value.find(entry => entry.id === referencedTask.accountId)
+  return [{
+    type: 'task',
+    raw: reference.raw,
+    task: { id: referencedTask.id, key: referencedTask.key!, title: referencedTask.title, color: owner?.color ?? '', isMuted: referencedTask.status !== 'open' || owner?.status !== 'active' },
+  }]
+}))
+
+const noteIdForMentions = computed(() => props.id)
+const { data: mentions } = useFetch('/api/notes', {
+  key: 'note-mentions',
+  query: { mentionsNoteId: noteIdForMentions },
+  default: () => [],
+})
+
+// --- "[[" opens the reference picker ----------------------------------------
+const contentField = useTemplateRef<HTMLTextAreaElement>('contentField')
+const isReferencePickerOpen = ref(false)
+/** Caret position right after the typed "[[" */
+let caretAfterBrackets = 0
+
+function onContentInput(event: Event) {
+  const field = event.target as HTMLTextAreaElement
+  const caret = field.selectionStart
+  if ((event as InputEvent).data?.endsWith('[') && field.value.slice(caret - 2, caret) === '[[') {
+    caretAfterBrackets = caret
+    isReferencePickerOpen.value = true
+  }
+}
+
+async function insertReference(referenceText: string) {
+  const field = contentField.value
+  if (!field || form.content.slice(caretAfterBrackets - 2, caretAfterBrackets) !== '[[') return
+  form.content = form.content.slice(0, caretAfterBrackets - 2) + referenceText + form.content.slice(caretAfterBrackets)
+  const caret = caretAfterBrackets - 2 + referenceText.length
+  await nextTick()
+  field.setSelectionRange(caret, caret)
+  field.focus()
+}
+
 const deleteQuestion = ref(false)
 async function remove() {
   const ok = await runAction(() => api(`/api/notes/${currentId}`, { method: 'DELETE' }), NOTE_KEYS)
   if (ok) {
     loaded.value = false
-    await navigateTo({ path: '/notes', query: { tag: route.query.tag, kind: route.query.kind } })
+    await navigateTo({ path: '/notes', query: props.listQuery })
   }
 }
 </script>
@@ -137,93 +223,104 @@ async function remove() {
     Notiz nicht gefunden.
   </div>
   <div v-else-if="loaded" class="grid grid-cols-[minmax(0,1fr)] gap-4">
-    <div class="flex flex-wrap items-center gap-2">
-      <input
-        v-model="form.title"
-        aria-label="Titel"
-        placeholder="Titel"
-        class="min-w-0 flex-[1_1_12rem] rounded-md bg-transparent text-2xl font-semibold tracking-tight outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-      >
-      <span
-        class="inline-flex shrink-0 items-center gap-1.5 text-[13px] tabular-nums"
-        :class="{
-          'text-positive': status === 'saved',
-          'text-destructive': status === 'error',
-          'text-muted-foreground': status === 'changed' || status === 'saving',
-        }"
-        role="status"
-      >
-        <Check v-if="status === 'saved'" class="size-3.5" />
-        <CircleAlert v-else-if="status === 'error'" class="size-3.5" />
-        {{ statusText }}
-      </span>
-      <Button
-        size="icon"
-        variant="ghost"
-        :class="{ 'text-primary hover:text-primary': form.pinned }"
-        :aria-label="form.pinned ? 'Lösen' : 'Anpinnen'"
-        :aria-pressed="form.pinned"
-        :title="form.pinned ? 'Lösen' : 'Anpinnen (erscheint auf „Heute“)'"
-        @click="form.pinned = !form.pinned"
-      >
-        <Pin />
-      </Button>
-      <Button size="icon" variant="ghost" aria-label="Notiz löschen" title="Löschen" @click="deleteQuestion = true">
-        <Trash2 />
-      </Button>
-    </div>
-
-    <div class="grid gap-1">
-      <span id="note-kind-label" class="text-xs text-muted-foreground">Art</span>
-      <div class="flex flex-wrap gap-1.5" role="radiogroup" aria-labelledby="note-kind-label">
-        <button
-          v-for="entry in NOTE_KINDS"
-          :key="entry.kind"
-          type="button"
-          role="radio"
-          :aria-checked="form.kind === entry.kind"
-          class="inline-flex h-8 items-center gap-1.5 rounded-md border px-3 text-sm transition-colors"
-          :class="form.kind === entry.kind
-            ? [noteKindLook(entry.kind).surface, noteKindLook(entry.kind).text, 'border-current font-medium']
-            : 'bg-raised text-muted-foreground hover:bg-muted hover:text-foreground'"
-          @click="form.kind = entry.kind"
+    <div class="flex min-w-0 flex-wrap items-center gap-2">
+      <Select :model-value="form.kind ?? undefined" @update:model-value="form.kind = $event as NoteKind">
+        <SelectTrigger
+          size="sm"
+          aria-label="Art"
+          class="data-[size=sm]:h-9 rounded-md"
+          :class="form.kind ? noteKindLook(form.kind).text : ''"
         >
-          <component :is="noteKindLook(entry.kind).icon" class="size-4" aria-hidden="true" />
-          {{ entry.singular }}
-        </button>
-      </div>
-    </div>
+          <SelectValue placeholder="Art" class="!flex items-center gap-1.5">
+            <template v-if="form.kind">
+              <component :is="noteKindLook(form.kind).icon" class="size-4" aria-hidden="true" />
+              {{ NOTE_KINDS.find(entry => entry.kind === form.kind)!.singular }}
+            </template>
+            <span v-else class="text-muted-foreground">Art</span>
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent position="popper">
+          <SelectItem v-for="entry in NOTE_KINDS" :key="entry.kind" :value="entry.kind">
+            <component :is="noteKindLook(entry.kind).icon" class="size-4" :class="noteKindLook(entry.kind).text" aria-hidden="true" />
+            {{ entry.singular }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
 
-    <div class="flex flex-wrap gap-3">
-      <div class="grid min-w-0 flex-[1_1_240px] gap-1">
-        <label for="note-tags" class="text-xs text-muted-foreground">Tags</label>
-        <Input id="note-tags" v-model="form.tagsText" placeholder="durch Komma oder Leerzeichen getrennt" class="h-9 rounded-md" />
-      </div>
-      <div class="grid min-w-0 flex-[1_1_240px] gap-1">
-        <div class="flex items-center gap-3 text-xs text-muted-foreground">
-          <span>Bezug</span>
-          <NuxtLink v-if="linkedTaskId" :to="`/tasks/${linkedTaskId}`" class="text-primary hover:underline">
-            Zur Aufgabe
+      <div class="flex min-w-0 flex-[1_1_14rem] items-center gap-1 lg:flex-none">
+        <label class="block min-w-0 flex-1 lg:w-[300px] lg:flex-[0_1_300px]">
+          <span class="sr-only">Bezug</span>
+          <AssignmentPicker v-model="form.assignment" placeholder="Bezug wählen …" />
+        </label>
+        <Button v-if="linkedTaskId" as-child size="icon" variant="ghost" class="shrink-0">
+          <NuxtLink :to="`/tasks/${linkedTaskId}`" aria-label="Zur Aufgabe" title="Zur Aufgabe">
+            <ExternalLink />
           </NuxtLink>
-        </div>
-        <div class="flex min-w-0 flex-wrap gap-2">
-          <AssignmentPicker v-model="form.assignment" />
-          <Button v-if="form.assignment" variant="ghost" @click="form.assignment = ''">
-            Bezug entfernen
-          </Button>
-        </div>
+        </Button>
+        <Button v-if="form.assignment" size="icon" variant="ghost" class="shrink-0" aria-label="Bezug entfernen" title="Bezug entfernen" @click="form.assignment = ''">
+          <X />
+        </Button>
+      </div>
+
+      <input
+        v-model="form.tagsText"
+        aria-label="Tags"
+        placeholder="#tags"
+        class="h-9 min-w-24 flex-[1_1_8rem] rounded-md bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+
+      <div class="ml-auto flex shrink-0 items-center gap-2">
+        <span
+          class="inline-flex items-center gap-1.5 text-[13px] tabular-nums"
+          :class="{
+            'text-positive/70': status === 'saved',
+            'text-destructive': status === 'error',
+            'text-muted-foreground': status === 'changed' || status === 'saving',
+          }"
+          role="status"
+        >
+          <Check v-if="status === 'saved'" class="size-3.5" />
+          <CircleAlert v-else-if="status === 'error'" class="size-3.5" />
+          {{ statusText }}
+        </span>
+        <Button
+          size="icon"
+          variant="ghost"
+          :class="{ 'text-primary hover:text-primary': form.pinned }"
+          :aria-label="form.pinned ? 'Lösen' : 'Anpinnen'"
+          :aria-pressed="form.pinned"
+          :title="form.pinned ? 'Lösen' : 'Anpinnen (erscheint auf „Heute“)'"
+          @click="form.pinned = !form.pinned"
+        >
+          <Pin />
+        </Button>
+        <Button size="icon" variant="ghost" aria-label="Notiz löschen" title="Löschen" @click="deleteQuestion = true">
+          <Trash2 />
+        </Button>
       </div>
     </div>
 
-    <div class="grid gap-1">
-      <label for="note-content" class="text-xs text-muted-foreground">Inhalt</label>
-      <textarea
-        id="note-content"
-        v-model="form.content"
-        placeholder="Einfach losschreiben …"
-        class="min-h-[60vh] w-full resize-y rounded-xl border bg-card p-4 text-sm leading-6 outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-      />
-    </div>
+    <textarea
+      v-model="form.title"
+      rows="1"
+      aria-label="Titel"
+      placeholder="Titel"
+      class="field-sizing-content w-full resize-none rounded-md bg-transparent text-2xl font-semibold tracking-tight wrap-anywhere outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+      @keydown.enter.prevent
+    />
+
+    <textarea
+      ref="contentField"
+      v-model="form.content"
+      aria-label="Inhalt"
+      placeholder="Einfach losschreiben … [[ fügt einen Verweis ein"
+      class="field-sizing-content min-h-[50vh] w-full resize-none rounded-md bg-transparent text-sm leading-6 outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+      @input="onContentInput"
+    />
+
+    <NoteReferences :references="resolvedReferences" :mentions="mentions" :list-query="listQuery" />
+
+    <NoteReferencePicker v-model:open="isReferencePickerOpen" :current-note-id="id" @select="insertReference" />
 
     <AlertDialog v-model:open="deleteQuestion">
       <AlertDialogContent>

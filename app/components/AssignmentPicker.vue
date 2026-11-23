@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Picker for a task or directly an account - value format see utils/assignment.ts
 const value = defineModel<string>({ default: '' })
+const { placeholder = 'Aufgabe oder Konto wählen' } = defineProps<{ placeholder?: string }>()
 
 const { data: accounts } = useAccounts()
 const { data: tasks } = useAllTasks()
@@ -26,7 +27,7 @@ const selection = computed(() => {
   <Select v-model="value">
     <!-- contain-inline-size: long task titles must not widen the dialog, they fade out instead -->
     <SelectTrigger class="w-full min-w-0 rounded-md data-[size=default]:h-9" :title="selection?.task?.title">
-      <SelectValue placeholder="Aufgabe oder Konto wählen" class="min-w-0 flex-1 contain-inline-size !flex items-center gap-2">
+      <SelectValue :placeholder="placeholder" class="min-w-0 flex-1 contain-inline-size !flex items-center gap-2">
         <template v-if="selection">
           <template v-if="selection.task">
             <TaskKey v-if="selection.task.key" :value="selection.task.key" :color="selection.account.color" />
