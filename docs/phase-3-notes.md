@@ -1,5 +1,7 @@
 # Phase 3 – Notes
 
+> The Markdown editor and preview described here were replaced by a plain text field; see "Notes: kinds and task notes" in [SPEC.md](SPEC.md).
+
 Markdown notes with live preview, tags, search, pinning and a link to a task/account.
 
 ## Usage
