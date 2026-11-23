@@ -30,7 +30,7 @@ Daybreak replaces slips of paper, Excel timesheets and the three note apps you w
 - **Calendar & vacation** (`/calendar`) – year calendar for vacation, half days, sick days, flex days and blockers; vacation account with entitlement, carryover and a notice before the next vacation.
 - **Week** (`/week`) – timelines of all weekdays one below the other, planning by drag and drop, day and week totals with balance.
 - **Reminders, daily topics, waiting for** (`/todos`) – small lists with a due date or follow-up date, linkable to tasks or accounts.
-- **Notes** (`/notes`) – markdown editor with tags, search and pinned notes on the "Heute" (today) page.
+- **Notes** (`/notes`) – plain-text notes in three kinds (meeting, problem, info) with kind filter, tags, search and pinned notes on the "Heute" (today) page; each task page groups its linked notes by kind. Quick input: `np GB-114 Cache läuft voll`.
 
 Just one dark, warm theme.
 
