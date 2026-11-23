@@ -1,8 +1,9 @@
 import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
 import { toast } from 'vue-sonner'
-import type { QuickInputBlock, QuickInputTodo, QuickInputAssignment } from '#shared/utils/quickInput'
+import type { QuickInputBlock, QuickInputNote, QuickInputTodo, QuickInputAssignment } from '#shared/utils/quickInput'
 import { parseQuickInput } from '#shared/utils/quickInput'
+import { NOTE_KINDS } from '#shared/utils/notes'
 import { TODO_KINDS } from '#shared/utils/todos'
 
 /** useFetch keys of the todo lists */
@@ -58,12 +59,19 @@ export function useQuickInput(date: MaybeRefOrGetter<string>) {
     return split.join(' · ')
   }
 
+  function notePreview(note: QuickInputNote): string {
+    const kind = note.kind ? NOTE_KINDS.find(entry => entry.kind === note.kind)!.singular : undefined
+    const linkedTask = note.taskId ? tasks.value.find(entry => entry.id === note.taskId) : undefined
+    const taskText = linkedTask ? ` (${linkedTask.key ? `${linkedTask.key} ` : ''}${linkedTask.title})` : ''
+    return `Neue ${kind ? `${kind}-Notiz` : 'Notiz'} · ${note.title}${taskText} – öffnet den Editor`
+  }
+
   /** One-line description of what Enter would do (null = nothing to run) */
   const preview = computed(() => {
     const r = result.value
     if (r.type === 'block') return { text: blockPreview(r), note: r.note }
     if (r.type === 'todo') return { text: todoPreview(r), note: undefined }
-    if (r.type === 'note') return { text: `Neue Notiz · ${r.title} – öffnet den Editor`, note: undefined }
+    if (r.type === 'note') return { text: notePreview(r), note: undefined }
     return null
   })
 
@@ -120,7 +128,7 @@ export function useQuickInput(date: MaybeRefOrGetter<string>) {
     try {
       const ok = r.type === 'block'
         ? await blockCreate(r, assignment)
-        : r.type === 'todo' ? await todoCreate(r) : await newNote(r.title)
+        : r.type === 'todo' ? await todoCreate(r) : await newNote(r.title, { kind: r.kind, taskId: r.taskId })
       if (ok) text.value = ''
       return ok
     }

@@ -11,10 +11,13 @@ const querySchema = z.object({
   tag: z.string().trim().toLowerCase().max(40).optional(),
   taskId: z.coerce.number().int().positive().optional(),
   accountId: z.coerce.number().int().positive().optional(),
+  kind: z.enum(['meeting', 'problem', 'info']).optional(),
   pinned: z.enum(['1']).optional(),
+  /** Also return the full `content` (task page only) */
+  includeContent: z.enum(['1']).optional(),
 })
 
-// List without full content - excerpt only; pinned first, then most recently changed
+// List without full content (excerpt only, unless includeContent=1); pinned first, then most recently changed
 export default defineEventHandler(async (event) => {
   const query = await getValidatedQuery(event, querySchema.parse)
   const filter: SQL[] = []
@@ -22,18 +25,21 @@ export default defineEventHandler(async (event) => {
   if (query.tag) filter.push(sql`exists (select 1 from json_each(${note.tags}) where value = ${query.tag})`)
   if (query.taskId) filter.push(eq(note.taskId, query.taskId))
   if (query.accountId) filter.push(eq(note.accountId, query.accountId))
+  if (query.kind) filter.push(eq(note.kind, query.kind))
   if (query.pinned) filter.push(eq(note.pinned, true))
 
   const rows = await db.select({
     id: note.id,
     title: note.title,
     content: note.content,
+    kind: note.kind,
     tags: note.tags,
     pinned: note.pinned,
     taskId: note.taskId,
     accountId: note.accountId,
     updatedAt: note.updatedAt,
     taskTitle: task.title,
+    taskKey: task.key,
     accountName: account.name,
     accountColor: account.color,
   })
@@ -44,5 +50,9 @@ export default defineEventHandler(async (event) => {
     .orderBy(desc(note.pinned), desc(note.updatedAt))
     .limit(300)
 
-  return rows.map(({ content, ...carryover }) => ({ ...carryover, excerpt: noteExcerpt(content) }))
+  return rows.map(({ content, ...carryover }) => ({
+    ...carryover,
+    excerpt: noteExcerpt(content),
+    ...(query.includeContent ? { content } : {}),
+  }))
 })

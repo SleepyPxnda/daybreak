@@ -194,6 +194,33 @@ describe('parseQuickInput - note', () => {
   it('n without title -> error', () => {
     expect(parse('n')).toMatchObject({ type: 'error' })
   })
+
+  it('nm / np / ni set the kind', () => {
+    expect(parse('nm Wochenmeeting')).toEqual({ type: 'note', kind: 'meeting', title: 'Wochenmeeting' })
+    expect(parse('NP Cache läuft voll')).toEqual({ type: 'note', kind: 'problem', title: 'Cache läuft voll' })
+    expect(parse('ni Port ist 8080')).toEqual({ type: 'note', kind: 'info', title: 'Port ist 8080' })
+  })
+
+  it('an exact task key links the task; the rest is the title', () => {
+    expect(parse('np PROJ-123 Cache läuft voll')).toEqual({ type: 'note', kind: 'problem', taskId: 10, title: 'Cache läuft voll' })
+    expect(parse('nm proj-124 Abstimmung')).toMatchObject({ kind: 'meeting', taskId: 11, title: 'Abstimmung' })
+  })
+
+  it('a key without further words uses the task title', () => {
+    expect(parse('ni PROJ-123')).toEqual({ type: 'note', kind: 'info', taskId: 10, title: 'Login-Refactoring' })
+  })
+
+  it('a first word that is no key stays in the title', () => {
+    expect(parse('np Login läuft nicht')).toEqual({ type: 'note', kind: 'problem', title: 'Login läuft nicht' })
+  })
+
+  it('n never matches a key and sets no kind', () => {
+    expect(parse('n PROJ-123 foo')).toEqual({ type: 'note', title: 'PROJ-123 foo' })
+  })
+
+  it('kind prefix without title and key -> Titel fehlt', () => {
+    expect(parse('np')).toEqual({ type: 'error', message: 'Titel fehlt' })
+  })
 })
 
 describe('parseQuickInput - filters and errors', () => {

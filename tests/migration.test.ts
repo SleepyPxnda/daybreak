@@ -147,7 +147,7 @@ describe('migration 0003 -> latest', () => {
     expect(await rows('SELECT person, follow_up_date, due_date, sort_order, done_at FROM todo WHERE id = 1')).toEqual([
       { person: 'Tim', follow_up_date: '2026-03-01', due_date: '2026-03-02', sort_order: 0, done_at: '2026-03-03T10:00:00.000Z' },
     ])
-    expect(await rows('SELECT title, content, pinned FROM note')).toEqual([{ title: 'Titel', content: 'Inhalt', pinned: 1 }])
+    expect(await rows('SELECT title, content, pinned, kind FROM note')).toEqual([{ title: 'Titel', content: 'Inhalt', pinned: 1, kind: null }])
     expect(await rows('SELECT year, label, days FROM vacation_entitlement WHERE id = 3')).toEqual([{ year: 2026, label: 'Posten rest', days: 2.5 }])
     expect(await rows('SELECT valid_from, valid_until FROM vacation_entitlement')).toEqual(Array(3).fill({ valid_from: null, valid_until: null }))
 

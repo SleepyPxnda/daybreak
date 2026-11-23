@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Pin } from '@lucide/vue'
+import NoteKindMarker from '~/components/notes/NoteKindMarker.vue'
 
 // Today card: pinned notes
 const { data: notes } = useFetch('/api/notes', {
@@ -31,6 +32,7 @@ const { data: notes } = useFetch('/api/notes', {
         <span class="flex items-center gap-1.5 font-medium">
           <Pin class="size-3.5 shrink-0 text-primary" />
           <span class="fade-end min-w-0 flex-1">{{ n.title }}</span>
+          <NoteKindMarker v-if="n.kind" :kind="n.kind" />
         </span>
         <span v-if="n.excerpt" class="line-clamp-2 text-[13px] text-muted-foreground">{{ n.excerpt }}</span>
       </NuxtLink>

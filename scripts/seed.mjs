@@ -201,13 +201,13 @@ await insert('todo', [
 
 // --- Notes ---
 await insert('note', [
-  { title: 'Deployment-Checkliste', content: '## Vor dem Release\n\n- [ ] Migrationen geprüft\n- [ ] Feature-Flags gesetzt\n- [ ] Changelog aktualisiert\n\n## Danach\n\n1. Smoke-Tests\n2. Monitoring 30 min beobachten', tags: '["release","checkliste"]', account_id: K.gb, pinned: 1, daysAgo: -20 },
-  { title: 'Redis-Konfiguration', content: 'TTL **300 s** für Antworten, Invalidierung per Pub/Sub.\n\n```\nmaxmemory-policy allkeys-lru\n```', tags: '["redis","technik"]', task_id: 2, pinned: 1, daysAgo: -5 },
-  { title: 'Retro-Notizen Sprint 18', content: '**Gut:** Pairing, schnellere Reviews\n\n**Verbessern:** Tickets kleiner schneiden, Daily pünktlich beenden', tags: '["retro"]', account_id: K.gb, pinned: 0, daysAgo: -12 },
-  { title: 'SSO-Flow', content: '1. Redirect zum IdP\n2. Callback mit Code\n3. Token-Tausch serverseitig\n\n> Refresh-Token nie im Browser speichern.', tags: '["sso","technik"]', task_id: 5, pinned: 0, daysAgo: -40 },
-  { title: 'Ideen Weiterbildung', content: '- Rust Ownership-Kapitel\n- Vortrag über Observability\n- Konferenz im Frühjahr', tags: '["lernen"]', account_id: K.wb, pinned: 0, daysAgo: -2 },
+  { title: 'Deployment-Checkliste', kind: 'info', content: '## Vor dem Release\n\n- [ ] Migrationen geprüft\n- [ ] Feature-Flags gesetzt\n- [ ] Changelog aktualisiert\n\n## Danach\n\n1. Smoke-Tests\n2. Monitoring 30 min beobachten', tags: '["release","checkliste"]', account_id: K.gb, pinned: 1, daysAgo: -20 },
+  { title: 'Redis-Konfiguration', kind: 'info', content: 'TTL **300 s** für Antworten, Invalidierung per Pub/Sub.\n\n```\nmaxmemory-policy allkeys-lru\n```', tags: '["redis","technik"]', task_id: 2, pinned: 1, daysAgo: -5 },
+  { title: 'Retro-Notizen Sprint 18', kind: 'meeting', content: '**Gut:** Pairing, schnellere Reviews\n\n**Verbessern:** Tickets kleiner schneiden, Daily pünktlich beenden', tags: '["retro"]', account_id: K.gb, pinned: 0, daysAgo: -12 },
+  { title: 'SSO-Flow', kind: 'problem', content: '1. Redirect zum IdP\n2. Callback mit Code\n3. Token-Tausch serverseitig\n\n> Refresh-Token nie im Browser speichern.', tags: '["sso","technik"]', task_id: 5, pinned: 0, daysAgo: -40 },
+  { title: 'Ideen Weiterbildung', kind: 'meeting', content: '- Rust Ownership-Kapitel\n- Vortrag über Observability\n- Konferenz im Frühjahr', tags: '["lernen"]', account_id: K.wb, pinned: 0, daysAgo: -2 },
   { title: 'Telefonnummern', content: 'IT-Hotline: 1234\nEmpfang: 1000', tags: '[]', pinned: 0, daysAgo: -50 },
-].map(({ daysAgo: t, ...n }) => ({ task_id: null, account_id: null, ...n, created_at: iso(addDays(today, t - 3)), updated_at: iso(addDays(today, t), 900) })))
+].map(({ daysAgo: t, ...n }) => ({ kind: null, task_id: null, account_id: null, ...n, created_at: iso(addDays(today, t - 3)), updated_at: iso(addDays(today, t), 900) })))
 
 // --- Vacation entitlement and settings ---
 await insert('vacation_entitlement', [
