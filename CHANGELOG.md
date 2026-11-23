@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Notes page reworked: a calmer list grouped by pinned, today, this week and month with kind, account and tag filters (`?account=`), a lighter editor, and references between notes and tasks by typing `[[` (`[[#<id> …]]`, `[[<task key>]]`) with "Verweist auf" / "Erwähnt in" lists and mentions on the task page; long titles are cut off instead of overflowing.
 - Notes have a kind (Meeting, Problem, Info) with a filter on `/notes`, `nm`/`np`/`ni` quick input (optionally with a task key), and the task page shows its notes grouped by kind and readable in place; the note editor is now a plain text field (the Markdown preview is removed), pinning no longer changes a note's last-changed time, narrow screens show list or editor, and deleting a task keeps its notes on the account. Adds a migration (`note.kind`).
 - Data refreshes when the tab or window comes back to the foreground (blocks and balance from another tab or device, Today and week page move to the new day after midnight); nothing changes while the server is unreachable, and unsaved input in dialogs and the settings form is kept.
 - Vacation entitlement entries (for example special leave) can have a validity window ("Gültig ab" / "Gültig bis", also across New Year): they are used first, unused days are forfeited after the window and shown as "verfallen", and what is left is handed on to the next year. Adds a migration (`vacation_entitlement.valid_from`, `valid_until`).
