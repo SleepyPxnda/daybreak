@@ -9,7 +9,7 @@ This documents what was **actually** built per phase – including decisions and
 | [0](phase-0-setup.md) | Setup: Nuxt, theme, DB, Docker, CI | done (Docker/CI untested) |
 | [1](phase-1-time.md) | Time: timeline, quick input, hours balance, templates | done |
 | [2](phase-2-reminders.md) | Reminders, waiting for, daily topics, command palette | done |
-| [3](phase-3-notes.md) | Notes: markdown editor, tags, search, pinning | done |
+| [3](phase-3-notes.md) | Notes: plain text editor, kinds, tags, search, pinning | done |
 | [4](phase-4-calendar.md) | Calendar, vacation account, week | done |
 | [5](phase-5-overview.md) | Overview: account → task → days, hours balance history | done |
 | [6](phase-6-booking-notifications.md) | Browser notifications to book time | done |

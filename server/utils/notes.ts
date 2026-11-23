@@ -7,6 +7,7 @@ import { normalizeTags } from '#shared/utils/notes'
 export const noteFields = z.object({
   title: z.string().trim().min(1).max(200),
   content: z.string().max(200_000),
+  kind: z.enum(['meeting', 'problem', 'info']).nullable(),
   tags: z.array(z.string()).max(30).transform(normalizeTags),
   taskId: z.number().int().positive().nullable(),
   accountId: z.number().int().positive().nullable(),

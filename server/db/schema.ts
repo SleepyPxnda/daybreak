@@ -104,6 +104,7 @@ export const note = sqliteTable('note', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   title: text('title').notNull(),
   content: text('content').notNull().default(''),
+  kind: text('kind', { enum: ['meeting', 'problem', 'info'] }),
   tags: text('tags', { mode: 'json' }).$type<string[]>().notNull().default(sql`'[]'`),
   taskId: integer('task_id').references(() => task.id),
   accountId: integer('account_id').references(() => account.id),

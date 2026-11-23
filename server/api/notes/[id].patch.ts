@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { note } from '../../db/schema'
+import { isContentChange } from '#shared/utils/notes'
 import { db } from '../../db/client'
 
 const schema = noteFields.partial()
@@ -18,9 +19,8 @@ export default defineEventHandler(async (event) => {
       ? { taskId: null, accountId: null }
       : await resolveAssignment({ kind: 'work', taskId, accountId }))
   }
-  // Pinning alone does not count as a content change
-  const content = Object.keys(data).some(k => k !== 'pinned')
-  if (content) values.updatedAt = new Date().toISOString()
+  // Pinning alone does not count as a content change; compare the resolved values
+  if (isContentChange(previous, { ...previous, ...values })) values.updatedAt = new Date().toISOString()
 
   const [changed] = await db.update(note).set(values).where(eq(note.id, id)).returning()
   return changed!

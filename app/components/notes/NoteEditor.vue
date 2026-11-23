@@ -2,12 +2,14 @@
 import { format } from 'date-fns'
 import { useDebounceFn, useEventListener } from '@vueuse/core'
 import { Check, CircleAlert, Pin, Trash2 } from '@lucide/vue'
-import { normalizeTags } from '#shared/utils/notes'
+import { NOTE_KINDS, normalizeTags } from '#shared/utils/notes'
+import type { NoteKind } from '#shared/utils/notes'
 
 interface Note {
   id: number
   title: string
   content: string
+  kind: NoteKind | null
   tags: string[]
   taskId: number | null
   accountId: number | null
@@ -15,10 +17,11 @@ interface Note {
   updatedAt: string
 }
 
-// Editor with live preview and autosave
+// Plain text editor with autosave
 const props = defineProps<{ id: number }>()
+const route = useRoute()
 
-const form = reactive({ title: '', content: '', tagsText: '', assignment: '', pinned: false })
+const form = reactive<{ title: string, content: string, kind: NoteKind | null, tagsText: string, assignment: string, pinned: boolean }>({ title: '', content: '', kind: null, tagsText: '', assignment: '', pinned: false })
 const loaded = ref(false)
 const notFound = ref(false)
 const status = ref<'saved' | 'changed' | 'saving' | 'error'>('saved')
@@ -32,6 +35,7 @@ function payload() {
   return {
     title: form.title.trim() || 'Ohne Titel',
     content: form.content,
+    kind: form.kind,
     tags: normalizeTags(form.tagsText),
     ...assignmentFromValue(form.assignment),
     pinned: form.pinned,
@@ -71,9 +75,11 @@ async function load(id: number) {
   notFound.value = false
   try {
     const n = await api<Note>(`/api/notes/${id}`)
+    if (id !== props.id) return // a late response for a note that is no longer selected
     currentId = id
     form.title = n.title
     form.content = n.content
+    form.kind = n.kind
     form.tagsText = n.tags.join(', ')
     form.assignment = assignmentValue(n)
     form.pinned = n.pinned
@@ -83,7 +89,7 @@ async function load(id: number) {
     loaded.value = true
   }
   catch {
-    notFound.value = true
+    if (id === props.id) notFound.value = true
   }
 }
 
@@ -114,29 +120,29 @@ const statusText = computed(() => {
   }
 })
 
+const linkedTaskId = computed(() => assignmentFromValue(form.assignment).taskId)
+
 const deleteQuestion = ref(false)
 async function remove() {
   const ok = await runAction(() => api(`/api/notes/${currentId}`, { method: 'DELETE' }), NOTE_KEYS)
   if (ok) {
     loaded.value = false
-    await navigateTo('/notes')
+    await navigateTo({ path: '/notes', query: { tag: route.query.tag, kind: route.query.kind } })
   }
 }
-
-const preview = computed(() => renderMarkdown(form.content))
 </script>
 
 <template>
   <div v-if="notFound" class="py-10 text-center text-sm text-muted-foreground">
     Notiz nicht gefunden.
   </div>
-  <div v-else-if="loaded" class="grid gap-4">
-    <div class="flex items-center gap-2">
+  <div v-else-if="loaded" class="grid grid-cols-[minmax(0,1fr)] gap-4">
+    <div class="flex flex-wrap items-center gap-2">
       <input
         v-model="form.title"
         aria-label="Titel"
         placeholder="Titel"
-        class="min-w-0 flex-1 rounded-md bg-transparent text-2xl font-semibold tracking-tight outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+        class="min-w-0 flex-[1_1_12rem] rounded-md bg-transparent text-2xl font-semibold tracking-tight outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
       >
       <span
         class="inline-flex shrink-0 items-center gap-1.5 text-[13px] tabular-nums"
@@ -167,14 +173,40 @@ const preview = computed(() => renderMarkdown(form.content))
       </Button>
     </div>
 
+    <div class="grid gap-1">
+      <span id="note-kind-label" class="text-xs text-muted-foreground">Art</span>
+      <div class="flex flex-wrap gap-1.5" role="radiogroup" aria-labelledby="note-kind-label">
+        <button
+          v-for="entry in NOTE_KINDS"
+          :key="entry.kind"
+          type="button"
+          role="radio"
+          :aria-checked="form.kind === entry.kind"
+          class="inline-flex h-8 items-center gap-1.5 rounded-md border px-3 text-sm transition-colors"
+          :class="form.kind === entry.kind
+            ? [noteKindLook(entry.kind).surface, noteKindLook(entry.kind).text, 'border-current font-medium']
+            : 'bg-raised text-muted-foreground hover:bg-muted hover:text-foreground'"
+          @click="form.kind = entry.kind"
+        >
+          <component :is="noteKindLook(entry.kind).icon" class="size-4" aria-hidden="true" />
+          {{ entry.singular }}
+        </button>
+      </div>
+    </div>
+
     <div class="flex flex-wrap gap-3">
-      <div class="grid flex-[1_1_240px] gap-1">
+      <div class="grid min-w-0 flex-[1_1_240px] gap-1">
         <label for="note-tags" class="text-xs text-muted-foreground">Tags</label>
-        <Input id="note-tags" v-model="form.tagsText" placeholder="durch Komma getrennt" class="h-9 rounded-md" />
+        <Input id="note-tags" v-model="form.tagsText" placeholder="durch Komma oder Leerzeichen getrennt" class="h-9 rounded-md" />
       </div>
       <div class="grid min-w-0 flex-[1_1_240px] gap-1">
-        <span class="text-xs text-muted-foreground">Bezug</span>
-        <div class="flex min-w-0 gap-2">
+        <div class="flex items-center gap-3 text-xs text-muted-foreground">
+          <span>Bezug</span>
+          <NuxtLink v-if="linkedTaskId" :to="`/tasks/${linkedTaskId}`" class="text-primary hover:underline">
+            Zur Aufgabe
+          </NuxtLink>
+        </div>
+        <div class="flex min-w-0 flex-wrap gap-2">
           <AssignmentPicker v-model="form.assignment" />
           <Button v-if="form.assignment" variant="ghost" @click="form.assignment = ''">
             Bezug entfernen
@@ -183,32 +215,14 @@ const preview = computed(() => renderMarkdown(form.content))
       </div>
     </div>
 
-    <div class="grid min-h-[60vh] overflow-hidden rounded-xl border lg:grid-cols-2">
-      <div class="flex flex-col bg-card max-lg:border-b lg:border-r">
-        <div class="border-b bg-card px-4 py-2 text-xs text-muted-foreground">
-          Markdown
-        </div>
-        <textarea
-          v-model="form.content"
-          aria-label="Inhalt (Markdown)"
-          placeholder="Markdown …"
-          class="min-h-[40vh] flex-1 resize-y bg-transparent p-4 font-mono text-[13px] leading-5 outline-none placeholder:text-muted-foreground"
-        />
-      </div>
-      <div class="flex min-w-0 flex-col">
-        <div class="border-b bg-card px-4 py-2 text-xs text-muted-foreground">
-          Vorschau
-        </div>
-        <ClientOnly>
-          <div class="markdown flex-1 overflow-auto px-5 py-4">
-            <!-- eslint-disable-next-line vue/no-v-html -- sanitized with DOMPurify -->
-            <div v-if="form.content.trim()" v-html="preview" />
-            <p v-else class="text-sm text-muted-foreground">
-              Noch leer – links schreiben, hier erscheint die Vorschau.
-            </p>
-          </div>
-        </ClientOnly>
-      </div>
+    <div class="grid gap-1">
+      <label for="note-content" class="text-xs text-muted-foreground">Inhalt</label>
+      <textarea
+        id="note-content"
+        v-model="form.content"
+        placeholder="Einfach losschreiben …"
+        class="min-h-[60vh] w-full resize-y rounded-xl border bg-card p-4 text-sm leading-6 outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+      />
     </div>
 
     <AlertDialog v-model:open="deleteQuestion">

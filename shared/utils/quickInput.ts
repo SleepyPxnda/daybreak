@@ -1,4 +1,5 @@
 import type { BlockKind, BlockStatus } from './blocks'
+import type { NoteKind } from './notes'
 import type { TodoKind } from './todos'
 import type { IsoDate } from './time'
 import { isIsoDate, addDays, GRID_MIN, DAY_MIN, weekday } from './time'
@@ -59,10 +60,13 @@ export interface QuickInputTodo {
   cutoffDate?: IsoDate
 }
 
-/** `n title` - new note, opens the editor */
+/** `n title`, `nm|np|ni [key] title` - new note, opens the editor */
 export interface QuickInputNote {
   type: 'note'
   title: string
+  kind?: NoteKind
+  /** Only for the kind prefixes: first word was an exact task key */
+  taskId?: number
 }
 
 export type QuickInputResult =
@@ -72,6 +76,8 @@ export type QuickInputResult =
   | QuickInputBlock
   | QuickInputTodo
   | QuickInputNote
+
+const NOTE_KIND_PREFIXES: Record<string, NoteKind> = { nm: 'meeting', np: 'problem', ni: 'info' }
 
 const TODO_PREFIXES: Record<string, TodoKind> = { t: 'reminder', d: 'daily_topic', w: 'waiting_for' }
 
@@ -214,6 +220,15 @@ export function parseQuickInput(input: string, ctx: QuickInputContext): QuickInp
   if (norm(words[0]!) === 'n') {
     const title = words.slice(1).join(' ')
     return title ? { type: 'note', title } : { type: 'error', message: 'Titel fehlt' }
+  }
+
+  const noteKind = NOTE_KIND_PREFIXES[norm(words[0]!)]
+  if (noteKind) {
+    const [first, ...after] = words.slice(1)
+    const perKey = first ? ctx.tasks.find(task => task.key && norm(task.key) === norm(first)) : undefined
+    if (perKey) return { type: 'note', kind: noteKind, taskId: perKey.id, title: after.join(' ') || perKey.title }
+    const title = words.slice(1).join(' ')
+    return title ? { type: 'note', kind: noteKind, title } : { type: 'error', message: 'Titel fehlt' }
   }
 
   let kind: BlockKind = 'work'

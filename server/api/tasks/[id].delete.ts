@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { task, block, template } from '../../db/schema'
+import { task, block, template, note } from '../../db/schema'
 import { db } from '../../db/client'
 
 // A task with blocks cannot be deleted, only closed.
@@ -10,6 +10,12 @@ export default defineEventHandler(async (event) => {
   if (hasBlock || hasTemplate) {
     throw createError({ statusCode: 409, statusMessage: 'Aufgabe hat Blöcke – bitte abschließen statt löschen' })
   }
-  const [deleted] = await db.delete(task).where(eq(task.id, id)).returning()
-  return deleted ?? notFound('Aufgabe')
+  const [existing] = await db.select({ accountId: task.accountId }).from(task).where(eq(task.id, id))
+  if (!existing) notFound('Aufgabe')
+  // Linked notes stay: they move to the task's account
+  return db.transaction(async (tx) => {
+    await tx.update(note).set({ taskId: null, accountId: existing.accountId }).where(eq(note.taskId, id))
+    const [deleted] = await tx.delete(task).where(eq(task.id, id)).returning()
+    return deleted ?? notFound('Aufgabe')
+  })
 })

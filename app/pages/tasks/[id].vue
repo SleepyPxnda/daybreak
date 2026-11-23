@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { format } from 'date-fns'
 import { de } from 'date-fns/locale'
-import { ArrowLeft, CheckCircle2, Circle, CircleCheck, CircleDot, Pencil, Plus, RotateCcw, Trash2 } from '@lucide/vue'
+import { ArrowLeft, CheckCircle2, Circle, CircleCheck, CircleDot, Pencil, RotateCcw, Trash2 } from '@lucide/vue'
+import TaskNotes from '~/components/notes/TaskNotes.vue'
 import { TODO_KINDS } from '#shared/utils/todos'
 
 const route = useRoute()
@@ -10,7 +11,7 @@ const id = computed(() => Number(route.params.id))
 const { data: task, error } = await useFetch(() => `/api/tasks/${id.value}`, { key: 'task-detail' })
 // Linked reminders (open entries of all kinds referring to this task)
 const { data: todos } = useFetch('/api/todos', { key: 'task-todos', query: { taskId: id }, default: () => [] })
-const { data: notes } = useFetch('/api/notes', { key: 'task-notes', query: { taskId: id }, default: () => [] })
+const { data: notes } = useFetch('/api/notes', { key: 'task-notes', query: { taskId: id, includeContent: '1' }, default: () => [] })
 
 useHead({ title: () => `${task.value?.key ? `${task.value.key} ` : ''}${task.value?.title ?? 'Aufgabe'} · daybreak` })
 
@@ -139,27 +140,7 @@ const formatDay = (date: string) => format(toDate(date), 'EEEE, d. MMMM yyyy', {
       </div>
     </div>
 
-    <Card class="gap-0 py-0">
-      <CardHeader class="flex flex-row items-center justify-between py-0 pr-2">
-        <CardTitle>Notizen</CardTitle>
-        <Button size="sm" variant="outline" class="h-[30px] text-[13px]" @click="newNote(task.title, { taskId: task.id })">
-          <Plus /> Notiz
-        </Button>
-      </CardHeader>
-      <p v-if="!notes.length" class="px-4 py-3 text-sm text-muted-foreground">
-        Keine verknüpften Notizen.
-      </p>
-      <NuxtLink
-        v-for="n in notes"
-        :key="n.id"
-        :to="`/notes?id=${n.id}`"
-        class="grid min-h-10 grid-cols-1 gap-0.5 border-b px-4 py-2 text-sm last:border-b-0 hover:bg-raised"
-        :title="n.title"
-      >
-        <span class="fade-end font-medium">{{ n.title }}</span>
-        <span v-if="n.excerpt" class="line-clamp-1 text-xs text-muted-foreground">{{ n.excerpt }}</span>
-      </NuxtLink>
-    </Card>
+    <TaskNotes :task-id="task.id" :task-title="task.title" :notes="notes" />
 
     <Card v-if="todos.length" class="gap-0 py-0">
       <CardHeader>
@@ -210,7 +191,7 @@ const formatDay = (date: string) => format(toDate(date), 'EEEE, d. MMMM yyyy', {
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Aufgabe löschen?</AlertDialogTitle>
-          <AlertDialogDescription>„{{ task.title }}“ hat keine Blöcke und wird endgültig gelöscht.</AlertDialogDescription>
+          <AlertDialogDescription>„{{ task.title }}“ hat keine Blöcke und wird endgültig gelöscht.<template v-if="notes.length"> Verknüpfte Notizen bleiben am Konto erhalten.</template></AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Abbrechen</AlertDialogCancel>
