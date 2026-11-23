@@ -136,13 +136,13 @@ async function remove() {
   <div v-if="notFound" class="py-10 text-center text-sm text-muted-foreground">
     Notiz nicht gefunden.
   </div>
-  <div v-else-if="loaded" class="grid gap-4">
-    <div class="flex items-center gap-2">
+  <div v-else-if="loaded" class="grid grid-cols-[minmax(0,1fr)] gap-4">
+    <div class="flex flex-wrap items-center gap-2">
       <input
         v-model="form.title"
         aria-label="Titel"
         placeholder="Titel"
-        class="min-w-0 flex-1 rounded-md bg-transparent text-2xl font-semibold tracking-tight outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+        class="min-w-0 flex-[1_1_12rem] rounded-md bg-transparent text-2xl font-semibold tracking-tight outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
       >
       <span
         class="inline-flex shrink-0 items-center gap-1.5 text-[13px] tabular-nums"
@@ -195,7 +195,7 @@ async function remove() {
     </div>
 
     <div class="flex flex-wrap gap-3">
-      <div class="grid flex-[1_1_240px] gap-1">
+      <div class="grid min-w-0 flex-[1_1_240px] gap-1">
         <label for="note-tags" class="text-xs text-muted-foreground">Tags</label>
         <Input id="note-tags" v-model="form.tagsText" placeholder="durch Komma oder Leerzeichen getrennt" class="h-9 rounded-md" />
       </div>
@@ -206,7 +206,7 @@ async function remove() {
             Zur Aufgabe
           </NuxtLink>
         </div>
-        <div class="flex min-w-0 gap-2">
+        <div class="flex min-w-0 flex-wrap gap-2">
           <AssignmentPicker v-model="form.assignment" />
           <Button v-if="form.assignment" variant="ghost" @click="form.assignment = ''">
             Bezug entfernen

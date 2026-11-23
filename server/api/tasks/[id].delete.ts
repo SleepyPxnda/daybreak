@@ -13,7 +13,9 @@ export default defineEventHandler(async (event) => {
   const [existing] = await db.select({ accountId: task.accountId }).from(task).where(eq(task.id, id))
   if (!existing) notFound('Aufgabe')
   // Linked notes stay: they move to the task's account
-  await db.update(note).set({ taskId: null, accountId: existing.accountId }).where(eq(note.taskId, id))
-  const [deleted] = await db.delete(task).where(eq(task.id, id)).returning()
-  return deleted ?? notFound('Aufgabe')
+  return db.transaction(async (tx) => {
+    await tx.update(note).set({ taskId: null, accountId: existing.accountId }).where(eq(note.taskId, id))
+    const [deleted] = await tx.delete(task).where(eq(task.id, id)).returning()
+    return deleted ?? notFound('Aufgabe')
+  })
 })

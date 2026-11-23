@@ -15,9 +15,9 @@ interface NoteKindLook {
 // The one definition of how a note kind looks. The colors mark the kind only, never a status.
 // Full class names so Tailwind finds them when scanning.
 const LOOKS: Record<NoteKind, NoteKindLook> = {
-  meeting: { icon: Users, text: 'text-info', surface: 'bg-info-subtle', rail: 'border-info' },
-  problem: { icon: TriangleAlert, text: 'text-destructive', surface: 'bg-error-subtle', rail: 'border-destructive' },
-  info: { icon: Info, text: 'text-positive', surface: 'bg-success-subtle', rail: 'border-positive' },
+  meeting: { icon: Users, text: 'text-info', surface: 'bg-info-subtle', rail: 'border-l-info' },
+  problem: { icon: TriangleAlert, text: 'text-destructive', surface: 'bg-error-subtle', rail: 'border-l-destructive' },
+  info: { icon: Info, text: 'text-positive', surface: 'bg-success-subtle', rail: 'border-l-positive' },
 }
 
 export function noteKindLook(kind: NoteKind): NoteKindLook {
