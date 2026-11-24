@@ -36,9 +36,9 @@ const days = computed(() => {
 })
 
 const progress = computed(() => {
-  const a = task.value
-  if (!a?.estimateMin) return undefined
-  return Math.min(100, Math.round((a.bookedMin / a.estimateMin) * 100))
+  const currentTask = task.value
+  if (!currentTask?.estimateMin) return undefined
+  return Math.min(100, Math.round((currentTask.bookedMin / currentTask.estimateMin) * 100))
 })
 
 // Display status as on the account page: "in progress" = open and time already booked

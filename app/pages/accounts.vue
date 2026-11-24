@@ -88,9 +88,9 @@ function accountChange() {
 }
 
 // Display status: "in progress" = open and time already booked
-function statusDisplay(a: { status: string, bookedMin: number }) {
-  if (a.status === 'closed') return { text: 'Abgeschlossen', icon: CircleCheck, cssClass: 'text-positive' }
-  if (a.bookedMin > 0) return { text: 'In Arbeit', icon: CircleDot, cssClass: 'text-info' }
+function statusDisplay(task: { status: string, bookedMin: number }) {
+  if (task.status === 'closed') return { text: 'Abgeschlossen', icon: CircleCheck, cssClass: 'text-positive' }
+  if (task.bookedMin > 0) return { text: 'In Arbeit', icon: CircleDot, cssClass: 'text-info' }
   return { text: 'Offen', icon: Circle, cssClass: 'text-muted-foreground' }
 }
 
@@ -214,28 +214,28 @@ function select(id: number) {
           </TableHeader>
           <TableBody>
             <TableRow
-              v-for="a in tasks"
-              :key="a.id"
+              v-for="task in tasks"
+              :key="task.id"
               class="h-11 cursor-pointer hover:bg-raised"
-              @click="navigateTo(`/tasks/${a.id}`)"
+              @click="navigateTo(`/tasks/${task.id}`)"
             >
               <TableCell class="px-4">
-                <TaskKey v-if="a.key" :value="a.key" :color="selected.color" :class="{ 'opacity-60': a.status === 'closed' }" />
+                <TaskKey v-if="task.key" :value="task.key" :color="selected.color" :class="{ 'opacity-60': task.status === 'closed' }" />
               </TableCell>
-              <TableCell class="px-4 whitespace-normal wrap-anywhere" :class="{ 'text-muted-foreground': a.status === 'closed' }">
-                {{ a.title }}
+              <TableCell class="px-4 whitespace-normal wrap-anywhere" :class="{ 'text-muted-foreground': task.status === 'closed' }">
+                {{ task.title }}
               </TableCell>
               <TableCell class="px-4">
-                <span class="inline-flex items-center gap-1.5 text-xs font-medium" :class="statusDisplay(a).cssClass">
-                  <component :is="statusDisplay(a).icon" class="size-3.5" />
-                  {{ statusDisplay(a).text }}
+                <span class="inline-flex items-center gap-1.5 text-xs font-medium" :class="statusDisplay(task).cssClass">
+                  <component :is="statusDisplay(task).icon" class="size-3.5" />
+                  {{ statusDisplay(task).text }}
                 </span>
               </TableCell>
               <TableCell class="px-4 text-right text-muted-foreground tabular-nums">
-                {{ a.estimateMin ? formatDuration(a.estimateMin) : '–' }}
+                {{ task.estimateMin ? formatDuration(task.estimateMin) : '–' }}
               </TableCell>
-              <TableCell class="px-4 text-right tabular-nums" :class="{ 'text-negative': a.estimateMin && a.bookedMin > a.estimateMin }">
-                {{ formatDuration(a.bookedMin) }}
+              <TableCell class="px-4 text-right tabular-nums" :class="{ 'text-negative': task.estimateMin && task.bookedMin > task.estimateMin }">
+                {{ formatDuration(task.bookedMin) }}
               </TableCell>
             </TableRow>
             <TableRow v-if="!tasks.length" class="hover:bg-transparent">

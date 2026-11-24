@@ -28,10 +28,10 @@ const accountPosition = (accountId: number) => accountList.value.findIndex(entry
 
 const sum = computed(() => {
   const accounts = new Map<number, { accountId: number, name: string, color: string | null, minutes: number }>()
-  for (const k of days.value.flatMap(t => t.accounts)) {
-    const s = accounts.get(k.accountId) ?? { accountId: k.accountId, name: k.name, color: k.color, minutes: 0 }
-    s.minutes += k.minutes
-    accounts.set(k.accountId, s)
+  for (const account of days.value.flatMap(t => t.accounts)) {
+    const s = accounts.get(account.accountId) ?? { accountId: account.accountId, name: account.name, color: account.color, minutes: 0 }
+    s.minutes += account.minutes
+    accounts.set(account.accountId, s)
   }
   return {
     actual: days.value.reduce((s, t) => s + t.actual, 0),
@@ -129,28 +129,28 @@ const duration = (min: number) => (decimal.value ? formatDecimal(min) : formatDu
       </div>
 
       <div
-        v-for="k in t.accounts"
-        :key="k.accountId"
+        v-for="account in t.accounts"
+        :key="account.accountId"
         class="grid grid-cols-[9rem_7.5rem_5rem_minmax(0,1fr)_7rem] items-baseline gap-3 text-[13px] text-muted-foreground"
       >
         <span class="col-span-2 flex min-w-0 items-center gap-2 pl-3 text-foreground">
-          <span class="size-2 shrink-0 rounded-full" :class="accountColorClasses(k.color).dot" />
-          <span class="truncate">{{ k.name }}</span>
+          <span class="size-2 shrink-0 rounded-full" :class="accountColorClasses(account.color).dot" />
+          <span class="truncate">{{ account.name }}</span>
         </span>
-        <span class="text-right font-mono text-foreground tabular-nums">{{ duration(k.minutes) }}</span>
-        <span class="col-span-2 min-w-0 truncate" :title="k.labels.join(', ')">{{ k.labels.join(', ') }}</span>
+        <span class="text-right font-mono text-foreground tabular-nums">{{ duration(account.minutes) }}</span>
+        <span class="col-span-2 min-w-0 truncate" :title="account.labels.join(', ')">{{ account.labels.join(', ') }}</span>
       </div>
     </div>
 
     <!-- Month total per account -->
     <div v-if="sum.accounts.length" class="grid gap-1 border-t bg-card px-4 py-2.5">
       <span class="text-xs text-muted-foreground">Monat je Konto</span>
-      <div v-for="k in sum.accounts" :key="k.accountId" class="grid grid-cols-[9rem_7.5rem_5rem_minmax(0,1fr)_7rem] items-baseline gap-3">
+      <div v-for="account in sum.accounts" :key="account.accountId" class="grid grid-cols-[9rem_7.5rem_5rem_minmax(0,1fr)_7rem] items-baseline gap-3">
         <span class="col-span-2 flex min-w-0 items-center gap-2 pl-3">
-          <span class="size-2 shrink-0 rounded-full" :class="accountColorClasses(k.color).dot" />
-          <span class="truncate">{{ k.name }}</span>
+          <span class="size-2 shrink-0 rounded-full" :class="accountColorClasses(account.color).dot" />
+          <span class="truncate">{{ account.name }}</span>
         </span>
-        <span class="text-right font-mono font-medium tabular-nums">{{ duration(k.minutes) }}</span>
+        <span class="text-right font-mono font-medium tabular-nums">{{ duration(account.minutes) }}</span>
       </div>
     </div>
   </section>

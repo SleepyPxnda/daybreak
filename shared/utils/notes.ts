@@ -2,6 +2,7 @@ import { format, startOfWeek } from 'date-fns'
 import { de } from 'date-fns/locale'
 import { toDate } from './time'
 import type { IsoDate } from './time'
+import { normalizeForComparison } from './text'
 
 /**
  * Tags from free input ("architecture, #ideas  backend") -> normalized, unique list.
@@ -41,6 +42,13 @@ export const NOTE_KINDS: { kind: NoteKind, title: string, singular: string }[] =
   { kind: 'info', title: 'Infos', singular: 'Info' },
 ]
 
+/** Labels of a note kind; throws for a kind that is not in `NOTE_KINDS`. */
+export function noteKindLabels(kind: NoteKind): { title: string, singular: string } {
+  const definition = NOTE_KINDS.find(entry => entry.kind === kind)
+  if (!definition) throw new Error(`Unknown note kind: ${kind}`)
+  return { title: definition.title, singular: definition.singular }
+}
+
 /** Order of the sections on the task page. */
 const SECTION_ORDER: NoteKind[] = ['problem', 'info', 'meeting']
 
@@ -58,8 +66,7 @@ export interface NoteSection<T> {
  */
 export function groupNotesByKind<T extends { kind: NoteKind | null }>(notes: T[]): NoteSection<T>[] {
   const sections: NoteSection<T>[] = SECTION_ORDER.map((kind) => {
-    const definition = NOTE_KINDS.find(entry => entry.kind === kind)!
-    return { kind, title: definition.title, notes: notes.filter(note => note.kind === kind) }
+    return { kind, title: noteKindLabels(kind).title, notes: notes.filter(note => note.kind === kind) }
   })
   const withoutKind = notes.filter(note => note.kind == null)
   if (withoutKind.length) sections.push({ kind: null, title: 'Ohne Art', notes: withoutKind })
@@ -87,9 +94,6 @@ export function isContentChange(stored: NoteValues, next: NoteValues): boolean {
     || stored.tags.some((tag, index) => tag !== next.tags[index])
 }
 
-/** Same normalization as the quick input uses for task keys (trimmed, lowercased) */
-export const normalizeTaskKey = (key: string) => key.trim().toLocaleLowerCase('de')
-
 export type NoteReference
   = | { type: 'note', noteId: number, raw: string }
     /** `normalizedKey` is trimmed and lowercased; whether a task has this key is decided where the tasks are known */
@@ -111,7 +115,7 @@ export function parseNoteReferences(content: string): NoteReference[] {
     const noteMatch = NOTE_REFERENCE_PATTERN.exec(inner)
     const reference: NoteReference = noteMatch
       ? { type: 'note', noteId: Number(noteMatch[1]), raw: match[0] }
-      : { type: 'taskKey', normalizedKey: normalizeTaskKey(inner), raw: match[0] }
+      : { type: 'taskKey', normalizedKey: normalizeForComparison(inner), raw: match[0] }
     const identity = reference.type === 'note' ? `note:${reference.noteId}` : `taskKey:${reference.normalizedKey}`
     if (seen.has(identity)) continue
     seen.add(identity)
@@ -127,7 +131,7 @@ export function mentionsNote(content: string, noteId: number): boolean {
 
 /** True when `content` has a `[[<key>]]` reference to exactly this key (case-insensitive) */
 export function mentionsTaskKey(content: string, key: string): boolean {
-  const normalizedKey = normalizeTaskKey(key)
+  const normalizedKey = normalizeForComparison(key)
   return parseNoteReferences(content).some(reference => reference.type === 'taskKey' && reference.normalizedKey === normalizedKey)
 }
 

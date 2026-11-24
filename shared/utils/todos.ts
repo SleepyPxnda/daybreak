@@ -24,10 +24,10 @@ export interface TodoBasis {
   createdAt: string
 }
 
-/** Next day that lies `n` regular workdays (excluding weekends/holidays) after the given date. */
-export function addWorkdays(date: IsoDate, n: number, settings: TargetSettings): IsoDate {
+/** Next day that lies `workdayCount` regular workdays (excluding weekends/holidays) after the given date. */
+export function addWorkdays(date: IsoDate, workdayCount: number, settings: TargetSettings): IsoDate {
   let d = date
-  let carryover = n
+  let carryover = workdayCount
   while (carryover > 0) {
     d = addDays(d, 1)
     if (dayInfo(d, undefined, settings).isWorkday) carryover--

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { format } from 'date-fns'
 import { ChevronRight, Plus } from '@lucide/vue'
-import { groupNotesByKind, NOTE_KINDS } from '#shared/utils/notes'
+import { groupNotesByKind, noteKindLabels } from '#shared/utils/notes'
 import type { NoteKind } from '#shared/utils/notes'
 import NoteKindMarker from '~/components/notes/NoteKindMarker.vue'
 
@@ -31,8 +31,8 @@ function toggle(noteId: number) {
   openNoteIds.value = next
 }
 
-const emptyText = (kind: NoteKind) => `Noch keine ${NOTE_KINDS.find(entry => entry.kind === kind)!.title}.`
-const singularOf = (kind: NoteKind) => NOTE_KINDS.find(entry => entry.kind === kind)!.singular
+const emptyText = (kind: NoteKind) => `Noch keine ${noteKindLabels(kind).title}.`
+const singularOf = (kind: NoteKind) => noteKindLabels(kind).singular
 </script>
 
 <template>

@@ -3,6 +3,7 @@ import type { NoteKind } from './notes'
 import type { TodoKind } from './todos'
 import type { IsoDate } from './time'
 import { isIsoDate, addDays, GRID_MIN, DAY_MIN, weekday } from './time'
+import { normalizeForComparison } from './text'
 
 // Quick input - pure parser, writes nothing.
 // Book/plan time, breaks, reminders (t), daily topics (d), waiting-for (w), notes (n).
@@ -85,7 +86,7 @@ const TODO_PREFIXES: Record<string, TodoKind> = { t: 'reminder', d: 'daily_topic
 function parseTodo(todoKind: TodoKind, words: string[], today: IsoDate): QuickInputTodo | { type: 'error', message: string } {
   let carryover = words
   let cutoffDate: IsoDate | undefined
-  if (todoKind !== 'daily_topic' && carryover.length >= 3 && norm(carryover.at(-2)!) === 'bis') {
+  if (todoKind !== 'daily_topic' && carryover.length >= 3 && normalizeForComparison(carryover.at(-2)!) === 'bis') {
     cutoffDate = parseDateToken(carryover.at(-1)!, today, 'forward')
     if (cutoffDate) carryover = carryover.slice(0, -2)
   }
@@ -105,16 +106,14 @@ function parseTodo(todoKind: TodoKind, words: string[], today: IsoDate): QuickIn
 
 const WEEKDAYS: Record<string, number> = { mo: 1, di: 2, mi: 3, do: 4, fr: 5, sa: 6, so: 7 }
 
-const norm = (s: string) => s.toLocaleLowerCase('de')
-
 /** '2h', '1.5h', '1,5h', '1h30', '45m', '90m' -> minutes; undefined if not a duration token */
 export function parseDuration(token: string): number | undefined {
-  const t = norm(token)
-  let m = /^(\d+(?:[.,]\d+)?)h$/.exec(t)
+  const normalizedToken = normalizeForComparison(token)
+  let m = /^(\d+(?:[.,]\d+)?)h$/.exec(normalizedToken)
   if (m) return Math.round(Number(m[1]!.replace(',', '.')) * 60)
-  m = /^(\d+)h(\d{1,2})m?$/.exec(t)
+  m = /^(\d+)h(\d{1,2})m?$/.exec(normalizedToken)
   if (m) return Number(m[1]) * 60 + Number(m[2])
-  m = /^(\d+)m(?:in)?$/.exec(t)
+  m = /^(\d+)m(?:in)?$/.exec(normalizedToken)
   if (m) return Number(m[1])
   return undefined
 }
@@ -131,30 +130,30 @@ export function parseTimeRange(token: string): { start: number, end: number } | 
 
 /** Date token relative to today; for planned blocks weekdays point forward, for booked ones backward. */
 export function parseDateToken(token: string, today: IsoDate, direction: 'forward' | 'backward'): IsoDate | undefined {
-  const t = norm(token)
-  if (t === 'heute') return today
-  if (t === 'morgen') return addDays(today, 1)
-  if (t === 'übermorgen' || t === 'uebermorgen') return addDays(today, 2)
-  if (t === 'gestern') return addDays(today, -1)
-  if (isIsoDate(t)) return t
-  const assignment = WEEKDAYS[t]
-  if (assignment === undefined) return undefined
+  const normalizedToken = normalizeForComparison(token)
+  if (normalizedToken === 'heute') return today
+  if (normalizedToken === 'morgen') return addDays(today, 1)
+  if (normalizedToken === 'übermorgen' || normalizedToken === 'uebermorgen') return addDays(today, 2)
+  if (normalizedToken === 'gestern') return addDays(today, -1)
+  if (isIsoDate(normalizedToken)) return normalizedToken
+  const targetWeekday = WEEKDAYS[normalizedToken]
+  if (targetWeekday === undefined) return undefined
   const current = weekday(today)
-  if (direction === 'forward') return addDays(today, ((assignment - current + 6) % 7) + 1) // 1...7 days forward
-  return addDays(today, -((current - assignment + 7) % 7)) // 0...6 days back
+  if (direction === 'forward') return addDays(today, ((targetWeekday - current + 6) % 7) + 1) // 1...7 days forward
+  return addDays(today, -((current - targetWeekday + 7) % 7)) // 0...6 days back
 }
 
 function titleMatches(query: string[], title: string): boolean {
-  const t = norm(title)
-  return query.every(word => t.includes(norm(word)))
+  const normalizedTitle = normalizeForComparison(title)
+  return query.every(word => normalizedTitle.includes(normalizeForComparison(word)))
 }
 
 /** Longest word prefix of the words that matches at least one candidate. */
-function fuzzyPrefix<T>(words: string[], candidates: T[], text: (k: T) => string, onlyFull = false) {
-  for (let n = words.length; n >= (onlyFull ? words.length : 1); n--) {
-    const query = words.slice(0, n)
-    const hit = candidates.filter(k => titleMatches(query, text(k)))
-    if (hit.length > 0) return { hit, carryover: words.slice(n) }
+function fuzzyPrefix<T>(words: string[], candidates: T[], text: (candidate: T) => string, onlyFull = false) {
+  for (let prefixLength = words.length; prefixLength >= (onlyFull ? words.length : 1); prefixLength--) {
+    const query = words.slice(0, prefixLength)
+    const hit = candidates.filter(candidate => titleMatches(query, text(candidate)))
+    if (hit.length > 0) return { hit, carryover: words.slice(prefixLength) }
   }
   return undefined
 }
@@ -162,13 +161,13 @@ function fuzzyPrefix<T>(words: string[], candidates: T[], text: (k: T) => string
 const noteFrom = (words: string[]) => (words.length ? words.join(' ') : undefined)
 
 function findAccount(name: string, accounts: QuickInputAccount[]): QuickInputAccount[] {
-  const n = norm(name)
-  const active = accounts.filter(k => k.status === 'active')
-  const perAlias = active.filter(k => k.aliases.some(a => norm(a) === n))
+  const normalizedName = normalizeForComparison(name)
+  const active = accounts.filter(account => account.status === 'active')
+  const perAlias = active.filter(account => account.aliases.some(alias => normalizeForComparison(alias) === normalizedName))
   if (perAlias.length) return perAlias
-  const exact = active.filter(k => norm(k.name) === n)
+  const exact = active.filter(account => normalizeForComparison(account.name) === normalizedName)
   if (exact.length) return exact
-  return active.filter(k => norm(k.name).includes(n))
+  return active.filter(account => normalizeForComparison(account.name).includes(normalizedName))
 }
 
 type AssignmentResult = { assignment?: QuickInputAssignment, candidates?: QuickInputAssignment[], note?: string } | { error: string }
@@ -178,10 +177,10 @@ function detectAssignment(words: string[], atAccount: QuickInputAccount | undefi
   const [first, ...after] = words
 
   if (first) {
-    const perKey = ctx.tasks.find(a => a.key && norm(a.key) === norm(first))
+    const perKey = ctx.tasks.find(a => a.key && normalizeForComparison(a.key) === normalizeForComparison(first))
     if (perKey) return { assignment: { type: 'task', taskId: perKey.id, accountId: perKey.accountId }, note: noteFrom(after) }
 
-    const perAlias = ctx.accounts.find(k => k.status === 'active' && k.aliases.some(a => norm(a) === norm(first)))
+    const perAlias = ctx.accounts.find(account => account.status === 'active' && account.aliases.some(alias => normalizeForComparison(alias) === normalizeForComparison(first)))
     if (perAlias) return { assignment: { type: 'account', accountId: perAlias.id }, note: noteFrom(after) }
   }
 
@@ -198,10 +197,10 @@ function detectAssignment(words: string[], atAccount: QuickInputAccount | undefi
 
   if (atAccount) return { assignment: { type: 'newTask', title: words.join(' '), accountId: atAccount.id } }
 
-  const activeAccounts = ctx.accounts.filter(k => k.status === 'active')
-  const accountHit = fuzzyPrefix(words, activeAccounts, k => k.name)
+  const activeAccounts = ctx.accounts.filter(account => account.status === 'active')
+  const accountHit = fuzzyPrefix(words, activeAccounts, account => account.name)
   if (accountHit) {
-    const assignments = accountHit.hit.map(k => ({ type: 'account' as const, accountId: k.id }))
+    const assignments = accountHit.hit.map(account => ({ type: 'account' as const, accountId: account.id }))
     const note = noteFrom(accountHit.carryover)
     return assignments.length === 1 ? { assignment: assignments[0], note } : { candidates: assignments, note }
   }
@@ -214,18 +213,18 @@ export function parseQuickInput(input: string, ctx: QuickInputContext): QuickInp
   if (!text) return { type: 'empty' }
   let words = text.split(/\s+/)
 
-  const todoKind = TODO_PREFIXES[norm(words[0]!)]
+  const todoKind = TODO_PREFIXES[normalizeForComparison(words[0]!)]
   if (todoKind) return parseTodo(todoKind, words.slice(1), ctx.today)
 
-  if (norm(words[0]!) === 'n') {
+  if (normalizeForComparison(words[0]!) === 'n') {
     const title = words.slice(1).join(' ')
     return title ? { type: 'note', title } : { type: 'error', message: 'Titel fehlt' }
   }
 
-  const noteKind = NOTE_KIND_PREFIXES[norm(words[0]!)]
+  const noteKind = NOTE_KIND_PREFIXES[normalizeForComparison(words[0]!)]
   if (noteKind) {
     const [first, ...after] = words.slice(1)
-    const perKey = first ? ctx.tasks.find(task => task.key && norm(task.key) === norm(first)) : undefined
+    const perKey = first ? ctx.tasks.find(task => task.key && normalizeForComparison(task.key) === normalizeForComparison(first)) : undefined
     if (perKey) return { type: 'note', kind: noteKind, taskId: perKey.id, title: after.join(' ') || perKey.title }
     const title = words.slice(1).join(' ')
     return title ? { type: 'note', kind: noteKind, title } : { type: 'error', message: 'Titel fehlt' }
@@ -233,7 +232,7 @@ export function parseQuickInput(input: string, ctx: QuickInputContext): QuickInp
 
   let kind: BlockKind = 'work'
   let status: BlockStatus = 'booked'
-  const prefix = norm(words[0]!)
+  const prefix = normalizeForComparison(words[0]!)
   if (prefix === 'p') kind = 'break'
   else if (prefix === 'plan') status = 'planned'
   const hasPrefix = kind === 'break' || status === 'planned'

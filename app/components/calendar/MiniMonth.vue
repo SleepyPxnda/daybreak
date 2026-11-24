@@ -37,8 +37,8 @@ const TYPE_CLASSES: Record<string, string> = {
 /** Color by day type (stored on workdays only), holidays outlined, weekend dimmed; today and selection override the category */
 function cssClasses(date: string) {
   const info = props.infos.get(date)
-  const a = props.selection
-  const selected = !!a && date >= a.from && date <= a.to
+  const selection = props.selection
+  const selected = !!selection && date >= selection.from && date <= selection.to
   if (date === todayDate) return ['bg-primary font-medium text-primary-foreground', selected && 'ring-2 ring-primary/50 ring-offset-1 ring-offset-background']
   if (selected) return ['bg-primary/12 text-primary ring-1 ring-primary ring-inset']
   const list: string[] = []
@@ -83,7 +83,7 @@ function hasOverride(date: string) {
     </div>
     <div class="grid grid-cols-7 gap-0.5 text-center font-mono text-xs tabular-nums">
       <span v-for="w in WEEKDAYS" :key="w.nr" class="mb-0.5 text-[11px] text-muted-foreground">{{ w.short.slice(0, 2) }}</span>
-      <span v-for="i in empty" :key="`leer${i}`" />
+      <span v-for="i in empty" :key="`blank-${i}`" />
       <button
         v-for="d in days"
         :key="d"

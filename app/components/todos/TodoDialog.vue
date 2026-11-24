@@ -62,8 +62,8 @@ async function remove() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="a in TODO_KINDS" :key="a.kind" :value="a.kind">
-                {{ a.singular }}
+              <SelectItem v-for="todoKind in TODO_KINDS" :key="todoKind.kind" :value="todoKind.kind">
+                {{ todoKind.singular }}
               </SelectItem>
             </SelectContent>
           </Select>

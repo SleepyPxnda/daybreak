@@ -5,6 +5,9 @@ import { task, account, note } from '../../db/schema'
 import { db } from '../../db/client'
 import { mentionsNote, mentionsTaskKey, noteExcerpt } from '#shared/utils/notes'
 
+/** Maximum number of notes in the list */
+const NOTE_LIST_LIMIT = 300
+
 const querySchema = z.object({
   /** Search over title + content (LIKE is enough for v1) */
   q: z.string().trim().max(100).optional(),
@@ -51,7 +54,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // The account of a note with a task is the task's current account (note.accountId can be stale after the task moved)
-  const rows = await db.select({
+  const notesQuery = db.select({
     id: note.id,
     title: note.title,
     content: note.content,
@@ -71,10 +74,11 @@ export default defineEventHandler(async (event) => {
     .leftJoin(account, eq(account.id, sql`coalesce(${task.accountId}, ${note.accountId})`))
     .where(and(...filter))
     .orderBy(desc(note.pinned), desc(note.updatedAt))
-    .limit(mentionsPredicate ? Number.MAX_SAFE_INTEGER : 300)
-
+    .$dynamic()
   // Mention filters run on the parsed references, so the limit applies after them
-  const matchingRows = mentionsPredicate ? rows.filter(row => mentionsPredicate(row.content)).slice(0, 300) : rows
+  const rows = await (mentionsPredicate ? notesQuery : notesQuery.limit(NOTE_LIST_LIMIT))
+
+  const matchingRows = mentionsPredicate ? rows.filter(row => mentionsPredicate(row.content)).slice(0, NOTE_LIST_LIMIT) : rows
 
   return matchingRows.map(({ content, ...carryover }) => ({
     ...carryover,

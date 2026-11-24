@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { parseDateToken, parseDuration, parseQuickInput, parseTimeRange } from '../shared/utils/quickInput'
 import type { QuickInputContext } from '../shared/utils/quickInput'
+import { normalizeForComparison } from '../shared/utils/text'
 
 // Mon 28 Sep 2026
 const ctx: QuickInputContext = {
@@ -29,6 +30,17 @@ describe('parseDuration', () => {
   it('recognizes non-durations', () => {
     expect(parseDuration('login')).toBeUndefined()
     expect(parseDuration('9:00')).toBeUndefined()
+  })
+
+  it('does not trim: a token with surrounding spaces is no duration', () => {
+    expect(parseDuration(' 1h ')).toBeUndefined()
+  })
+})
+
+describe('normalizeForComparison', () => {
+  it('lowercases with the German locale and keeps surrounding spaces', () => {
+    expect(normalizeForComparison('GB-11 ÄÖÜ')).toBe('gb-11 äöü')
+    expect(normalizeForComparison(' Ab ')).toBe(' ab ')
   })
 })
 

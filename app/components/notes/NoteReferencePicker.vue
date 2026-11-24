@@ -2,7 +2,8 @@
 import { refDebounced } from '@vueuse/core'
 import { ListboxFilter } from 'reka-ui'
 import { Search } from '@lucide/vue'
-import { noteReferenceText, normalizeTaskKey } from '#shared/utils/notes'
+import { noteReferenceText } from '#shared/utils/notes'
+import { normalizeForComparison } from '#shared/utils/text'
 import NoteKindMarker from '~/components/notes/NoteKindMarker.vue'
 
 // "Verweis einfügen": search over notes and open tasks with a key; emits the reference text to insert
@@ -38,13 +39,13 @@ const noteResults = computed(() => (debouncedSearch.value
   : []))
 
 const taskResults = computed(() => {
-  const search = normalizeTaskKey(trimmedSearch.value)
+  const search = normalizeForComparison(trimmedSearch.value)
   if (!search) return []
   return tasks.value
     .filter(entry => entry.status === 'open' && entry.key && !/[[\]]/.test(entry.key))
     .flatMap((entry) => {
       const owner = accounts.value.find(candidate => candidate.id === entry.accountId)
-      return owner?.status === 'active' && (normalizeTaskKey(entry.key!).includes(search) || normalizeTaskKey(entry.title).includes(search))
+      return owner?.status === 'active' && (normalizeForComparison(entry.key!).includes(search) || normalizeForComparison(entry.title).includes(search))
         ? [{ id: entry.id, key: entry.key!, title: entry.title, color: owner.color }]
         : []
     })

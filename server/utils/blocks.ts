@@ -22,14 +22,14 @@ export async function resolveAssignment(input: AssignmentInput, tx: Executor = d
   if (input.kind === 'break') return { taskId: null, accountId: null }
 
   if (input.taskId != null) {
-    const [a] = await tx.select({ accountId: task.accountId }).from(task).where(eq(task.id, input.taskId))
-    if (!a) throw createError({ statusCode: 400, statusMessage: 'Aufgabe existiert nicht' })
-    return { taskId: input.taskId, accountId: a.accountId }
+    const [taskRow] = await tx.select({ accountId: task.accountId }).from(task).where(eq(task.id, input.taskId))
+    if (!taskRow) throw createError({ statusCode: 400, statusMessage: 'Aufgabe existiert nicht' })
+    return { taskId: input.taskId, accountId: taskRow.accountId }
   }
 
   if (input.accountId == null) throw createError({ statusCode: 400, statusMessage: 'Arbeitsblock braucht Aufgabe oder Konto' })
-  const [k] = await tx.select({ id: account.id }).from(account).where(eq(account.id, input.accountId))
-  if (!k) throw createError({ statusCode: 400, statusMessage: 'Konto existiert nicht' })
+  const [accountRow] = await tx.select({ id: account.id }).from(account).where(eq(account.id, input.accountId))
+  if (!accountRow) throw createError({ statusCode: 400, statusMessage: 'Konto existiert nicht' })
   return { taskId: null, accountId: input.accountId }
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groupNotesByKind, groupNotesForList, isContentChange, mentionsNote, mentionsTaskKey, normalizeTags, noteExcerpt, noteReferenceText, NOTE_KINDS, parseNoteReferences } from '../shared/utils/notes'
+import { groupNotesByKind, groupNotesForList, isContentChange, mentionsNote, mentionsTaskKey, normalizeTags, noteExcerpt, noteKindLabels, noteReferenceText, NOTE_KINDS, parseNoteReferences } from '../shared/utils/notes'
 import type { NoteKind, NoteValues } from '../shared/utils/notes'
 
 describe('normalizeTags', () => {
@@ -35,6 +35,16 @@ describe('NOTE_KINDS', () => {
       { kind: 'problem', title: 'Probleme', singular: 'Problem' },
       { kind: 'info', title: 'Infos', singular: 'Info' },
     ])
+  })
+})
+
+describe('noteKindLabels', () => {
+  it('returns the labels of a kind', () => {
+    expect(noteKindLabels('problem')).toEqual({ title: 'Probleme', singular: 'Problem' })
+  })
+
+  it('throws for an unknown kind', () => {
+    expect(() => noteKindLabels('unknown' as NoteKind)).toThrow()
   })
 })
 
@@ -106,6 +116,7 @@ describe('mentionsNote and mentionsTaskKey (AC11, AC12)', () => {
   it('matches the exact token, keys ignoring case', () => {
     expect(mentionsNote('siehe [[#12 Cache]]', 12)).toBe(true)
     expect(mentionsTaskKey('siehe [[gb-114]]', 'GB-114')).toBe(true)
+    expect(mentionsTaskKey('[[gb-11]]', 'GB-11')).toBe(true)
   })
 
   it('does not match prefixes', () => {

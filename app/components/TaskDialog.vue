@@ -16,7 +16,7 @@ const open = defineModel<boolean>('open', { default: false })
 const emit = defineEmits<{ saved: [id: number] }>()
 
 const { data: accounts } = useAccounts()
-const activeAccounts = computed(() => accounts.value.filter(k => k.status === 'active' || k.id === props.task?.accountId))
+const activeAccounts = computed(() => accounts.value.filter(account => account.status === 'active' || account.id === props.task?.accountId))
 
 const selectedAccount = ref<string>('')
 const key = ref('')
@@ -66,9 +66,9 @@ async function save() {
               <SelectValue placeholder="Konto wählen" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="k in activeAccounts" :key="k.id" :value="String(k.id)">
-                <span class="size-2.5 rounded-full" :class="accountColorClasses(k.color).dot" />
-                {{ k.name }}
+              <SelectItem v-for="account in activeAccounts" :key="account.id" :value="String(account.id)">
+                <span class="size-2.5 rounded-full" :class="accountColorClasses(account.color).dot" />
+                {{ account.name }}
               </SelectItem>
             </SelectContent>
           </Select>

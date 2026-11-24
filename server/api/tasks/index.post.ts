@@ -4,8 +4,8 @@ import { db } from '../../db/client'
 
 export default defineEventHandler(async (event) => {
   const data = await readValidatedBody(event, taskCreateSchema.parse)
-  const [k] = await db.select({ id: account.id }).from(account).where(eq(account.id, data.accountId))
-  if (!k) throw createError({ statusCode: 400, statusMessage: 'Konto existiert nicht' })
+  const [accountRow] = await db.select({ id: account.id }).from(account).where(eq(account.id, data.accountId))
+  if (!accountRow) throw createError({ statusCode: 400, statusMessage: 'Konto existiert nicht' })
   try {
     const [created] = await db.insert(task).values({
       ...data,

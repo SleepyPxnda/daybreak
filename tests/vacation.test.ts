@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { DayEntry } from '../shared/utils/target'
 import { dayInfo } from '../shared/utils/target'
 import type { HandedOnEntitlement } from '../shared/utils/vacation'
-import { allocateVacationDays, yearDays, nextVacation, vacationBalance, vacationDays, vacationPrefill, vacationWindowText } from '../shared/utils/vacation'
+import { allocateVacationDays, passesToNextYear, yearDays, nextVacation, vacationBalance, vacationDays, vacationPrefill, vacationWindowText } from '../shared/utils/vacation'
 
 const E = { targetPerDayMin: 480, workdays: [1, 2, 3, 4, 5], federalState: 'BW' }
 
@@ -179,6 +179,31 @@ describe('allocateVacationDays', () => {
   it('a half vacation day uses 0.5', () => {
     expect(allocateVacationDays(2026, [summer], [], { '2026-05-04': 0.5 }).usedOwn).toEqual([0.5])
   })
+
+  it('walks the days in date order, whatever order the record lists them in', () => {
+    const october = { days: 1, validFrom: '2026-10-01', validUntil: '2026-10-31' }
+    const fromSixthOfOctober = { days: 1, validFrom: '2026-10-06' }
+    // Inserted out of order: without the date sort the 6th would take the October entry and the 5th would fall to the pool
+    const { usedOwn } = allocateVacationDays(2026, [october, fromSixthOfOctober], [], { '2026-10-06': 1, '2026-10-05': 1 })
+    expect(usedOwn).toEqual([1, 1])
+  })
+})
+
+describe('passesToNextYear', () => {
+  const winterEntry = { days: 2, validFrom: '2026-10-01', validUntil: '2027-03-31' }
+
+  it('is true for a limited entry that ends after the year and has days left', () => {
+    expect(passesToNextYear(2026, winterEntry, 1)).toBe(true)
+  })
+
+  it('is false without days left', () => {
+    expect(passesToNextYear(2026, winterEntry, 0)).toBe(false)
+  })
+
+  it('is false for an unlimited entry and for an entry ending on 31 Dec', () => {
+    expect(passesToNextYear(2026, { days: 32 }, 5)).toBe(false)
+    expect(passesToNextYear(2026, { days: 2, validFrom: '2026-04-01', validUntil: '2026-12-31' }, 1)).toBe(false)
+  })
 })
 
 describe('vacationBalance with validity windows', () => {
@@ -186,7 +211,7 @@ describe('vacationBalance with validity windows', () => {
   const winter = { kind: 'extra' as const, label: 'Sonderurlaub WS 26/27', days: 2, validFrom: '2026-10-01', validUntil: '2027-03-31' }
   const summer = { kind: 'extra' as const, label: 'Sonderurlaub SS 27', days: 2, validFrom: '2027-04-01', validUntil: '2027-09-30' }
 
-  it('weekend and holiday days use nothing, planned days allocate after taken days', () => {
+  it('weekend and holiday days use nothing, taken and planned days both count', () => {
     const entry = { days: 2, validFrom: '2026-10-01', validUntil: '2026-12-31' }
     const days = vacationOn('2026-10-03', '2026-10-05', '2026-10-06', '2026-10-07') // Sat, then Mon-Wed
     const balance = vacationBalance(2026, [entry], days, '2026-10-05', E)
@@ -257,6 +282,13 @@ describe('vacationBalance with validity windows', () => {
     const next = vacationBalance(2027, [{ days: 30 }], {}, '2027-01-02', E, [handedOnWinter(1)])
     expect(next.carryover).toBe(31)
     expect(next.carryoverToNextYear).toBe(30)
+  })
+})
+
+describe('vacationBalance fail-fast', () => {
+  it('throws when an entry to hand on has no kind or label', () => {
+    const entryWithoutKindAndLabel = { days: 2, validFrom: '2026-10-01', validUntil: '2027-03-31' }
+    expect(() => vacationBalance(2026, [entryWithoutKindAndLabel], {}, '2026-06-01', E)).toThrow()
   })
 })
 

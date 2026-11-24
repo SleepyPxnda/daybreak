@@ -202,23 +202,23 @@ function dateText(iso: string) {
             {{ section.title }}
           </h2>
           <NuxtLink
-            v-for="n in section.notes"
-            :key="n.id"
-            :to="{ query: { ...route.query, id: n.id } }"
+            v-for="note in section.notes"
+            :key="note.id"
+            :to="{ query: { ...route.query, id: note.id } }"
             class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-1 rounded-md px-3 py-2"
-            :class="n.id === selectedId ? 'bg-muted' : 'hover:bg-raised'"
-            :aria-current="n.id === selectedId ? 'page' : undefined"
+            :class="note.id === selectedId ? 'bg-muted' : 'hover:bg-raised'"
+            :aria-current="note.id === selectedId ? 'page' : undefined"
           >
             <div class="flex min-w-0 items-center gap-1.5 text-sm font-semibold">
-              <NoteKindMarker v-if="n.kind" :kind="n.kind" />
+              <NoteKindMarker v-if="note.kind" :kind="note.kind" />
               <span v-else class="size-3.5 shrink-0" aria-hidden="true" />
-              <span class="fade-end min-w-0 flex-1" :title="n.title">{{ n.title }}</span>
-              <span class="shrink-0 font-mono text-[11px] font-normal text-muted-foreground">{{ dateText(n.updatedAt) }}</span>
+              <span class="fade-end min-w-0 flex-1" :title="note.title">{{ note.title }}</span>
+              <span class="shrink-0 font-mono text-[11px] font-normal text-muted-foreground">{{ dateText(note.updatedAt) }}</span>
             </div>
-            <div v-if="n.taskTitle || n.accountName || n.excerpt" class="flex min-w-0 items-center gap-1.5 text-[13px] leading-[18px] text-muted-foreground">
-              <TaskKey v-if="n.taskKey" :value="n.taskKey" :color="n.accountColor" />
-              <span v-else-if="n.taskTitle || n.accountName" class="size-2 shrink-0 rounded-full" :class="accountColorClasses(n.accountColor).dot" />
-              <span v-if="n.excerpt" class="fade-end min-w-0 flex-1">{{ n.excerpt }}</span>
+            <div v-if="note.taskTitle || note.accountName || note.excerpt" class="flex min-w-0 items-center gap-1.5 text-[13px] leading-[18px] text-muted-foreground">
+              <TaskKey v-if="note.taskKey" :value="note.taskKey" :color="note.accountColor" />
+              <span v-else-if="note.taskTitle || note.accountName" class="size-2 shrink-0 rounded-full" :class="accountColorClasses(note.accountColor).dot" />
+              <span v-if="note.excerpt" class="fade-end min-w-0 flex-1">{{ note.excerpt }}</span>
             </div>
           </NuxtLink>
         </section>
