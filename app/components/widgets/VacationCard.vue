@@ -42,8 +42,8 @@ const entitlementLines = computed<EntitlementLine[]>(() => {
       status: limited ? limitedStatus(entry, entry.passesToNextYear) : null,
     }
   })
-  const handedOn = vacation.value.handedOnEntitlements.map(entry => ({
-    key: `handedOn:${entry.fromYear}:${entry.label}:${entry.validFrom}`,
+  const handedOn = vacation.value.handedOnEntitlements.map((entry, entryIndex) => ({
+    key: `handedOn:${entry.fromYear}:${entry.label}:${entry.validFrom}:${entryIndex}`,
     label: entry.label,
     handedOnFromYear: entry.fromYear,
     kind: entry.kind,
