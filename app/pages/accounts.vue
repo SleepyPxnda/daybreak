@@ -21,6 +21,7 @@ const draggedAccountId = ref<number | null>(null)
 /** Landing position among the active rows (0 = before the first row, length = after the last row) */
 const dropIndex = ref<number | null>(null)
 const draggedRowHeight = ref(0)
+let pendingDragFrame: number | null = null
 
 function dragStart(event: DragEvent, accountId: number, index: number) {
   const row = (event.currentTarget as HTMLElement).parentElement
@@ -31,7 +32,8 @@ function dragStart(event: DragEvent, accountId: number, index: number) {
   event.dataTransfer.effectAllowed = 'move'
   draggedRowHeight.value = rowBox.height
   // Collapse the row only after the browser has captured the drag image; it must stay mounted so `dragend` fires
-  requestAnimationFrame(() => {
+  pendingDragFrame = requestAnimationFrame(() => {
+    pendingDragFrame = null
     draggedAccountId.value = accountId
     dropIndex.value = index
   })
@@ -44,7 +46,15 @@ function dragOverRow(event: DragEvent, index: number) {
   dropIndex.value = event.clientY < rowBox.top + rowBox.height / 2 ? index : index + 1
 }
 
+// The list container is the only drop target, so a release in a gap or the padding still lands at the slot
+function dragOverList(event: DragEvent) {
+  if (draggedAccountId.value === null) return
+  event.preventDefault()
+}
+
 function dragEnd() {
+  if (pendingDragFrame !== null) cancelAnimationFrame(pendingDragFrame)
+  pendingDragFrame = null
   draggedAccountId.value = null
   dropIndex.value = null
 }
@@ -108,17 +118,17 @@ function select(id: number) {
           <Plus /> Neu
         </Button>
       </CardHeader>
-      <div class="grid gap-0.5 p-2">
+      <div class="grid gap-0.5 p-2" @dragover="dragOverList" @drop="drop">
         <template v-for="(account, index) in activeAccounts" :key="account.id">
-          <div v-if="draggedAccountId !== null && dropIndex === index" class="rounded-md border border-dashed border-line-strong" :style="{ height: `${draggedRowHeight}px` }" @dragover.prevent @drop="drop" />
+          <div v-if="draggedAccountId !== null && dropIndex === index" class="rounded-md border border-dashed border-line-strong" :style="{ height: `${draggedRowHeight}px` }" />
           <div
             class="flex items-center rounded-md pl-1"
             :class="[account.id === selectedId ? 'bg-muted' : 'hover:bg-raised', { hidden: draggedAccountId === account.id }]"
             @dragover="dragOverRow($event, index)"
-            @drop="drop"
           >
             <span
               class="grid size-6 shrink-0 cursor-grab place-items-center text-line-strong hover:text-muted-foreground"
+              role="img"
               draggable="true"
               title="Ziehen zum Sortieren"
               aria-label="Ziehen zum Sortieren"
@@ -141,7 +151,7 @@ function select(id: number) {
             </button>
           </div>
         </template>
-        <div v-if="draggedAccountId !== null && dropIndex === activeAccounts.length" class="rounded-md border border-dashed border-line-strong" :style="{ height: `${draggedRowHeight}px` }" @dragover.prevent @drop="drop" />
+        <div v-if="draggedAccountId !== null && dropIndex === activeAccounts.length" class="rounded-md border border-dashed border-line-strong" :style="{ height: `${draggedRowHeight}px` }" />
         <div
           v-for="account in archivedAccounts"
           :key="account.id"

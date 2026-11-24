@@ -57,6 +57,15 @@ const isSettled = computed(() => debouncedSearch.value === trimmedSearch.value &
 const hasQuery = computed(() => !!trimmedSearch.value)
 const hasNothingFound = computed(() => hasQuery.value && isSettled.value && !noteResults.value.length && !taskResults.value.length)
 
+// Notes arrive after tasks: whenever the listed results change, the first listed result is highlighted again.
+// The filter highlights the first item on every input event, so we replay one after the list has rendered.
+const filterInput = useTemplateRef<{ $el: HTMLInputElement }>('filterInput')
+const listedResultIds = computed(() => [...noteResults.value.map(entry => `note-${entry.id}`), ...taskResults.value.map(entry => `task-${entry.id}`)].join())
+watch(listedResultIds, async () => {
+  await nextTick()
+  filterInput.value?.$el.dispatchEvent(new Event('input', { bubbles: true }))
+})
+
 function choose(referenceText: string) {
   emit('select', referenceText)
   open.value = false
@@ -69,6 +78,7 @@ function choose(referenceText: string) {
       <div class="flex h-9 items-center gap-2 rounded-md border border-input bg-raised px-2.5">
         <Search class="size-4 shrink-0 text-muted-foreground" />
         <ListboxFilter
+          ref="filterInput"
           v-model="searchText"
           auto-focus
           placeholder="Notiz oder Aufgabe suchen …"

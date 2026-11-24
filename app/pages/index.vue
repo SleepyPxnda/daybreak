@@ -65,11 +65,14 @@ async function copyYesterday() {
 
 const closing = ref(false)
 // Clicking the end-of-day notification opens the day closing via ?dayClosing=1
-watch(() => route.query.dayClosing, (value) => {
-  if (value === undefined) return
+// Client only: during SSR the navigation would become a redirect and the opened state would be lost
+function openDayClosingFromQuery() {
+  if (route.query.dayClosing === undefined) return
   closing.value = true
   navigateTo({ query: {} }, { replace: true })
-}, { immediate: true })
+}
+onMounted(openDayClosingFromQuery)
+watch(() => route.query.dayClosing, openDayClosingFromQuery)
 </script>
 
 <template>

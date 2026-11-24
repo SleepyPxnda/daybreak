@@ -142,7 +142,7 @@ const hasCarryoverEntitlement = computed(() => vacation.value?.entitlements.some
           <Trash2 />
         </Button>
       </div>
-      <div v-for="handedOn in vacation.handedOnEntitlements" :key="`${handedOn.fromYear}:${handedOn.label}:${handedOn.validFrom}`" class="grid min-h-12 grid-cols-[7rem_minmax(0,1fr)_8rem_9.5rem_9.5rem_2rem] items-center gap-2 border-b px-4 py-1.5 text-sm">
+      <div v-for="(handedOn, index) in vacation.handedOnEntitlements" :key="`${index}:${handedOn.fromYear}:${handedOn.label}:${handedOn.validFrom}`" class="grid min-h-12 grid-cols-[7rem_minmax(0,1fr)_8rem_9.5rem_9.5rem_2rem] items-center gap-2 border-b px-4 py-1.5 text-sm">
         <span class="text-muted-foreground">{{ KIND_LABELS[handedOn.kind] }}</span>
         <span class="truncate">{{ handedOn.label }} (aus {{ handedOn.fromYear }})</span>
         <span class="pr-3 text-right font-mono tabular-nums">{{ number(handedOn.days) }}</span>

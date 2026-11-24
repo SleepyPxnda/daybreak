@@ -47,6 +47,11 @@ const offeredAccounts = computed(() => accounts.value.filter(entry => entry.stat
 const isChosenAccountArchived = computed(() => !!chosenAccount.value && chosenAccount.value.status !== 'active')
 
 // The account name fades out only when it is really cut off, so short names are not dimmed
+const tagNameElement = useTemplateRef<HTMLElement>('tagNameElement')
+const isTagNameCutOff = ref(false)
+useResizeObserver(tagNameElement, () => {
+  if (tagNameElement.value) isTagNameCutOff.value = tagNameElement.value.scrollWidth > tagNameElement.value.clientWidth
+})
 const accountNameElement = useTemplateRef<HTMLElement>('accountNameElement')
 const isAccountNameCutOff = ref(false)
 useResizeObserver(accountNameElement, () => {
@@ -77,7 +82,7 @@ function selectTag(chosenTag: string) {
 }
 
 function createNote(extra: { kind?: NoteKind }) {
-  return newNote('Neue Notiz', { ...extra, accountId: accountId.value }, listQuery.value)
+  return newNote('Neue Notiz', { ...extra, accountId: chosenAccount.value?.id }, listQuery.value)
 }
 
 function dateText(iso: string) {
@@ -147,7 +152,7 @@ function dateText(iso: string) {
             </SelectItem>
             <SelectItem v-for="entry in offeredAccounts" :key="entry.id" :value="String(entry.id)" :title="entry.name" class="*:[span]:last:min-w-0 *:[span]:last:gap-2">
               <span class="size-2 shrink-0 rounded-full" :class="accountColorClasses(entry.color).dot" />
-              <span class="min-w-0 truncate">{{ entry.name }}</span>
+              <span class="fade-end min-w-0 flex-1">{{ entry.name }}</span>
               <span v-if="entry.status !== 'active'" class="shrink-0 text-xs text-muted-foreground">archiviert</span>
             </SelectItem>
           </SelectContent>
@@ -160,9 +165,8 @@ function dateText(iso: string) {
                 type="button"
                 class="inline-flex h-[26px] min-w-0 items-center rounded-md border px-2.5 text-xs transition-colors"
                 :class="tag ? 'border-transparent bg-primary/12 text-primary' : 'border-input bg-raised text-muted-foreground hover:bg-muted hover:text-foreground'"
-                aria-haspopup="listbox"
               >
-                <span class="max-w-[11rem] min-w-0 truncate">{{ tag ? `#${tag}` : 'Tag' }}</span>
+                <span ref="tagNameElement" class="max-w-[11rem] min-w-0 overflow-hidden whitespace-nowrap" :class="{ 'fade-end': isTagNameCutOff }" :title="tag ? `#${tag}` : undefined">{{ tag ? `#${tag}` : 'Tag' }}</span>
               </button>
             </PopoverTrigger>
             <PopoverContent align="start" class="w-64 p-0">
@@ -172,7 +176,7 @@ function dateText(iso: string) {
                   <CommandEmpty>Kein Tag gefunden.</CommandEmpty>
                   <CommandGroup>
                     <CommandItem v-for="entry in tags" :key="entry.tag" :value="entry.tag" @select="selectTag(entry.tag)">
-                      <span class="min-w-0 truncate">#{{ entry.tag }}</span>
+                      <span class="fade-end min-w-0 flex-1" :title="`#${entry.tag}`">#{{ entry.tag }}</span>
                       <span class="ml-auto shrink-0 font-mono text-xs text-muted-foreground">{{ entry.count }}</span>
                     </CommandItem>
                   </CommandGroup>
