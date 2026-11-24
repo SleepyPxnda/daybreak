@@ -52,4 +52,3 @@ No changes. Only CSS tokens in `app/assets/css/main.css` are new:
 - **Light mode.** The brand provides "light" as an alternative; v1 stays dark.
 - **Account colors in the brand tone.** The pastel tones could move closer to the brand tones. This needs coordination, because the accents of other tools are reserved.
 - **Calendar, blocker plus category.** A day with a blocker and vacation at once has not been visually checked separately.
-- **Today, day closing via link.** `/?dayClosing=1` did not open the day-closing sheet in the test. The logic behind it is unchanged; whether it was already like this before has not been checked.
