@@ -113,7 +113,7 @@ export function allocateVacationDays(
   const candidates: Candidate[] = [
     ...handedOn.map((entry, order) => ({ used: 0, days: entry.days, from: entry.validFrom, until: entry.validUntil, isHandedOn: true, order })),
     ...entitlements.flatMap((entry, order) => isLimited(entry)
-      ? [{ used: 0, days: entry.days, isHandedOn: false, order, ...windowBounds(year, entry) }]
+      ? [{ used: 0, days: entry.days, isHandedOn: false, order, ...effectiveVacationWindow(year, entry.validFrom, entry.validUntil) }]
       : []),
   ]
   const priority = [...candidates].sort((left, right) =>
@@ -137,9 +137,9 @@ export function allocateVacationDays(
   return { usedOwn, usedHandedOn }
 }
 
-function windowBounds(year: number, entry: WindowedEntitlement) {
-  const { from, until } = effectiveVacationWindow(year, entry.validFrom, entry.validUntil)
-  return { from, until }
+/** A limited entry whose effective window ends after 31 Dec of `year` and that has days left hands them on to the next year. */
+export function passesToNextYear(year: number, entry: WindowedEntitlement, remaining: number): boolean {
+  return isLimited(entry) && effectiveVacationWindow(year, entry.validFrom, entry.validUntil).until > `${year}-12-31` && remaining > 0
 }
 
 /** Vacation balance of one year from entries, stored days and what the previous year handed on. */
@@ -182,10 +182,11 @@ export function vacationBalance(
   const carryover = entitlement - taken - planned - forfeited
 
   const passedToNextYear: HandedOnEntitlement[] = entitlements.flatMap((entry, index) => {
-    const { from, until } = effectiveVacationWindow(year, entry.validFrom, entry.validUntil)
     const remaining = entitlementUsage[index]!.remaining
-    if (!isLimited(entry) || until <= yearEnd || remaining <= 0) return []
-    return [{ fromYear: year, label: entry.label ?? '', kind: entry.kind ?? 'extra', days: remaining, validFrom: from, validUntil: until }]
+    if (!passesToNextYear(year, entry, remaining)) return []
+    if (entry.kind === undefined || entry.label === undefined) throw new Error('A vacation entitlement handed on to the next year needs a kind and a label')
+    const { from, until } = effectiveVacationWindow(year, entry.validFrom, entry.validUntil)
+    return [{ fromYear: year, label: entry.label, kind: entry.kind, days: remaining, validFrom: from, validUntil: until }]
   })
 
   return {

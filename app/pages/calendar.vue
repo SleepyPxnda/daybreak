@@ -55,15 +55,15 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 })
 
 const selectionText = computed(() => {
-  const a = selection.value
-  if (!a) return ''
+  const currentSelection = selection.value
+  if (!currentSelection) return ''
   const f = (d: string) => format(toDate(d), 'EEE d. MMM', { locale: de })
-  return a.from === a.to ? f(a.from) : `${f(a.from)} – ${f(a.to)}`
+  return currentSelection.from === currentSelection.to ? f(currentSelection.from) : `${f(currentSelection.from)} – ${f(currentSelection.to)}`
 })
 const workdaysSelection = computed(() => {
-  const a = selection.value
-  if (!a) return []
-  return dateRange(a.from, a.to).filter(d => infos.value.get(d)?.isWorkday)
+  const currentSelection = selection.value
+  if (!currentSelection) return []
+  return dateRange(currentSelection.from, currentSelection.to).filter(d => infos.value.get(d)?.isWorkday)
 })
 const workdaysInSelection = computed(() => workdaysSelection.value.length)
 // Blocker: hint not to take vacation here - separate switch, independent of the day type
@@ -71,9 +71,9 @@ const blockerInSelection = computed(() => workdaysSelection.value.filter(d => in
 const allBlocked = computed(() => workdaysInSelection.value > 0 && blockerInSelection.value === workdaysInSelection.value)
 
 async function setBlocker() {
-  const a = selection.value
-  if (!a) return
-  const ok = await runAction(() => api('/api/days/range', { method: 'PUT', body: { ...a, blocker: !allBlocked.value } }), DAY_KEYS)
+  const currentSelection = selection.value
+  if (!currentSelection) return
+  const ok = await runAction(() => api('/api/days/range', { method: 'PUT', body: { ...currentSelection, blocker: !allBlocked.value } }), DAY_KEYS)
   if (ok) selection.value = null
 }
 
@@ -86,9 +86,9 @@ const TYPES: { type: DayType, label: string }[] = [
 ]
 
 async function set(type: DayType) {
-  const a = selection.value
-  if (!a) return
-  const ok = await runAction(() => api('/api/days/range', { method: 'PUT', body: { ...a, type } }), DAY_KEYS)
+  const currentSelection = selection.value
+  if (!currentSelection) return
+  const ok = await runAction(() => api('/api/days/range', { method: 'PUT', body: { ...currentSelection, type } }), DAY_KEYS)
   if (ok) selection.value = null
 }
 </script>

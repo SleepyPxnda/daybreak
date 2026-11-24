@@ -2,7 +2,8 @@
 import { format } from 'date-fns'
 import { useDebounceFn, useEventListener } from '@vueuse/core'
 import { Check, CircleAlert, ExternalLink, Pin, Trash2, X } from '@lucide/vue'
-import { NOTE_KINDS, normalizeTags, normalizeTaskKey, parseNoteReferences } from '#shared/utils/notes'
+import { NOTE_KINDS, noteKindLabels, normalizeTags, parseNoteReferences } from '#shared/utils/notes'
+import { normalizeForComparison } from '#shared/utils/text'
 import type { NoteKind } from '#shared/utils/notes'
 import NoteReferencePicker from '~/components/notes/NoteReferencePicker.vue'
 import NoteReferences from '~/components/notes/NoteReferences.vue'
@@ -76,18 +77,18 @@ async function load(id: number) {
   loaded.value = false
   notFound.value = false
   try {
-    const n = await api<Note>(`/api/notes/${id}`)
+    const loadedNote = await api<Note>(`/api/notes/${id}`)
     if (id !== props.id) return // a late response for a note that is no longer selected
     currentId = id
-    form.title = n.title
-    form.content = n.content
-    form.kind = n.kind
-    form.tagsText = n.tags.map(tag => `#${tag}`).join(' ')
-    form.assignment = assignmentValue(n)
-    form.pinned = n.pinned
-    referenceContent.value = n.content
+    form.title = loadedNote.title
+    form.content = loadedNote.content
+    form.kind = loadedNote.kind
+    form.tagsText = loadedNote.tags.map(tag => `#${tag}`).join(' ')
+    form.assignment = assignmentValue(loadedNote)
+    form.pinned = loadedNote.pinned
+    referenceContent.value = loadedNote.content
     savedState = JSON.stringify(payload())
-    savedAt.value = format(new Date(n.updatedAt), 'dd.MM. HH:mm')
+    savedAt.value = format(new Date(loadedNote.updatedAt), 'dd.MM. HH:mm')
     status.value = 'saved'
     loaded.value = true
   }
@@ -166,7 +167,7 @@ const resolvedReferences = computed<ResolvedNoteReference[]>(() => references.va
     // While the lookup runs, an unknown id is not "not found" yet
     return referencedNotesStatus.value === 'pending' ? [] : [{ type: 'missing', raw: reference.raw }]
   }
-  const referencedTask = tasks.value.find(entry => entry.key && normalizeTaskKey(entry.key) === reference.normalizedKey)
+  const referencedTask = tasks.value.find(entry => entry.key && normalizeForComparison(entry.key) === reference.normalizedKey)
   if (!referencedTask) return [{ type: 'missing', raw: reference.raw }]
   const owner = accounts.value.find(entry => entry.id === referencedTask.accountId)
   return [{
@@ -234,7 +235,7 @@ async function remove() {
           <SelectValue placeholder="Art" class="!flex items-center gap-1.5">
             <template v-if="form.kind">
               <component :is="noteKindLook(form.kind).icon" class="size-4" aria-hidden="true" />
-              {{ NOTE_KINDS.find(entry => entry.kind === form.kind)!.singular }}
+              {{ noteKindLabels(form.kind).singular }}
             </template>
             <span v-else class="text-muted-foreground">Art</span>
           </SelectValue>

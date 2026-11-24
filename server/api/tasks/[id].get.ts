@@ -4,14 +4,14 @@ import { db } from '../../db/client'
 
 export default defineEventHandler(async (event) => {
   const id = await idFromRoute(event)
-  const [a] = await db.select(taskWithSums)
+  const [taskRow] = await db.select(taskWithSums)
     .from(task)
     .leftJoin(block, eq(block.taskId, task.id))
     .where(eq(task.id, id))
     .groupBy(task.id)
-  if (!a) notFound('Aufgabe')
+  if (!taskRow) notFound('Aufgabe')
 
-  const [k] = await db.select().from(account).where(eq(account.id, a.accountId))
+  const [accountRow] = await db.select().from(account).where(eq(account.id, taskRow.accountId))
   const blocks = await db.select().from(block).where(eq(block.taskId, id)).orderBy(asc(block.date), asc(block.start))
-  return { ...a, account: k!, blocks }
+  return { ...taskRow, account: accountRow!, blocks }
 })

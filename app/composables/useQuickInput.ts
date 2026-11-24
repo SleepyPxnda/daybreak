@@ -3,7 +3,7 @@ import { de } from 'date-fns/locale'
 import { toast } from 'vue-sonner'
 import type { QuickInputBlock, QuickInputNote, QuickInputTodo, QuickInputAssignment } from '#shared/utils/quickInput'
 import { parseQuickInput } from '#shared/utils/quickInput'
-import { NOTE_KINDS } from '#shared/utils/notes'
+import { noteKindLabels } from '#shared/utils/notes'
 import { TODO_KINDS } from '#shared/utils/todos'
 
 /** useFetch keys of the todo lists */
@@ -35,11 +35,11 @@ export function useQuickInput(date: MaybeRefOrGetter<string>) {
 
   const accountName = (id: number) => accounts.value.find(k => k.id === id)?.name ?? '?'
 
-  function assignmentText(z: QuickInputAssignment): string {
-    if (z.type === 'account') return accountName(z.accountId)
-    if (z.type === 'newTask') return `neue Aufgabe „${z.title}“ in ${accountName(z.accountId)}`
-    const a = tasks.value.find(x => x.id === z.taskId)
-    return a ? `${a.key ? `${a.key} ` : ''}${a.title} (${accountName(a.accountId)})` : '?'
+  function assignmentText(assignment: QuickInputAssignment): string {
+    if (assignment.type === 'account') return accountName(assignment.accountId)
+    if (assignment.type === 'newTask') return `neue Aufgabe „${assignment.title}“ in ${accountName(assignment.accountId)}`
+    const task = tasks.value.find(entry => entry.id === assignment.taskId)
+    return task ? `${task.key ? `${task.key} ` : ''}${task.title} (${accountName(task.accountId)})` : '?'
   }
 
   function blockPreview(b: QuickInputBlock): string {
@@ -60,7 +60,7 @@ export function useQuickInput(date: MaybeRefOrGetter<string>) {
   }
 
   function notePreview(note: QuickInputNote): string {
-    const kind = note.kind ? NOTE_KINDS.find(entry => entry.kind === note.kind)!.singular : undefined
+    const kind = note.kind ? noteKindLabels(note.kind).singular : undefined
     const linkedTask = note.taskId ? tasks.value.find(entry => entry.id === note.taskId) : undefined
     const taskText = linkedTask ? ` (${linkedTask.key ? `${linkedTask.key} ` : ''}${linkedTask.title})` : ''
     return `Neue ${kind ? `${kind}-Notiz` : 'Notiz'} · ${note.title}${taskText} – öffnet den Editor`

@@ -18,10 +18,10 @@ export default defineEventHandler(async (event) => {
   const [first, second] = split
 
   return db.transaction(async (tx) => {
-    const [a] = await tx.update(block).set({ end: first.end }).where(eq(block.id, id)).returning()
+    const [firstBlock] = await tx.update(block).set({ end: first.end }).where(eq(block.id, id)).returning()
     const { id: _id, createdAt: _createdAt, ...copy } = previous
     // The second part is a normal block - only the first stays the template occurrence
-    const [b] = await tx.insert(block).values({ ...copy, ...second, templateId: null }).returning()
-    return [a!, b!]
+    const [secondBlock] = await tx.insert(block).values({ ...copy, ...second, templateId: null }).returning()
+    return [firstBlock!, secondBlock!]
   })
 })

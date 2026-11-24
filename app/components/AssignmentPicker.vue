@@ -8,17 +8,19 @@ const { data: tasks } = useAllTasks()
 
 // Closed/archived entries only when currently selected (not in suggestions)
 const groups = computed(() => accounts.value
-  .filter(k => k.status === 'active' || value.value === `k:${k.id}` || tasks.value.some(a => a.accountId === k.id && value.value === `a:${a.id}`))
-  .map(k => ({
-    account: k,
-    tasks: tasks.value.filter(a => a.accountId === k.id && (a.status === 'open' || value.value === `a:${a.id}`)),
+  .filter(account => account.status === 'active'
+    || value.value === assignmentValue({ accountId: account.id })
+    || tasks.value.some(task => task.accountId === account.id && value.value === assignmentValue({ taskId: task.id })))
+  .map(account => ({
+    account,
+    tasks: tasks.value.filter(task => task.accountId === account.id && (task.status === 'open' || value.value === assignmentValue({ taskId: task.id }))),
   })))
 
 // Render the display in the trigger itself (Reka otherwise shows only raw text without spacing/color)
 const selection = computed(() => {
   const { taskId, accountId } = assignmentFromValue(value.value)
-  const task = taskId ? tasks.value.find(a => a.id === taskId) : undefined
-  const account = accounts.value.find(k => k.id === (task?.accountId ?? accountId))
+  const task = taskId ? tasks.value.find(task => task.id === taskId) : undefined
+  const account = accounts.value.find(candidate => candidate.id === (task?.accountId ?? accountId))
   return account ? { task, account } : undefined
 })
 </script>
@@ -47,12 +49,12 @@ const selection = computed(() => {
           <span class="size-2.5 rounded-full" :class="accountColorClasses(g.account.color).dot" />
           {{ g.account.name }}
         </SelectLabel>
-        <SelectItem :value="`k:${g.account.id}`">
+        <SelectItem :value="assignmentValue({ accountId: g.account.id })">
           <span class="text-muted-foreground">direkt aufs Konto</span>
         </SelectItem>
-        <SelectItem v-for="a in g.tasks" :key="a.id" :value="`a:${a.id}`" :title="a.title" class="*:[span]:last:min-w-0 *:[span]:last:gap-2">
-          <TaskKey v-if="a.key" :value="a.key" :color="g.account.color" />
-          <span class="min-w-0 truncate">{{ a.title }}</span>
+        <SelectItem v-for="task in g.tasks" :key="task.id" :value="assignmentValue({ taskId: task.id })" :title="task.title" class="*:[span]:last:min-w-0 *:[span]:last:gap-2">
+          <TaskKey v-if="task.key" :value="task.key" :color="g.account.color" />
+          <span class="min-w-0 truncate">{{ task.title }}</span>
         </SelectItem>
       </SelectGroup>
     </SelectContent>

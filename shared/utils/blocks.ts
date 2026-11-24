@@ -17,13 +17,13 @@ export interface BlockBasis extends TimeRange {
   status: BlockStatus
 }
 
-export function duration(z: TimeRange): number {
-  return z.end - z.start
+export function duration(range: TimeRange): number {
+  return range.end - range.start
 }
 
 /** Start < end, within the day, on the 15-minute grid. */
-export function isValidRange(z: TimeRange): boolean {
-  return isOnGrid(z.start) && isOnGrid(z.end) && z.start >= 0 && z.end <= DAY_MIN && z.start < z.end
+export function isValidRange(range: TimeRange): boolean {
+  return isOnGrid(range.start) && isOnGrid(range.end) && range.start >= 0 && range.end <= DAY_MIN && range.start < range.end
 }
 
 export function overlaps(a: TimeRange, b: TimeRange): boolean {
@@ -60,7 +60,7 @@ export function plannedMinutes(blocks: Pick<BlockBasis, 'start' | 'end' | 'kind'
 }
 
 /** Splits a range at `at` (must lie strictly inside and on the grid). */
-export function splitTimeRange(z: TimeRange, at: number): [TimeRange, TimeRange] | undefined {
-  if (!isOnGrid(at) || at <= z.start || at >= z.end) return undefined
-  return [{ start: z.start, end: at }, { start: at, end: z.end }]
+export function splitTimeRange(range: TimeRange, at: number): [TimeRange, TimeRange] | undefined {
+  if (!isOnGrid(at) || at <= range.start || at >= range.end) return undefined
+  return [{ start: range.start, end: at }, { start: at, end: range.end }]
 }

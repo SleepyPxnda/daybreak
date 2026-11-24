@@ -16,9 +16,9 @@ const monthLabel = (month: string, pattern = 'MMM yy') => format(toDate(`${month
 const x = (_: MonthBalance, i: number) => i
 const y = (d: MonthBalance) => d.state / 60
 const xTicks = computed(() => {
-  const n = history.value.length
-  const step = Math.max(1, Math.ceil(n / 6))
-  return history.value.map((_, i) => i).filter(i => (n - 1 - i) % step === 0)
+  const entryCount = history.value.length
+  const step = Math.max(1, Math.ceil(entryCount / 6))
+  return history.value.map((_, i) => i).filter(i => (entryCount - 1 - i) % step === 0)
 })
 const xTick = (i: number) => (history.value[i] ? monthLabel(history.value[i].month) : '')
 const yTick = (h: number) => `${h > 0 ? '+' : ''}${h.toLocaleString('de-DE')} h`

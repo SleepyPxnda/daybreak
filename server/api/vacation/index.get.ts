@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { effectiveVacationWindow } from '#shared/utils/vacation'
+import { passesToNextYear } from '#shared/utils/vacation'
 
 const querySchema = z.object({ year: z.coerce.number().int().min(2000).max(2100) })
 
@@ -14,8 +14,7 @@ export default defineEventHandler(async (event) => {
     entitlements: current.entitlements.map((entitlement, index) => ({
       ...entitlement,
       ...entitlementUsage[index]!,
-      passesToNextYear: entitlementUsage[index]!.remaining > 0
-        && effectiveVacationWindow(year, entitlement.validFrom, entitlement.validUntil).until > `${year}-12-31`,
+      passesToNextYear: passesToNextYear(year, entitlement, entitlementUsage[index]!.remaining),
     })),
     /** Carryover of the previous year without limited remainders, if entries exist there */
     previousYearCarryover: previousYear.entitlements.length ? previousYear.account.carryoverToNextYear : null,

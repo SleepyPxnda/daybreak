@@ -19,13 +19,13 @@ function toggle<T>(amount: Set<T>, value: T) {
   if (amount.has(value)) amount.delete(value)
   else amount.add(value)
 }
-const allTasksOpen = computed(() => !!overview.value?.accounts.every(k => k.tasks.every(a => openTasks.value.has(taskKey(k.accountId, a.taskId)))))
+const allTasksOpen = computed(() => !!overview.value?.accounts.every(account => account.tasks.every(task => openTasks.value.has(taskKey(account.accountId, task.taskId)))))
 function allToggle() {
   const accounts = overview.value?.accounts ?? []
   collapsedAccounts.value = new Set()
   openTasks.value = allTasksOpen.value
     ? new Set()
-    : new Set(accounts.flatMap(k => k.tasks.map(a => taskKey(k.accountId, a.taskId))))
+    : new Set(accounts.flatMap(account => account.tasks.map(task => taskKey(account.accountId, task.taskId))))
 }
 
 const percent = (share: number) => `${Math.round(share * 100)} %`
@@ -78,59 +78,59 @@ const width = (share: number) => ({ width: `${Math.round(share * 100)}%` })
         <span class="text-right">Stunden</span><span>Anteil</span>
       </div>
 
-      <div v-for="k in overview.accounts" :key="k.accountId">
+      <div v-for="account in overview.accounts" :key="account.accountId">
         <button
           type="button"
           class="grid min-h-11 w-full grid-cols-[minmax(0,1fr)_5rem_10rem] items-center gap-4 border-b px-4 text-left hover:bg-raised"
-          :aria-expanded="!collapsedAccounts.has(k.accountId)"
-          @click="toggle(collapsedAccounts, k.accountId)"
+          :aria-expanded="!collapsedAccounts.has(account.accountId)"
+          @click="toggle(collapsedAccounts, account.accountId)"
         >
           <span class="flex min-w-0 items-center gap-2">
-            <ChevronRight class="size-3.5 shrink-0 text-muted-foreground transition-transform" :class="{ 'rotate-90': !collapsedAccounts.has(k.accountId) }" />
-            <span class="size-2 shrink-0 rounded-full" :class="accountColorClasses(k.color).dot" />
-            <span class="truncate font-semibold">{{ k.name }}</span>
+            <ChevronRight class="size-3.5 shrink-0 text-muted-foreground transition-transform" :class="{ 'rotate-90': !collapsedAccounts.has(account.accountId) }" />
+            <span class="size-2 shrink-0 rounded-full" :class="accountColorClasses(account.color).dot" />
+            <span class="truncate font-semibold">{{ account.name }}</span>
           </span>
-          <span class="text-right font-mono tabular-nums">{{ formatDuration(k.minutes) }}</span>
+          <span class="text-right font-mono tabular-nums">{{ formatDuration(account.minutes) }}</span>
           <span class="flex items-center gap-2">
             <span class="h-1 flex-1 overflow-hidden rounded-full bg-muted">
-              <span class="block h-full rounded-full" :class="accountColorClasses(k.color).dot" :style="width(k.share)" />
+              <span class="block h-full rounded-full" :class="accountColorClasses(account.color).dot" :style="width(account.share)" />
             </span>
-            <span class="w-9 text-right font-mono text-xs text-muted-foreground tabular-nums">{{ percent(k.share) }}</span>
+            <span class="w-9 text-right font-mono text-xs text-muted-foreground tabular-nums">{{ percent(account.share) }}</span>
           </span>
         </button>
 
-        <template v-if="!collapsedAccounts.has(k.accountId)">
-          <div v-for="a in k.tasks" :key="taskKey(k.accountId, a.taskId)">
+        <template v-if="!collapsedAccounts.has(account.accountId)">
+          <div v-for="task in account.tasks" :key="taskKey(account.accountId, task.taskId)">
             <div class="grid min-h-11 grid-cols-[minmax(0,1fr)_5rem_10rem] items-center gap-4 border-b bg-card/40 px-4 hover:bg-raised">
               <span class="flex min-w-0 items-center gap-2 pl-6">
                 <button
                   type="button"
                   class="flex min-w-0 items-center gap-2 text-left"
-                  :aria-expanded="openTasks.has(taskKey(k.accountId, a.taskId))"
-                  @click="toggle(openTasks, taskKey(k.accountId, a.taskId))"
+                  :aria-expanded="openTasks.has(taskKey(account.accountId, task.taskId))"
+                  @click="toggle(openTasks, taskKey(account.accountId, task.taskId))"
                 >
-                  <ChevronRight class="size-3.5 shrink-0 text-muted-foreground transition-transform" :class="{ 'rotate-90': openTasks.has(taskKey(k.accountId, a.taskId)) }" />
-                  <span v-if="a.taskId == null" class="truncate text-muted-foreground italic">ohne Aufgabe</span>
+                  <ChevronRight class="size-3.5 shrink-0 text-muted-foreground transition-transform" :class="{ 'rotate-90': openTasks.has(taskKey(account.accountId, task.taskId)) }" />
+                  <span v-if="task.taskId == null" class="truncate text-muted-foreground italic">ohne Aufgabe</span>
                   <template v-else>
-                    <TaskKey v-if="a.key" :value="a.key" />
-                    <span class="truncate" :title="a.title ?? undefined">{{ a.title }}</span>
+                    <TaskKey v-if="task.key" :value="task.key" />
+                    <span class="truncate" :title="task.title ?? undefined">{{ task.title }}</span>
                   </template>
                 </button>
-                <NuxtLink v-if="a.taskId != null" :to="`/tasks/${a.taskId}`" class="shrink-0 text-xs text-muted-foreground hover:text-primary">
+                <NuxtLink v-if="task.taskId != null" :to="`/tasks/${task.taskId}`" class="shrink-0 text-xs text-muted-foreground hover:text-primary">
                   öffnen
                 </NuxtLink>
               </span>
-              <span class="text-right font-mono tabular-nums">{{ formatDuration(a.minutes) }}</span>
+              <span class="text-right font-mono tabular-nums">{{ formatDuration(task.minutes) }}</span>
               <span class="flex items-center gap-2">
                 <span class="h-1 flex-1 overflow-hidden rounded-full bg-muted">
-                  <span class="block h-full rounded-full bg-muted-foreground" :style="width(a.share)" />
+                  <span class="block h-full rounded-full bg-muted-foreground" :style="width(task.share)" />
                 </span>
-                <span class="w-9 text-right font-mono text-xs text-muted-foreground tabular-nums">{{ percent(a.share) }}</span>
+                <span class="w-9 text-right font-mono text-xs text-muted-foreground tabular-nums">{{ percent(task.share) }}</span>
               </span>
             </div>
 
-            <template v-if="openTasks.has(taskKey(k.accountId, a.taskId))">
-              <div v-for="t in a.days" :key="t.date" class="grid min-h-9 grid-cols-[minmax(0,1fr)_5rem_10rem] items-center gap-4 border-b bg-card/40 px-4 text-[13px] text-muted-foreground">
+            <template v-if="openTasks.has(taskKey(account.accountId, task.taskId))">
+              <div v-for="t in task.days" :key="t.date" class="grid min-h-9 grid-cols-[minmax(0,1fr)_5rem_10rem] items-center gap-4 border-b bg-card/40 px-4 text-[13px] text-muted-foreground">
                 <span class="min-w-0 truncate pl-18">
                   <NuxtLink :to="t.date === today() ? '/' : `/?date=${t.date}`" class="text-foreground hover:text-primary">
                     {{ format(toDate(t.date), 'EEE d.M.yyyy', { locale: de }) }}

@@ -94,21 +94,21 @@ const drag = ref<Move | null>(null)
 
 /** Preview range of the current drag */
 const preview = computed<(TimeRange & { id?: number }) | null>(() => {
-  const z = drag.value
-  if (!z) return null
-  if (z.kind === 'pan') return null
-  if (z.kind === 'create') {
-    if (z.current === z.anchor) return null
-    return { start: Math.min(z.anchor, z.current), end: Math.max(z.anchor, z.current) }
+  const currentDrag = drag.value
+  if (!currentDrag) return null
+  if (currentDrag.kind === 'pan') return null
+  if (currentDrag.kind === 'create') {
+    if (currentDrag.current === currentDrag.anchor) return null
+    return { start: Math.min(currentDrag.anchor, currentDrag.current), end: Math.max(currentDrag.anchor, currentDrag.current) }
   }
-  const b = z.block
-  const delta = z.current - z.startMinute
-  if (z.kind === 'move') {
+  const b = currentDrag.block
+  const delta = currentDrag.current - currentDrag.startMinute
+  if (currentDrag.kind === 'move') {
     const duration = b.end - b.start
     const start = Math.min(Math.max(b.start + delta, 0), DAY_MIN - duration)
     return { id: b.id, start, end: start + duration }
   }
-  if (z.kind === 'left') return { id: b.id, start: Math.min(b.start + delta, b.end - GRID_MIN), end: b.end }
+  if (currentDrag.kind === 'left') return { id: b.id, start: Math.min(b.start + delta, b.end - GRID_MIN), end: b.end }
   return { id: b.id, start: b.start, end: Math.max(b.end + delta, b.start + GRID_MIN) }
 })
 
@@ -144,33 +144,33 @@ function blockPointerDown(e: PointerEvent, block: TimelineBlock) {
 }
 
 function pointerMove(e: PointerEvent) {
-  const z = drag.value
-  if (!z) return
-  if (z.kind === 'pan') {
-    const delta = ((z.startX - e.clientX) / track.value!.clientWidth) * (z.startView.to - z.startView.from)
-    view.value = shiftView(z.startView, delta)
+  const currentDrag = drag.value
+  if (!currentDrag) return
+  if (currentDrag.kind === 'pan') {
+    const delta = ((currentDrag.startX - e.clientX) / track.value!.clientWidth) * (currentDrag.startView.to - currentDrag.startView.from)
+    view.value = shiftView(currentDrag.startView, delta)
     return
   }
   const m = minuteAt(e.clientX)
-  if (m === z.current) return
-  z.current = m
-  if (z.kind !== 'create') z.moved = true
+  if (m === currentDrag.current) return
+  currentDrag.current = m
+  if (currentDrag.kind !== 'create') currentDrag.moved = true
 }
 
 function pointerUp() {
-  const z = drag.value
+  const currentDrag = drag.value
   const v = preview.value
   const collides = previewCollides.value
   drag.value = null
-  if (!z || z.kind === 'pan') return
+  if (!currentDrag || currentDrag.kind === 'pan') return
 
-  if (z.kind !== 'create' && !z.moved) {
-    emit('open', z.block)
+  if (currentDrag.kind !== 'create' && !currentDrag.moved) {
+    emit('open', currentDrag.block)
     return
   }
   if (!v || collides) return
-  if (z.kind === 'create') emit('create', { start: v.start, end: v.end })
-  else if (v.start !== z.block.start || v.end !== z.block.end) emit('change', z.block.id, { start: v.start, end: v.end })
+  if (currentDrag.kind === 'create') emit('create', { start: v.start, end: v.end })
+  else if (v.start !== currentDrag.block.start || v.end !== currentDrag.block.end) emit('change', currentDrag.block.id, { start: v.start, end: v.end })
 }
 
 // --- Right-click menu ---------------------------------------------------
@@ -211,9 +211,9 @@ function blockStyle(b: TimelineBlock) {
   return { ...position(b), borderColor: color }
 }
 
-function position(z: TimeRange) {
-  const links = percent(z.start)
-  return { left: `${links}%`, width: `${Math.max(percent(z.end) - links, 0)}%` }
+function position(range: TimeRange) {
+  const links = percent(range.start)
+  return { left: `${links}%`, width: `${Math.max(percent(range.end) - links, 0)}%` }
 }
 </script>
 

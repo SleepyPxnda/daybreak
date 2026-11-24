@@ -27,9 +27,7 @@ const form = reactive({
   bookingNotificationEndOfDay: 990,
 })
 
-type FormValues = { [Field in keyof typeof form]: (typeof form)[Field] }
-
-function formValuesFrom(stored: Settings): FormValues {
+function formValuesFrom(stored: Settings): typeof form {
   return {
     targetProDayHours: stored.targetPerDayMin / 60,
     workdays: [...stored.workdays],
@@ -63,9 +61,9 @@ watch(settings, (stored) => {
 }, { immediate: true })
 
 // Browser permission is per browser, the setting is stored server-side - show both
-const permission = ref<NotificationPermission | 'nicht-unterstuetzt'>('default')
+const permission = ref<NotificationPermission | 'unsupported'>('default')
 onMounted(() => {
-  permission.value = 'Notification' in window ? Notification.permission : 'nicht-unterstuetzt'
+  permission.value = 'Notification' in window ? Notification.permission : 'unsupported'
 })
 
 async function bookingNotificationsToggle(enabled: boolean) {

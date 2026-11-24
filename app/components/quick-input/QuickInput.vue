@@ -53,8 +53,8 @@ async function enter() {
         </p>
         <div v-if="result.type === 'block' && result.candidates" class="mt-2 flex flex-wrap items-center gap-2">
           <span class="text-muted-foreground">Mehrere Treffer:</span>
-          <Button v-for="(k, i) in result.candidates" :key="i" size="sm" variant="outline" class="max-w-full" :title="assignmentText(k)" @click="run(k)">
-            <span class="truncate">{{ assignmentText(k) }}</span>
+          <Button v-for="(candidate, index) in result.candidates" :key="index" size="sm" variant="outline" class="max-w-full" :title="assignmentText(candidate)" @click="run(candidate)">
+            <span class="truncate">{{ assignmentText(candidate) }}</span>
           </Button>
         </div>
       </template>

@@ -12,8 +12,8 @@ export default defineEventHandler(async (event) => {
   if (!previous) notFound('Aufgabe')
 
   if (data.accountId !== undefined) {
-    const [k] = await db.select({ id: account.id }).from(account).where(eq(account.id, data.accountId))
-    if (!k) throw createError({ statusCode: 400, statusMessage: 'Konto existiert nicht' })
+    const [accountRow] = await db.select({ id: account.id }).from(account).where(eq(account.id, data.accountId))
+    if (!accountRow) throw createError({ statusCode: 400, statusMessage: 'Konto existiert nicht' })
   }
 
   const closedAt = data.status === undefined || data.status === previous.status

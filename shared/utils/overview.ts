@@ -71,40 +71,40 @@ export function groupOverview(blocks: OverviewBlock[], accountOrder: number[]): 
     if (b.kind !== 'work' || b.status !== 'booked' || b.accountId == null) continue
     const minutes = duration(b)
 
-    let k = accounts.get(b.accountId)
-    if (!k) {
-      k = { account: { accountId: b.accountId, name: b.accountName ?? '', color: b.accountColor, minutes: 0, share: 0, tasks: [] }, tasks: new Map() }
-      accounts.set(b.accountId, k)
+    let accountEntry = accounts.get(b.accountId)
+    if (!accountEntry) {
+      accountEntry = { account: { accountId: b.accountId, name: b.accountName ?? '', color: b.accountColor, minutes: 0, share: 0, tasks: [] }, tasks: new Map() }
+      accounts.set(b.accountId, accountEntry)
     }
-    k.account.minutes += minutes
+    accountEntry.account.minutes += minutes
 
-    let a = k.tasks.get(b.taskId)
-    if (!a) {
-      a = { taskId: b.taskId, key: b.taskKey, title: b.taskTitle, minutes: 0, share: 0, days: [], dayMap: new Map() }
-      k.tasks.set(b.taskId, a)
+    let taskEntry = accountEntry.tasks.get(b.taskId)
+    if (!taskEntry) {
+      taskEntry = { taskId: b.taskId, key: b.taskKey, title: b.taskTitle, minutes: 0, share: 0, days: [], dayMap: new Map() }
+      accountEntry.tasks.set(b.taskId, taskEntry)
     }
-    a.minutes += minutes
+    taskEntry.minutes += minutes
 
-    let t = a.dayMap.get(b.date)
+    let t = taskEntry.dayMap.get(b.date)
     if (!t) {
       t = { date: b.date, minutes: 0, share: 0, notes: [] }
-      a.dayMap.set(b.date, t)
+      taskEntry.dayMap.set(b.date, t)
     }
     t.minutes += minutes
     const note = b.note?.trim()
     if (note && !t.notes.includes(note)) t.notes.push(note)
   }
 
-  const total = [...accounts.values()].reduce((s, k) => s + k.account.minutes, 0)
+  const total = [...accounts.values()].reduce((sum, entry) => sum + entry.account.minutes, 0)
 
   const result = [...accounts.values()].map(({ account, tasks }) => ({
     ...account,
     share: share(account.minutes, total),
-    tasks: [...tasks.values()].map(({ dayMap, ...a }) => ({
-      ...a,
-      share: share(a.minutes, account.minutes),
+    tasks: [...tasks.values()].map(({ dayMap, ...task }) => ({
+      ...task,
+      share: share(task.minutes, account.minutes),
       days: [...dayMap.values()]
-        .map(t => ({ ...t, share: share(t.minutes, a.minutes) }))
+        .map(t => ({ ...t, share: share(t.minutes, task.minutes) }))
         .sort((x, y) => x.date.localeCompare(y.date)),
     })).sort(byMinutes),
   })).sort(byAccountOrder(accountOrder))
@@ -153,14 +153,14 @@ export function monthClosing(blocks: OverviewBlock[], days: { date: IsoDate, tar
     const accounts = new Map<number, ClosingAccount>()
     for (const b of amDay) {
       const accountId = b.accountId as number
-      let k = accounts.get(accountId)
-      if (!k) {
-        k = { accountId, name: b.accountName ?? '', color: b.accountColor, minutes: 0, labels: [] }
-        accounts.set(accountId, k)
+      let accountEntry = accounts.get(accountId)
+      if (!accountEntry) {
+        accountEntry = { accountId, name: b.accountName ?? '', color: b.accountColor, minutes: 0, labels: [] }
+        accounts.set(accountId, accountEntry)
       }
-      k.minutes += duration(b)
+      accountEntry.minutes += duration(b)
       const label = blockLabel(b)
-      if (label && !k.labels.includes(label)) k.labels.push(label)
+      if (label && !accountEntry.labels.includes(label)) accountEntry.labels.push(label)
     }
 
     const start = Math.min(...amDay.map(b => b.start))

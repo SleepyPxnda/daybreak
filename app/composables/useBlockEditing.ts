@@ -32,8 +32,8 @@ export function useBlockEditing() {
     blockDialog.value = true
   }
 
-  function create(date: string, z: TimeRange) {
-    draftOpen({ date, ...z, status: standardStatus(date, z.end) })
+  function create(date: string, range: TimeRange) {
+    draftOpen({ date, ...range, status: standardStatus(date, range.end) })
   }
 
   function open(b: TimelineBlock) {
@@ -42,8 +42,8 @@ export function useBlockEditing() {
     blockDialog.value = true
   }
 
-  async function change(id: number, z: TimeRange) {
-    await runAction(() => api(`/api/blocks/${id}`, { method: 'PATCH', body: { ...z } }), DAY_KEYS)
+  async function change(id: number, range: TimeRange) {
+    await runAction(() => api(`/api/blocks/${id}`, { method: 'PATCH', body: { ...range } }), DAY_KEYS)
   }
 
   async function menu(actionName: BlockMenuAction, b: TimelineBlock, minute: number) {

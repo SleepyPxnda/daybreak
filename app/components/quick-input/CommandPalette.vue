@@ -136,15 +136,15 @@ function interceptEnter(e: KeyboardEvent) {
       <CommandGroup v-else-if="preview" heading="Ausführen">
         <template v-if="result.type === 'block' && result.candidates">
           <CommandItem
-            v-for="(k, i) in result.candidates"
-            :key="i"
-            :value="`kandidat-${i}`"
-            @select="runAndClose(k)"
+            v-for="(candidate, index) in result.candidates"
+            :key="`candidate-${index}`"
+            :value="`candidate-${index}`"
+            @select="runAndClose(candidate)"
           >
-            <CornerDownLeft /> <span class="min-w-0 truncate">{{ preview.text }} · {{ assignmentText(k) }}</span>
+            <CornerDownLeft /> <span class="min-w-0 truncate">{{ preview.text }} · {{ assignmentText(candidate) }}</span>
           </CommandItem>
         </template>
-        <CommandItem v-else value="ausfuehren" @select="runAndClose()">
+        <CommandItem v-else value="run" @select="runAndClose()">
           <CornerDownLeft />
           <span class="min-w-0 truncate">{{ preview.text }}<span v-if="preview.note" class="text-muted-foreground"> · „{{ preview.note }}“</span></span>
         </CommandItem>
@@ -153,26 +153,26 @@ function interceptEnter(e: KeyboardEvent) {
       <!-- Search results -->
       <template v-if="result.type === 'search' && hit">
         <CommandGroup v-if="hit.tasks.length" heading="Aufgaben">
-          <CommandItem v-for="a in hit.tasks" :key="`a${a.id}`" :value="`task-${a.id}`" @select="openPage(`/tasks/${a.id}`)">
-            <span class="size-2.5 shrink-0 rounded-full" :class="accountColorClasses(a.accountColor).dot" />
-            <TaskKey v-if="a.key" :value="a.key" :color="a.accountColor" />
-            <span class="min-w-0 truncate" :class="{ 'text-muted-foreground': a.status !== 'open' }">{{ a.title }}</span>
+          <CommandItem v-for="task in hit.tasks" :key="`task-${task.id}`" :value="`task-${task.id}`" @select="openPage(`/tasks/${task.id}`)">
+            <span class="size-2.5 shrink-0 rounded-full" :class="accountColorClasses(task.accountColor).dot" />
+            <TaskKey v-if="task.key" :value="task.key" :color="task.accountColor" />
+            <span class="min-w-0 truncate" :class="{ 'text-muted-foreground': task.status !== 'open' }">{{ task.title }}</span>
           </CommandItem>
         </CommandGroup>
         <CommandGroup v-if="hit.accounts.length" heading="Konten">
-          <CommandItem v-for="k in hit.accounts" :key="`k${k.id}`" :value="`account-${k.id}`" @select="openPage(`/accounts?accountId=${k.id}`)">
-            <span class="size-2.5 shrink-0 rounded-full" :class="accountColorClasses(k.color).dot" />
-            <span class="min-w-0 truncate" :class="{ 'text-muted-foreground': k.status !== 'active' }">{{ k.name }}</span>
+          <CommandItem v-for="account in hit.accounts" :key="`account-${account.id}`" :value="`account-${account.id}`" @select="openPage(`/accounts?accountId=${account.id}`)">
+            <span class="size-2.5 shrink-0 rounded-full" :class="accountColorClasses(account.color).dot" />
+            <span class="min-w-0 truncate" :class="{ 'text-muted-foreground': account.status !== 'active' }">{{ account.name }}</span>
           </CommandItem>
         </CommandGroup>
         <CommandGroup v-if="hit.notes.length" heading="Notizen">
-          <CommandItem v-for="n in hit.notes" :key="`n${n.id}`" :value="`note-${n.id}`" @select="openPage(`/notes?id=${n.id}`)">
-            <component :is="n.pinned ? Pin : NotebookPen" />
-            <span class="truncate">{{ n.title }}</span>
+          <CommandItem v-for="note in hit.notes" :key="`note-${note.id}`" :value="`note-${note.id}`" @select="openPage(`/notes?id=${note.id}`)">
+            <component :is="note.pinned ? Pin : NotebookPen" />
+            <span class="truncate">{{ note.title }}</span>
           </CommandItem>
         </CommandGroup>
         <CommandGroup v-if="hit.todos.length" heading="Merker & Daily">
-          <CommandItem v-for="t in hit.todos" :key="`t${t.id}`" :value="`todo-${t.id}`" @select="openPage('/todos')">
+          <CommandItem v-for="t in hit.todos" :key="`todo-${t.id}`" :value="`todo-${t.id}`" @select="openPage('/todos')">
             <component :is="TODO_ICONS[t.kind]" />
             <span v-if="t.person" class="text-muted-foreground">{{ t.person }}:</span>
             <span class="truncate">{{ t.text }}</span>

@@ -58,10 +58,10 @@ export function useBookingNotifications() {
     // Whoever is looking at Daybreak sees the status anyway - still counts as notified
     if (document.visibilityState === 'visible' && document.hasFocus()) return
 
-    const n = new Notification(bookingNotification.title, { body: bookingNotification.text, tag: `daybreak-${bookingNotification.kind}`, icon: '/favicon.svg' })
-    n.onclick = () => {
+    const notification = new Notification(bookingNotification.title, { body: bookingNotification.text, tag: `daybreak-${bookingNotification.kind}`, icon: '/favicon.svg' })
+    notification.onclick = () => {
       window.focus()
-      n.close()
+      notification.close()
       navigateTo(bookingNotification.kind === 'end_of_day' ? { path: '/', query: { dayClosing: '1' } } : '/')
     }
   }
