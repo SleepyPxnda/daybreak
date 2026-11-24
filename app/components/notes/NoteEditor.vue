@@ -4,6 +4,7 @@ import { useDebounceFn, useEventListener } from '@vueuse/core'
 import { Check, CircleAlert, ExternalLink, Pin, Trash2, X } from '@lucide/vue'
 import { NOTE_KINDS, noteKindLabels, normalizeTags, parseNoteReferences } from '#shared/utils/notes'
 import { normalizeForComparison } from '#shared/utils/text'
+import { toIsoDate } from '#shared/utils/time'
 import type { NoteKind } from '#shared/utils/notes'
 import NoteReferencePicker from '~/components/notes/NoteReferencePicker.vue'
 import NoteReferences from '~/components/notes/NoteReferences.vue'
@@ -45,6 +46,12 @@ function payload() {
   }
 }
 
+// Stored last content change: time only for today, otherwise with the date
+function formatLastChange(updatedAt: string) {
+  const lastChange = new Date(updatedAt)
+  return format(lastChange, toIsoDate(lastChange) === toIsoDate(new Date()) ? 'HH:mm' : 'dd.MM. HH:mm')
+}
+
 const isChanged = () => loaded.value && JSON.stringify(payload()) !== savedState
 
 async function save() {
@@ -53,11 +60,11 @@ async function save() {
   const data = payload()
   const state = JSON.stringify(data)
   status.value = 'saving'
-  const ok = await runAction(() => api<Note>(`/api/notes/${id}`, { method: 'PATCH', body: data }), NOTE_KEYS)
+  const savedNote = await runAction(() => api<Note>(`/api/notes/${id}`, { method: 'PATCH', body: data }), NOTE_KEYS)
   if (id !== currentId) return // another note was opened in the meantime
-  if (ok) {
+  if (savedNote) {
     savedState = state
-    savedAt.value = format(new Date(), 'HH:mm')
+    savedAt.value = formatLastChange(savedNote.updatedAt)
     status.value = isChanged() ? 'changed' : 'saved'
   }
   else {
@@ -88,7 +95,7 @@ async function load(id: number) {
     form.pinned = loadedNote.pinned
     referenceContent.value = loadedNote.content
     savedState = JSON.stringify(payload())
-    savedAt.value = format(new Date(loadedNote.updatedAt), 'dd.MM. HH:mm')
+    savedAt.value = formatLastChange(loadedNote.updatedAt)
     status.value = 'saved'
     loaded.value = true
   }

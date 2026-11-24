@@ -73,6 +73,12 @@ export function vacationWindowText(validFrom: IsoDate | null | undefined, validU
   return `gültig ${format(toDate(from), pattern)}–${format(toDate(until), pattern)}`
 }
 
+/** Deducted days for the vacation card: "0" for zero (never "−0"), otherwise "−" plus one decimal at most. */
+export function vacationDeductionText(days: number): string {
+  const formatted = days.toLocaleString('de-DE', { maximumFractionDigits: 1, signDisplay: 'negative' })
+  return formatted === '0' || formatted === '-0' ? '0' : `−${formatted}`
+}
+
 /**
  * Seeded on first start - base entitlement 32 + two semester extra entries of 2 each.
  * Labels as before (2026: "WS 26/27", "SS 27"); changeable in the settings.

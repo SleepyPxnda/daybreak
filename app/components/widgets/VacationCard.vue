@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ChevronRight } from '@lucide/vue'
-import { vacationWindowText } from '#shared/utils/vacation'
+import { vacationDeductionText, vacationWindowText } from '#shared/utils/vacation'
 
 // Vacation card: entitlement (expandable) · taken · planned · remaining
 const props = defineProps<{ year: number }>()
@@ -8,7 +8,7 @@ const props = defineProps<{ year: number }>()
 const { data: vacation } = useFetch('/api/vacation', { key: 'vacation', query: { year: toRef(props, 'year') } })
 const entitlementsOpen = ref(false)
 
-const number = (t: number) => t.toLocaleString('de-DE', { maximumFractionDigits: 1 })
+const number = (t: number) => t.toLocaleString('de-DE', { maximumFractionDigits: 1, signDisplay: 'negative' })
 const KIND_LABELS: Record<string, string> = { base: 'Grund', extra: 'Zusatz', carryover: 'Rest' }
 
 interface EntitlementLine {
@@ -94,13 +94,13 @@ const entitlementLines = computed<EntitlementLine[]>(() => {
         </div>
       </template>
       <div class="flex justify-between border-b py-2">
-        <span>genommen</span><span class="font-mono tabular-nums">−{{ number(vacation.taken) }}</span>
+        <span>genommen</span><span class="font-mono tabular-nums">{{ vacationDeductionText(vacation.taken) }}</span>
       </div>
       <div class="flex justify-between py-2" :class="{ 'border-b': vacation.forfeited > 0 }">
-        <span>geplant</span><span class="font-mono tabular-nums">−{{ number(vacation.planned) }}</span>
+        <span>geplant</span><span class="font-mono tabular-nums">{{ vacationDeductionText(vacation.planned) }}</span>
       </div>
       <div v-if="vacation.forfeited > 0" class="flex justify-between py-2">
-        <span>verfallen</span><span class="font-mono tabular-nums">−{{ number(vacation.forfeited) }}</span>
+        <span>verfallen</span><span class="font-mono tabular-nums">{{ vacationDeductionText(vacation.forfeited) }}</span>
       </div>
     </CardContent>
   </Card>

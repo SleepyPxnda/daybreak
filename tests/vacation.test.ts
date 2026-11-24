@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { DayEntry } from '../shared/utils/target'
 import { dayInfo } from '../shared/utils/target'
 import type { HandedOnEntitlement } from '../shared/utils/vacation'
-import { allocateVacationDays, passesToNextYear, yearDays, nextVacation, vacationBalance, vacationDays, vacationPrefill, vacationWindowText } from '../shared/utils/vacation'
+import { allocateVacationDays, passesToNextYear, yearDays, nextVacation, vacationBalance, vacationDays, vacationPrefill, vacationDeductionText, vacationWindowText } from '../shared/utils/vacation'
 
 const E = { targetPerDayMin: 480, workdays: [1, 2, 3, 4, 5], federalState: 'BW' }
 
@@ -305,5 +305,17 @@ describe('vacationWindowText', () => {
   it('empty bounds fall back to the shown year', () => {
     expect(vacationWindowText('2026-10-01', null, 2026)).toBe('gültig 01.10.–31.12.')
     expect(vacationWindowText(null, '2026-03-31', 2026)).toBe('gültig 01.01.–31.03.')
+  })
+})
+
+describe('vacationDeductionText', () => {
+  it('shows zero without a sign, including negative zero', () => {
+    expect(vacationDeductionText(0)).toBe('0')
+    expect(vacationDeductionText(-0)).toBe('0')
+  })
+  it('prefixes a minus sign and uses one decimal at most', () => {
+    expect(vacationDeductionText(4.5)).toBe('−4,5')
+    expect(vacationDeductionText(2)).toBe('−2')
+    expect(vacationDeductionText(0.25)).toBe('−0,3')
   })
 })
